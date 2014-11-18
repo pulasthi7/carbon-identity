@@ -45,12 +45,12 @@
                                 </path>
                                 <java classname="org.apache.axis2.wsdl.WSDL2Java" fork="true">
                                     <classpath refid="wsdl2java.classpath"/>
-                                    <arg line="-uri src/main/resources/CAAdminService.wsdl -u -uw
+                                    <arg line="-uri src/main/resources/CaAdminService.wsdl -u -uw
                                      -o target/generated-code -p org.wso2.carbon.identity.certificateauthority.stub -ns2p http://certificateauthority.identity.carbon.wso2.org=org.wso2.carbon.identity.certificateauthority.stub,http://certificateauthority.identity.carbon.wso2.org/xsd=org.wso2.carbon.identity.certificateauthority.stub.types,http://org.apache.axis2/xsd=org.wso2.carbon.identity.certificateauthority.stub.types.xsd,http://data.certificateauthority.identity.carbon.wso2.org/xsd=org.wso2.carbon.identity.certificateauthority.stub"/>
                                 </java>
                                 <java classname="org.apache.axis2.wsdl.WSDL2Java" fork="true">
                                     <classpath refid="wsdl2java.classpath"/>
-                                    <arg line="-uri src/main/resources/CAClientService.wsdl -u -uw
+                                    <arg line="-uri src/main/resources/CaClientService.wsdl -u -uw
                                      -o target/generated-code -p org.wso2.carbon.identity.certificateauthority.stub -ns2p http://certificateauthority.identity.carbon.wso2.org=org.wso2.carbon.identity.certificateauthority.stub,http://certificateauthority.identity.carbon.wso2.org/xsd=org.wso2.carbon.identity.certificateauthority.stub.types,http://org.apache.axis2/xsd=org.wso2.carbon.identity.certificateauthority.stub.types.xsd,http://data.certificateauthority.identity.carbon.wso2.org/xsd=org.wso2.carbon.identity.certificateauthority.stub"/>
                                 </java>
                             </tasks>

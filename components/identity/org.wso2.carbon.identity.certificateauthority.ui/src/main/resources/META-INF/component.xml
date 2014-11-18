@@ -17,7 +17,6 @@
   -->
 <component xmlns="http://products.wso2.org/carbon">
     <menus>
-
         <menu>
             <id>csr_list_menu</id>
             <i18n-key>identity.ca.csr.list</i18n-key>
@@ -31,8 +30,8 @@
             <require-permission>/permission/admin/configure</require-permission>
         </menu>
         <menu>
-            <id>pub_cert_list_menu</id>
-            <i18n-key>identity.ca.pub.cert.list</i18n-key>
+            <id>certificate_list_menu</id>
+            <i18n-key>identity.ca.certificate.list</i18n-key>
             <i18n-bundle>org.wso2.carbon.identity.certificateauthority.ui.i18n.Resources</i18n-bundle>
             <parent-menu>identity_ca_menu</parent-menu>
             <link>../ca/certificate-list-view.jsp</link>
@@ -44,10 +43,10 @@
         </menu>
         <menu>
             <id>ca_configuration_menu</id>
-            <i18n-key>identity.config</i18n-key>
+            <i18n-key>identity.ca.config</i18n-key>
             <i18n-bundle>org.wso2.carbon.identity.certificateauthority.ui.i18n.Resources</i18n-bundle>
             <parent-menu>identity_ca_menu</parent-menu>
-            <link>../ca/ca_configuration.jsp</link>
+            <link>../ca/ca-configuration.jsp</link>
             <region>region1</region>
             <order>14</order>
             <style-class>manage</style-class>

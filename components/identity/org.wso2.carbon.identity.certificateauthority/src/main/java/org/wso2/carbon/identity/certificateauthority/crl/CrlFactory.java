@@ -24,29 +24,31 @@ import org.bouncycastle.asn1.x509.CRLNumber;
 import org.bouncycastle.asn1.x509.X509Extensions;
 import org.bouncycastle.x509.X509V2CRLGenerator;
 import org.bouncycastle.x509.extension.AuthorityKeyIdentifierStructure;
+import org.wso2.carbon.identity.certificateauthority.CaConstants;
 import org.wso2.carbon.identity.certificateauthority.CaException;
-import org.wso2.carbon.identity.certificateauthority.dao.CertificateDAO;
-import org.wso2.carbon.identity.certificateauthority.dao.CrlDataHolderDao;
+import org.wso2.carbon.identity.certificateauthority.config.CaConfiguration;
+import org.wso2.carbon.identity.certificateauthority.dao.CrlDAO;
 import org.wso2.carbon.identity.certificateauthority.dao.RevocationDAO;
-import org.wso2.carbon.identity.certificateauthority.data.CRLDataHolder;
 import org.wso2.carbon.identity.certificateauthority.data.RevokedCertificate;
-import org.wso2.carbon.identity.certificateauthority.utils.CAUtils;
+import org.wso2.carbon.identity.certificateauthority.utils.ConversionUtils;
 
 import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
+import java.security.SignatureException;
+import java.security.cert.CertificateParsingException;
 import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
 import java.util.Date;
+import java.util.List;
 
 public class CrlFactory {
-    Log log = LogFactory.getLog(CrlFactory.class);
-
-    private final long CRL_UPDATE_TIME = 24 * 60 * 60 * 1000;
-
+    private static final Log log = LogFactory.getLog(CrlFactory.class);
 
     /**
-     * @param caCert              Certoficate authority's certificate
-     * @param caKey               CA private key
+     * @param caCertificate       Certoficate authority's certificate
+     * @param caPrivateKey        CA private key
      * @param revokedCertificates list of revoked certificates
      * @param crlNumber           unique number of the crl
      * @param baseCrlNumber       base crl number
@@ -54,25 +56,42 @@ public class CrlFactory {
      * @return returns the X509 Crl
      * @throws Exception
      */
-    private X509CRL createCRL(X509Certificate caCert, PrivateKey caKey, RevokedCertificate[] revokedCertificates, int crlNumber, int baseCrlNumber, boolean isDeltaCrl) throws Exception {
-        X509V2CRLGenerator crlGen = new X509V2CRLGenerator();
-        Date now = new Date();
-        CertificateDAO certificateDAO = new CertificateDAO();
-        RevocationDAO revocationDAO = new RevocationDAO();
-        crlGen.setIssuerDN(caCert.getSubjectX500Principal());
-        crlGen.setThisUpdate(now);
-        crlGen.setNextUpdate(new Date(now.getTime() + CRL_UPDATE_TIME));
-        crlGen.setSignatureAlgorithm("SHA256WithRSAEncryption");
-        for (RevokedCertificate cert : revokedCertificates) {
-            BigInteger serialNo = new BigInteger(cert.getSerialNo());
-            crlGen.addCRLEntry(serialNo, cert.getRevokedDate(), cert.getReason());
+    private X509CRL createCRL(X509Certificate caCertificate, PrivateKey caPrivateKey,
+                              List<RevokedCertificate> revokedCertificates, int crlNumber,
+                              int baseCrlNumber, boolean isDeltaCrl) throws CaException {
+
+        try {
+            X509V2CRLGenerator crlGen = new X509V2CRLGenerator();
+            Date now = new Date();
+            crlGen.setIssuerDN(caCertificate.getSubjectX500Principal());
+            crlGen.setThisUpdate(now);
+            long crlUpdateTimeMillis = CaConstants.CRL_UPDATE_INTERVAL * 1000;
+            crlGen.setNextUpdate(new Date(now.getTime() + crlUpdateTimeMillis));
+            crlGen.setSignatureAlgorithm(CaConstants.SHA256_WITH_RSA_ENCRYPTION);
+            for (RevokedCertificate revokedCertificate : revokedCertificates) {
+                BigInteger serialNo = new BigInteger(revokedCertificate.getSerialNo());
+                crlGen.addCRLEntry(serialNo, revokedCertificate.getRevokedDate(),
+                        revokedCertificate.getReason());
+            }
+            crlGen.addExtension(X509Extensions.AuthorityKeyIdentifier, false,
+                    new AuthorityKeyIdentifierStructure(caCertificate));
+            crlGen.addExtension(X509Extensions.CRLNumber, false,
+                    new CRLNumber(BigInteger.valueOf(crlNumber)));
+            if (isDeltaCrl) {
+                crlGen.addExtension(X509Extensions.DeltaCRLIndicator, true,
+                        new CRLNumber(BigInteger.valueOf(baseCrlNumber)));
+            }
+            return crlGen.generateX509CRL(caPrivateKey, CaConstants.BC_PROVIDER);
+        } catch (NoSuchProviderException e) {
+            log.error("Bouncycastle Provider not added to the system", e);
+        } catch (SignatureException e) {
+            log.error("Signature algorithm not available", e);
+        } catch (InvalidKeyException e) {
+            log.error("Invalid key used", e);
+        } catch (CertificateParsingException e) {
+            log.error("Error parsing Certificate", e);
         }
-        crlGen.addExtension(X509Extensions.AuthorityKeyIdentifier, false, new AuthorityKeyIdentifierStructure(caCert));
-        crlGen.addExtension(X509Extensions.CRLNumber, false, new CRLNumber(BigInteger.valueOf(crlNumber)));
-        if (isDeltaCrl) {
-            crlGen.addExtension(X509Extensions.DeltaCRLIndicator, true, new CRLNumber(BigInteger.valueOf(baseCrlNumber)));
-        }
-        return crlGen.generateX509CRL(caKey, "BC");
+        throw new CaException("Error when creating CRL");
     }
 
     /**
@@ -81,18 +100,20 @@ public class CrlFactory {
      * @throws Exception
      */
 
-    public X509CRL createFullCrl(int tenantId) throws Exception {
+    public X509CRL createFullCrl(int tenantId) throws CaException {
         RevocationDAO revocationDAO = new RevocationDAO();
-        CrlDataHolderDao crlDataHolderDao = new CrlDataHolderDao();
-        RevokedCertificate[] revokedCertificates = revocationDAO.getRevokedCertificates(tenantId);
+        CrlDAO crlDAO = new CrlDAO();
+        List<RevokedCertificate> revokedCertificates = revocationDAO.listRevokedCertificates
+                (tenantId);
 //        CRLDataHolder crlDataHolder = crlDataHolderDao.getLatestCRL(tenantId, false);
-        PrivateKey privateKey = CAUtils.getConfiguredPrivateKey();
-        X509Certificate certb = CAUtils.getConfiguredCaCert();
-        int fullnumber = crlDataHolderDao.findHighestCrlNumber(tenantId, false);
-        int deltanumber = crlDataHolderDao.findHighestCrlNumber(tenantId, true);
+        PrivateKey privateKey = CaConfiguration.getInstance().getConfiguredPrivateKey();
+        X509Certificate certb = CaConfiguration.getInstance().getConfiguredCaCert();
+        int fullnumber = crlDAO.getHighestCrlNumber(tenantId, false);
+        int deltanumber = crlDAO.getHighestCrlNumber(tenantId, true);
         // nextCrlNumber: The highest number of last CRL (full or delta) and increased by 1 (both full CRLs and deltaCRLs share the same series of CRL Number)
         int nextCrlNumber = ((fullnumber > deltanumber) ? fullnumber : deltanumber) + 1;
         return createCRL(certb, privateKey, revokedCertificates, nextCrlNumber, -1, false);
+
     }
 
     /**
@@ -100,26 +121,22 @@ public class CrlFactory {
      * @return a delta crl which
      * @throws Exception
      */
-    public X509CRL creteDeltaCrl(int tenantId) throws Exception {
+    public X509CRL createDeltaCrl(int tenantId) throws CaException {
         RevocationDAO revocationDAO = new RevocationDAO();
-        CrlDataHolderDao crlDataHolderDao = new CrlDataHolderDao();
+        CrlDAO crlDAO = new CrlDAO();
         X509CRL latestCrl;
-        try{
-            CRLDataHolder dataholder = crlDataHolderDao.getLatestCRL(tenantId, false);
-            latestCrl = crlDataHolderDao.getLatestCRL(tenantId, false).getCRL();
-            RevokedCertificate[] revokedCertificates = revocationDAO.getRevokedCertificatesAfter(tenantId, latestCrl.getThisUpdate());
-            CRLDataHolder crlDataHolder = crlDataHolderDao.getLatestCRL(tenantId, false);
-            PrivateKey privateKey = CAUtils.getConfiguredPrivateKey();
-            X509Certificate certb = CAUtils.getConfiguredCaCert();
-            int fullnumber = crlDataHolderDao.findHighestCrlNumber(tenantId, false);
-            int deltanumber = crlDataHolderDao.findHighestCrlNumber(tenantId, true);
-            // nextCrlNumber: The highest number of last CRL (full or delta) and increased by 1 (both full CRLs and deltaCRLs share the same series of CRL Number)
-            int nextCrlNumber = ((fullnumber > deltanumber) ? fullnumber : deltanumber) + 1;
-            return createCRL(certb, privateKey, revokedCertificates, nextCrlNumber, fullnumber, false);
-        } catch (CaException e){
-            log.info("No base crl found to create a delta crl");
-        }
-        return null;
+        latestCrl = ConversionUtils.toX509Crl(crlDAO.getLatestCRL(tenantId,
+                false).getBase64Crl());
+        List<RevokedCertificate> revokedCertificates = revocationDAO.getRevokedCertificatesAfter
+                (tenantId, latestCrl.getThisUpdate());
+        PrivateKey privateKey = CaConfiguration.getInstance().getConfiguredPrivateKey();
+        X509Certificate certb = CaConfiguration.getInstance().getConfiguredCaCert();
+        int fullnumber = crlDAO.getHighestCrlNumber(tenantId, false);
+        int deltanumber = crlDAO.getHighestCrlNumber(tenantId, true);
+        // nextCrlNumber: The highest number of last CRL (full or delta) and increased by 1 (both full CRLs and deltaCRLs share the same series of CRL Number)
+        int nextCrlNumber = ((fullnumber > deltanumber) ? fullnumber : deltanumber) + 1;
+        return createCRL(certb, privateKey, revokedCertificates, nextCrlNumber, fullnumber,
+                false);
     }
 
     /**
@@ -128,17 +145,17 @@ public class CrlFactory {
      * @param tenantId tenant id
      * @throws Exception
      */
-    public void createAndStoreCrl(int tenantId) throws Exception {
+    public void createAndStoreCrl(int tenantId) throws CaException {
         X509CRL crl = createFullCrl(tenantId);
-        CrlDataHolderDao crlDataHolderDao = new CrlDataHolderDao();
+        CrlDAO crlDAO = new CrlDAO();
         RevocationDAO revocationDAO = new RevocationDAO();
-        revocationDAO.removeActivedCertificates();
-        int fullnumber = crlDataHolderDao.findHighestCrlNumber(tenantId, false);
-        int deltanumber = crlDataHolderDao.findHighestCrlNumber(tenantId, true);
+        revocationDAO.removeReactivatedCertificates();
+        int fullnumber = crlDAO.getHighestCrlNumber(tenantId, false);
+        int deltanumber = crlDAO.getHighestCrlNumber(tenantId, true);
         // nextCrlNumber: The highest number of last CRL (full or delta) and increased by 1 (both full CRLs and deltaCRLs share the same series of CRL Number)
         int nextCrlNumber = ((fullnumber > deltanumber) ? fullnumber : deltanumber) + 1;
 
-        crlDataHolderDao.addCRL(crl, tenantId, crl.getThisUpdate(), crl.getNextUpdate(), nextCrlNumber, -1);
+        crlDAO.addCRL(crl, tenantId, crl.getThisUpdate(), crl.getNextUpdate(), nextCrlNumber, -1);
 
     }
 
@@ -146,19 +163,18 @@ public class CrlFactory {
      * create and store a delta crl in database
      *
      * @param tenantId id of the tenant
-     * @throws Exception
+     * @throws CaException
      */
-    public void createAndStoreDeltaCrl(int tenantId) throws Exception {
-        X509CRL crl = creteDeltaCrl(tenantId);
+    public void createAndStoreDeltaCrl(int tenantId) throws CaException {
+        X509CRL crl = createDeltaCrl(tenantId);
         if (crl != null) {
-            CrlDataHolderDao crlDataHolderDao = new CrlDataHolderDao();
-            int fullnumber = crlDataHolderDao.findHighestCrlNumber(tenantId, false);
-            int deltanumber = crlDataHolderDao.findHighestCrlNumber(tenantId, true);
+            CrlDAO crlDAO = new CrlDAO();
+            int fullNumber = crlDAO.getHighestCrlNumber(tenantId, false);
+            int deltaNumber = crlDAO.getHighestCrlNumber(tenantId, true);
             // nextCrlNumber: The highest number of last CRL (full or delta) and increased by 1 (both full CRLs and deltaCRLs share the same series of CRL Number)
-            int nextCrlNumber = ((fullnumber > deltanumber) ? fullnumber : deltanumber) + 1;
-            crlDataHolderDao.addCRL(crl, tenantId, crl.getThisUpdate(), crl.getNextUpdate(), nextCrlNumber, 1);
-        } else {
-            log.info("Error while creating delta crl for tenant " + tenantId);
+            int nextCrlNumber = ((fullNumber > deltaNumber) ? fullNumber : deltaNumber) + 1;
+            crlDAO.addCRL(crl, tenantId, crl.getThisUpdate(), crl.getNextUpdate(), nextCrlNumber,
+                    1);
         }
     }
 

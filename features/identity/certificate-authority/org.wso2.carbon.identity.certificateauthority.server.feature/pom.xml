@@ -35,17 +35,14 @@
         <dependency>
             <groupId>org.bouncycastle.wso2</groupId>
             <artifactId>bcprov-jdk15on</artifactId>
-            <version>1.49.wso2v1</version>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle.wso2</groupId>
             <artifactId>bcpkix-jdk15on</artifactId>
-            <version>1.49.wso2v1</version>
         </dependency>
         <dependency>
             <groupId>com.google.code.jscep.wso2</groupId>
             <artifactId>jscep</artifactId>
-            <version>2.0.2.wso2v1</version>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon</groupId>
@@ -140,6 +137,7 @@
                             </bundles>
                             <importFeatures>
                                 <importFeatureDef>org.wso2.carbon.identity.core.server</importFeatureDef>
+                                <importFeatureDef>org.wso2.carbon.identity.certificateauthority.common</importFeatureDef>
                             </importFeatures>
                         </configuration>
                     </execution>

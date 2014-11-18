@@ -1,0 +1,859 @@
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:tns="http://certificateauthority.identity.carbon.wso2.org" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:ax2215="http://data.certificateauthority.identity.carbon.wso2.org/xsd" xmlns:ax2213="http://certificateauthority.identity.carbon.wso2.org/xsd" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://certificateauthority.identity.carbon.wso2.org">
+    <wsdl:documentation>CaAdminService</wsdl:documentation>
+    <wsdl:types>
+        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://certificateauthority.identity.carbon.wso2.org/xsd">
+            <xs:complexType name="CaException">
+                <xs:sequence></xs:sequence>
+            </xs:complexType>
+        </xs:schema>
+        <xs:schema xmlns:ns="http://org.apache.axis2/xsd" xmlns:ax2216="http://data.certificateauthority.identity.carbon.wso2.org/xsd" xmlns:ax2214="http://certificateauthority.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://org.apache.axis2/xsd">
+            <xs:import namespace="http://certificateauthority.identity.carbon.wso2.org/xsd"></xs:import>
+            <xs:import namespace="http://data.certificateauthority.identity.carbon.wso2.org/xsd"></xs:import>
+            <xs:element name="CaAdminServiceCaException">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="CaException" nillable="true" type="ax2214:CaException"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="updateConfigurations">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="caConfig" nillable="true" type="ax2216:CaConfig"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="signCSR">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="serialNo" nillable="true" type="xs:string"></xs:element>
+                        <xs:element minOccurs="0" name="validity" type="xs:int"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="CaAdminServiceException">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="CaAdminServiceException" nillable="true" type="ns1:Exception"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:complexType name="Exception">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="Message" nillable="true" type="xs:string"></xs:element>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:element name="revokeCert">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="serial" nillable="true" type="xs:string"></xs:element>
+                        <xs:element minOccurs="0" name="reason" type="xs:int"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="rejectCSR">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="serial" nillable="true" type="xs:string"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="listKeyAliases">
+                <xs:complexType>
+                    <xs:sequence></xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="listKeyAliasesResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="xs:string"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="listCertificatesWithStatus">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="status" nillable="true" type="xs:string"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="listCertificatesWithStatusResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2216:CertificateInfo"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getTenantIssuedCertificates">
+                <xs:complexType>
+                    <xs:sequence></xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getTenantIssuedCertificatesResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2216:CertificateInfo"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getRevokedReason">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="serial" nillable="true" type="xs:string"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getRevokedReasonResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:int"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getCsrListWithStatus">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="status" nillable="true" type="xs:string"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getCsrListWithStatusResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2216:CsrInfo"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getCsrList">
+                <xs:complexType>
+                    <xs:sequence></xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getCsrListResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2216:CsrInfo"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getCsr">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="serial" nillable="true" type="xs:string"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getCsrResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2216:CsrInfo"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getConfigurations">
+                <xs:complexType>
+                    <xs:sequence></xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getConfigurationsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2216:CaConfig"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getCertificate">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="serialNo" nillable="true" type="xs:string"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getCertificateResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2216:CertificateInfo"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="generateScepToken">
+                <xs:complexType>
+                    <xs:sequence></xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="generateScepTokenResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="xs:string"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="deleteCsr">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="serial" nillable="true" type="xs:string"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://data.certificateauthority.identity.carbon.wso2.org/xsd">
+            <xs:complexType name="CaConfig">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="alias" nillable="true" type="xs:string"></xs:element>
+                    <xs:element minOccurs="0" name="keyStore" nillable="true" type="xs:string"></xs:element>
+                    <xs:element minOccurs="0" name="tenantId" type="xs:int"></xs:element>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="CertificateInfo">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="expiryDate" nillable="true" type="xs:date"></xs:element>
+                    <xs:element minOccurs="0" name="issuedDate" nillable="true" type="xs:date"></xs:element>
+                    <xs:element minOccurs="0" name="serialNo" nillable="true" type="xs:string"></xs:element>
+                    <xs:element minOccurs="0" name="status" nillable="true" type="xs:string"></xs:element>
+                    <xs:element minOccurs="0" name="tenantID" type="xs:int"></xs:element>
+                    <xs:element minOccurs="0" name="userStoreDomain" nillable="true" type="xs:string"></xs:element>
+                    <xs:element minOccurs="0" name="username" nillable="true" type="xs:string"></xs:element>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="CsrInfo">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="city" nillable="true" type="xs:string"></xs:element>
+                    <xs:element minOccurs="0" name="commonName" nillable="true" type="xs:string"></xs:element>
+                    <xs:element minOccurs="0" name="country" nillable="true" type="xs:string"></xs:element>
+                    <xs:element minOccurs="0" name="department" nillable="true" type="xs:string"></xs:element>
+                    <xs:element minOccurs="0" name="organization" nillable="true" type="xs:string"></xs:element>
+                    <xs:element minOccurs="0" name="requestedDate" nillable="true" type="xs:date"></xs:element>
+                    <xs:element minOccurs="0" name="serialNo" nillable="true" type="xs:string"></xs:element>
+                    <xs:element minOccurs="0" name="state" nillable="true" type="xs:string"></xs:element>
+                    <xs:element minOccurs="0" name="status" nillable="true" type="xs:string"></xs:element>
+                    <xs:element minOccurs="0" name="tenantID" type="xs:int"></xs:element>
+                    <xs:element minOccurs="0" name="userName" nillable="true" type="xs:string"></xs:element>
+                    <xs:element minOccurs="0" name="userStoreDomain" nillable="true" type="xs:string"></xs:element>
+                </xs:sequence>
+            </xs:complexType>
+        </xs:schema>
+    </wsdl:types>
+    <wsdl:message name="getCsrRequest">
+        <wsdl:part name="parameters" element="ns1:getCsr"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getCsrResponse">
+        <wsdl:part name="parameters" element="ns1:getCsrResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="CaAdminServiceCaException">
+        <wsdl:part name="parameters" element="ns1:CaAdminServiceCaException"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="revokeCertRequest">
+        <wsdl:part name="parameters" element="ns1:revokeCert"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="CaAdminServiceException">
+        <wsdl:part name="parameters" element="ns1:CaAdminServiceException"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getTenantIssuedCertificatesRequest">
+        <wsdl:part name="parameters" element="ns1:getTenantIssuedCertificates"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getTenantIssuedCertificatesResponse">
+        <wsdl:part name="parameters" element="ns1:getTenantIssuedCertificatesResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="deleteCsrRequest">
+        <wsdl:part name="parameters" element="ns1:deleteCsr"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getConfigurationsRequest">
+        <wsdl:part name="parameters" element="ns1:getConfigurations"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getConfigurationsResponse">
+        <wsdl:part name="parameters" element="ns1:getConfigurationsResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="updateConfigurationsRequest">
+        <wsdl:part name="parameters" element="ns1:updateConfigurations"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getRevokedReasonRequest">
+        <wsdl:part name="parameters" element="ns1:getRevokedReason"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getRevokedReasonResponse">
+        <wsdl:part name="parameters" element="ns1:getRevokedReasonResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getCertificateRequest">
+        <wsdl:part name="parameters" element="ns1:getCertificate"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getCertificateResponse">
+        <wsdl:part name="parameters" element="ns1:getCertificateResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getCsrListWithStatusRequest">
+        <wsdl:part name="parameters" element="ns1:getCsrListWithStatus"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getCsrListWithStatusResponse">
+        <wsdl:part name="parameters" element="ns1:getCsrListWithStatusResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="listKeyAliasesRequest">
+        <wsdl:part name="parameters" element="ns1:listKeyAliases"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="listKeyAliasesResponse">
+        <wsdl:part name="parameters" element="ns1:listKeyAliasesResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="rejectCSRRequest">
+        <wsdl:part name="parameters" element="ns1:rejectCSR"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="signCSRRequest">
+        <wsdl:part name="parameters" element="ns1:signCSR"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getCsrListRequest">
+        <wsdl:part name="parameters" element="ns1:getCsrList"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getCsrListResponse">
+        <wsdl:part name="parameters" element="ns1:getCsrListResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="listCertificatesWithStatusRequest">
+        <wsdl:part name="parameters" element="ns1:listCertificatesWithStatus"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="listCertificatesWithStatusResponse">
+        <wsdl:part name="parameters" element="ns1:listCertificatesWithStatusResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="generateScepTokenRequest">
+        <wsdl:part name="parameters" element="ns1:generateScepToken"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="generateScepTokenResponse">
+        <wsdl:part name="parameters" element="ns1:generateScepTokenResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:portType name="CaAdminServicePortType">
+        <wsdl:operation name="getCsr">
+            <wsdl:input message="tns:getCsrRequest" wsaw:Action="urn:getCsr"></wsdl:input>
+            <wsdl:output message="tns:getCsrResponse" wsaw:Action="urn:getCsrResponse"></wsdl:output>
+            <wsdl:fault message="tns:CaAdminServiceCaException" name="CaAdminServiceCaException" wsaw:Action="urn:getCsrCaAdminServiceCaException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="revokeCert">
+            <wsdl:input message="tns:revokeCertRequest" wsaw:Action="urn:revokeCert"></wsdl:input>
+            <wsdl:fault message="tns:CaAdminServiceException" name="CaAdminServiceException" wsaw:Action="urn:revokeCertCaAdminServiceException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getTenantIssuedCertificates">
+            <wsdl:input message="tns:getTenantIssuedCertificatesRequest" wsaw:Action="urn:getTenantIssuedCertificates"></wsdl:input>
+            <wsdl:output message="tns:getTenantIssuedCertificatesResponse" wsaw:Action="urn:getTenantIssuedCertificatesResponse"></wsdl:output>
+            <wsdl:fault message="tns:CaAdminServiceCaException" name="CaAdminServiceCaException" wsaw:Action="urn:getTenantIssuedCertificatesCaAdminServiceCaException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="deleteCsr">
+            <wsdl:input message="tns:deleteCsrRequest" wsaw:Action="urn:deleteCsr"></wsdl:input>
+            <wsdl:fault message="tns:CaAdminServiceCaException" name="CaAdminServiceCaException" wsaw:Action="urn:deleteCsrCaAdminServiceCaException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getConfigurations">
+            <wsdl:input message="tns:getConfigurationsRequest" wsaw:Action="urn:getConfigurations"></wsdl:input>
+            <wsdl:output message="tns:getConfigurationsResponse" wsaw:Action="urn:getConfigurationsResponse"></wsdl:output>
+            <wsdl:fault message="tns:CaAdminServiceCaException" name="CaAdminServiceCaException" wsaw:Action="urn:getConfigurationsCaAdminServiceCaException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="updateConfigurations">
+            <wsdl:input message="tns:updateConfigurationsRequest" wsaw:Action="urn:updateConfigurations"></wsdl:input>
+            <wsdl:fault message="tns:CaAdminServiceCaException" name="CaAdminServiceCaException" wsaw:Action="urn:updateConfigurationsCaAdminServiceCaException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getRevokedReason">
+            <wsdl:input message="tns:getRevokedReasonRequest" wsaw:Action="urn:getRevokedReason"></wsdl:input>
+            <wsdl:output message="tns:getRevokedReasonResponse" wsaw:Action="urn:getRevokedReasonResponse"></wsdl:output>
+            <wsdl:fault message="tns:CaAdminServiceCaException" name="CaAdminServiceCaException" wsaw:Action="urn:getRevokedReasonCaAdminServiceCaException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getCertificate">
+            <wsdl:input message="tns:getCertificateRequest" wsaw:Action="urn:getCertificate"></wsdl:input>
+            <wsdl:output message="tns:getCertificateResponse" wsaw:Action="urn:getCertificateResponse"></wsdl:output>
+            <wsdl:fault message="tns:CaAdminServiceCaException" name="CaAdminServiceCaException" wsaw:Action="urn:getCertificateCaAdminServiceCaException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getCsrListWithStatus">
+            <wsdl:input message="tns:getCsrListWithStatusRequest" wsaw:Action="urn:getCsrListWithStatus"></wsdl:input>
+            <wsdl:output message="tns:getCsrListWithStatusResponse" wsaw:Action="urn:getCsrListWithStatusResponse"></wsdl:output>
+            <wsdl:fault message="tns:CaAdminServiceCaException" name="CaAdminServiceCaException" wsaw:Action="urn:getCsrListWithStatusCaAdminServiceCaException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="listKeyAliases">
+            <wsdl:input message="tns:listKeyAliasesRequest" wsaw:Action="urn:listKeyAliases"></wsdl:input>
+            <wsdl:output message="tns:listKeyAliasesResponse" wsaw:Action="urn:listKeyAliasesResponse"></wsdl:output>
+            <wsdl:fault message="tns:CaAdminServiceCaException" name="CaAdminServiceCaException" wsaw:Action="urn:listKeyAliasesCaAdminServiceCaException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="rejectCSR">
+            <wsdl:input message="tns:rejectCSRRequest" wsaw:Action="urn:rejectCSR"></wsdl:input>
+            <wsdl:fault message="tns:CaAdminServiceCaException" name="CaAdminServiceCaException" wsaw:Action="urn:rejectCSRCaAdminServiceCaException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="signCSR">
+            <wsdl:input message="tns:signCSRRequest" wsaw:Action="urn:signCSR"></wsdl:input>
+            <wsdl:fault message="tns:CaAdminServiceCaException" name="CaAdminServiceCaException" wsaw:Action="urn:signCSRCaAdminServiceCaException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getCsrList">
+            <wsdl:input message="tns:getCsrListRequest" wsaw:Action="urn:getCsrList"></wsdl:input>
+            <wsdl:output message="tns:getCsrListResponse" wsaw:Action="urn:getCsrListResponse"></wsdl:output>
+            <wsdl:fault message="tns:CaAdminServiceCaException" name="CaAdminServiceCaException" wsaw:Action="urn:getCsrListCaAdminServiceCaException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="listCertificatesWithStatus">
+            <wsdl:input message="tns:listCertificatesWithStatusRequest" wsaw:Action="urn:listCertificatesWithStatus"></wsdl:input>
+            <wsdl:output message="tns:listCertificatesWithStatusResponse" wsaw:Action="urn:listCertificatesWithStatusResponse"></wsdl:output>
+            <wsdl:fault message="tns:CaAdminServiceCaException" name="CaAdminServiceCaException" wsaw:Action="urn:listCertificatesWithStatusCaAdminServiceCaException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="generateScepToken">
+            <wsdl:input message="tns:generateScepTokenRequest" wsaw:Action="urn:generateScepToken"></wsdl:input>
+            <wsdl:output message="tns:generateScepTokenResponse" wsaw:Action="urn:generateScepTokenResponse"></wsdl:output>
+            <wsdl:fault message="tns:CaAdminServiceCaException" name="CaAdminServiceCaException" wsaw:Action="urn:generateScepTokenCaAdminServiceCaException"></wsdl:fault>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="CaAdminServiceSoap11Binding" type="tns:CaAdminServicePortType">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"></soap:binding>
+        <wsdl:operation name="getCsr">
+            <soap:operation soapAction="urn:getCsr" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"></soap:body>
+            </wsdl:output>
+            <wsdl:fault name="CaAdminServiceCaException">
+                <soap:fault use="literal" name="CaAdminServiceCaException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="revokeCert">
+            <soap:operation soapAction="urn:revokeCert" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:fault name="CaAdminServiceException">
+                <soap:fault use="literal" name="CaAdminServiceException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getTenantIssuedCertificates">
+            <soap:operation soapAction="urn:getTenantIssuedCertificates" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"></soap:body>
+            </wsdl:output>
+            <wsdl:fault name="CaAdminServiceCaException">
+                <soap:fault use="literal" name="CaAdminServiceCaException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="deleteCsr">
+            <soap:operation soapAction="urn:deleteCsr" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:fault name="CaAdminServiceCaException">
+                <soap:fault use="literal" name="CaAdminServiceCaException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getConfigurations">
+            <soap:operation soapAction="urn:getConfigurations" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"></soap:body>
+            </wsdl:output>
+            <wsdl:fault name="CaAdminServiceCaException">
+                <soap:fault use="literal" name="CaAdminServiceCaException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="updateConfigurations">
+            <soap:operation soapAction="urn:updateConfigurations" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:fault name="CaAdminServiceCaException">
+                <soap:fault use="literal" name="CaAdminServiceCaException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getRevokedReason">
+            <soap:operation soapAction="urn:getRevokedReason" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"></soap:body>
+            </wsdl:output>
+            <wsdl:fault name="CaAdminServiceCaException">
+                <soap:fault use="literal" name="CaAdminServiceCaException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getCertificate">
+            <soap:operation soapAction="urn:getCertificate" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"></soap:body>
+            </wsdl:output>
+            <wsdl:fault name="CaAdminServiceCaException">
+                <soap:fault use="literal" name="CaAdminServiceCaException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getCsrListWithStatus">
+            <soap:operation soapAction="urn:getCsrListWithStatus" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"></soap:body>
+            </wsdl:output>
+            <wsdl:fault name="CaAdminServiceCaException">
+                <soap:fault use="literal" name="CaAdminServiceCaException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="rejectCSR">
+            <soap:operation soapAction="urn:rejectCSR" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:fault name="CaAdminServiceCaException">
+                <soap:fault use="literal" name="CaAdminServiceCaException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="listKeyAliases">
+            <soap:operation soapAction="urn:listKeyAliases" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"></soap:body>
+            </wsdl:output>
+            <wsdl:fault name="CaAdminServiceCaException">
+                <soap:fault use="literal" name="CaAdminServiceCaException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getCsrList">
+            <soap:operation soapAction="urn:getCsrList" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"></soap:body>
+            </wsdl:output>
+            <wsdl:fault name="CaAdminServiceCaException">
+                <soap:fault use="literal" name="CaAdminServiceCaException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="signCSR">
+            <soap:operation soapAction="urn:signCSR" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:fault name="CaAdminServiceCaException">
+                <soap:fault use="literal" name="CaAdminServiceCaException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="listCertificatesWithStatus">
+            <soap:operation soapAction="urn:listCertificatesWithStatus" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"></soap:body>
+            </wsdl:output>
+            <wsdl:fault name="CaAdminServiceCaException">
+                <soap:fault use="literal" name="CaAdminServiceCaException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="generateScepToken">
+            <soap:operation soapAction="urn:generateScepToken" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"></soap:body>
+            </wsdl:output>
+            <wsdl:fault name="CaAdminServiceCaException">
+                <soap:fault use="literal" name="CaAdminServiceCaException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="CaAdminServiceSoap12Binding" type="tns:CaAdminServicePortType">
+        <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"></soap12:binding>
+        <wsdl:operation name="getCsr">
+            <soap12:operation soapAction="urn:getCsr" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:output>
+            <wsdl:fault name="CaAdminServiceCaException">
+                <soap12:fault use="literal" name="CaAdminServiceCaException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="revokeCert">
+            <soap12:operation soapAction="urn:revokeCert" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:fault name="CaAdminServiceException">
+                <soap12:fault use="literal" name="CaAdminServiceException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getTenantIssuedCertificates">
+            <soap12:operation soapAction="urn:getTenantIssuedCertificates" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:output>
+            <wsdl:fault name="CaAdminServiceCaException">
+                <soap12:fault use="literal" name="CaAdminServiceCaException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="deleteCsr">
+            <soap12:operation soapAction="urn:deleteCsr" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:fault name="CaAdminServiceCaException">
+                <soap12:fault use="literal" name="CaAdminServiceCaException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getConfigurations">
+            <soap12:operation soapAction="urn:getConfigurations" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:output>
+            <wsdl:fault name="CaAdminServiceCaException">
+                <soap12:fault use="literal" name="CaAdminServiceCaException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="updateConfigurations">
+            <soap12:operation soapAction="urn:updateConfigurations" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:fault name="CaAdminServiceCaException">
+                <soap12:fault use="literal" name="CaAdminServiceCaException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getRevokedReason">
+            <soap12:operation soapAction="urn:getRevokedReason" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:output>
+            <wsdl:fault name="CaAdminServiceCaException">
+                <soap12:fault use="literal" name="CaAdminServiceCaException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getCertificate">
+            <soap12:operation soapAction="urn:getCertificate" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:output>
+            <wsdl:fault name="CaAdminServiceCaException">
+                <soap12:fault use="literal" name="CaAdminServiceCaException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getCsrListWithStatus">
+            <soap12:operation soapAction="urn:getCsrListWithStatus" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:output>
+            <wsdl:fault name="CaAdminServiceCaException">
+                <soap12:fault use="literal" name="CaAdminServiceCaException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="rejectCSR">
+            <soap12:operation soapAction="urn:rejectCSR" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:fault name="CaAdminServiceCaException">
+                <soap12:fault use="literal" name="CaAdminServiceCaException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="listKeyAliases">
+            <soap12:operation soapAction="urn:listKeyAliases" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:output>
+            <wsdl:fault name="CaAdminServiceCaException">
+                <soap12:fault use="literal" name="CaAdminServiceCaException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getCsrList">
+            <soap12:operation soapAction="urn:getCsrList" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:output>
+            <wsdl:fault name="CaAdminServiceCaException">
+                <soap12:fault use="literal" name="CaAdminServiceCaException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="signCSR">
+            <soap12:operation soapAction="urn:signCSR" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:fault name="CaAdminServiceCaException">
+                <soap12:fault use="literal" name="CaAdminServiceCaException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="listCertificatesWithStatus">
+            <soap12:operation soapAction="urn:listCertificatesWithStatus" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:output>
+            <wsdl:fault name="CaAdminServiceCaException">
+                <soap12:fault use="literal" name="CaAdminServiceCaException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="generateScepToken">
+            <soap12:operation soapAction="urn:generateScepToken" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:output>
+            <wsdl:fault name="CaAdminServiceCaException">
+                <soap12:fault use="literal" name="CaAdminServiceCaException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="CaAdminServiceHttpBinding" type="tns:CaAdminServicePortType">
+        <http:binding verb="POST"></http:binding>
+        <wsdl:operation name="getCsr">
+            <http:operation location="getCsr"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="revokeCert">
+            <http:operation location="revokeCert"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="getTenantIssuedCertificates">
+            <http:operation location="getTenantIssuedCertificates"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="deleteCsr">
+            <http:operation location="deleteCsr"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="getConfigurations">
+            <http:operation location="getConfigurations"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="updateConfigurations">
+            <http:operation location="updateConfigurations"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="getRevokedReason">
+            <http:operation location="getRevokedReason"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getCertificate">
+            <http:operation location="getCertificate"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getCsrListWithStatus">
+            <http:operation location="getCsrListWithStatus"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="rejectCSR">
+            <http:operation location="rejectCSR"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="listKeyAliases">
+            <http:operation location="listKeyAliases"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getCsrList">
+            <http:operation location="getCsrList"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="signCSR">
+            <http:operation location="signCSR"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="listCertificatesWithStatus">
+            <http:operation location="listCertificatesWithStatus"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="generateScepToken">
+            <http:operation location="generateScepToken"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:service name="CaAdminService">
+        <wsdl:port name="CaAdminServiceHttpsSoap11Endpoint" binding="tns:CaAdminServiceSoap11Binding">
+            <soap:address location="https://localhost:9443/services/CaAdminService.CaAdminServiceHttpsSoap11Endpoint/"></soap:address>
+        </wsdl:port>
+        <wsdl:port name="CaAdminServiceHttpsSoap12Endpoint" binding="tns:CaAdminServiceSoap12Binding">
+            <soap12:address location="https://localhost:9443/services/CaAdminService.CaAdminServiceHttpsSoap12Endpoint/"></soap12:address>
+        </wsdl:port>
+        <wsdl:port name="CaAdminServiceHttpsEndpoint" binding="tns:CaAdminServiceHttpBinding">
+            <http:address location="https://localhost:9443/services/CaAdminService.CaAdminServiceHttpsEndpoint/"></http:address>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

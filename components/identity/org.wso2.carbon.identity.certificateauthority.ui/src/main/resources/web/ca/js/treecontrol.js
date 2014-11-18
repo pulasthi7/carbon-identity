@@ -98,7 +98,6 @@ function pickNames(fullPath) {
         }
 
     }
-    return;
 }
 function getTreePathFromNode(node, path) {
     var hasParent = false;
@@ -139,6 +138,4 @@ function remvoeMe(me) {
     }
 
     delete paths[removeElement];
-
-    return;
 }                                                

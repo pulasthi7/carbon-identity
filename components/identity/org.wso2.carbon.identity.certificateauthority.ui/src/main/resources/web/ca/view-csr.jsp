@@ -21,11 +21,13 @@
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"
            prefix="carbon" %>
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
-<%@ page import="org.wso2.carbon.identity.certificateauthority.stub.CsrDTO" %>
-<%@ page import="org.wso2.carbon.identity.certificateauthority.ui.CAConstants" %>
-<%@ page import="org.wso2.carbon.identity.certificateauthority.ui.client.CAAdminServiceClient" %>
+<%@ page import="org.wso2.carbon.identity.certificateauthority.common.CsrStatus" %>
+<%@ page import="org.wso2.carbon.identity.certificateauthority.stub.CsrInfo" %>
+<%@ page import="org.wso2.carbon.identity.certificateauthority.ui.CaUiConstants" %>
+<%@ page import="org.wso2.carbon.identity.certificateauthority.ui.client.CaAdminServiceClient" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
+<%@ page import="org.wso2.carbon.ui.util.CharacterEncoder" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.util.ResourceBundle" %>
 
@@ -34,74 +36,33 @@
 
 
     String forwardTo = null;
-    boolean view = false;
-    CAAdminServiceClient client = null;
-    CsrDTO csr = null;
+    CaAdminServiceClient client = null;
+    CsrInfo csr = null;
 
-    String isPaginatedString = request.getParameter("isPaginated");
-
-    if (isPaginatedString != null && isPaginatedString.equals("true")) {
-        client = (CAAdminServiceClient) session.getAttribute(CAConstants.CA_ADMIN_CLIENT);
-    }
-
-
-    String pageNumber = request.getParameter("pageNumber");
-    if (pageNumber == null) {
-        pageNumber = "0";
-    }
-    int pageNumberInt = 0;
-    try {
-        pageNumberInt = Integer.parseInt(pageNumber);
-    } catch (NumberFormatException ignored) {
-    }
-
-    String viewString = request.getParameter("view");
-    serialNo = request.getParameter("serialNo");
-
-
-    if ((viewString != null)) {
-        view = Boolean.parseBoolean(viewString);
-    }
+    client = (CaAdminServiceClient) session.getAttribute(CaUiConstants.CA_ADMIN_CLIENT);
+    serialNo = CharacterEncoder.getSafeText(request.getParameter(CaUiConstants.SERIAL_NO_PARAM));
 
     String serverURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
     ConfigurationContext configContext =
             (ConfigurationContext) config.getServletContext().getAttribute(CarbonConstants.
                     CONFIGURATION_CONTEXT);
     String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
-    String BUNDLE = "org.wso2.carbon.identity.certificateauthority.ui.i18n.Resources";
-    ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
+    ResourceBundle resourceBundle =
+            ResourceBundle.getBundle(CaUiConstants.BUNDLE, request.getLocale());
 
     try {
 
         if (client == null) {
-
-            client = new CAAdminServiceClient(cookie,
+            client = new CaAdminServiceClient(cookie,
                     serverURL, configContext);
-            session.setAttribute(CAConstants.CA_ADMIN_CLIENT, client);
+            session.setAttribute(CaUiConstants.CA_ADMIN_CLIENT, client);
         }
 
         if (serialNo != null) {
             csr = client.getCSRFromSerialNo(serialNo);
-        }
+            if (csr != null) {
 
-    } catch (Exception e) {
-        String message = resourceBundle.getString("error.while.performing.advance.search");
-        CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
-        forwardTo = "../admin/error.jsp";
 %>
-<script type="text/javascript">
-    function forward() {
-        location.href = "<%=forwardTo%>";
-    }
-</script>
-
-<script type="text/javascript">
-    forward();
-</script>
-<%
-    }
-%>
-
 
 <fmt:bundle basename="org.wso2.carbon.identity.certificateauthority.ui.i18n.Resources">
 <carbon:breadcrumb
@@ -128,13 +89,8 @@
         document.requestForm.submit();
     }
 
-    function getSelectedStatusType() {
-        var comboBox = document.getElementById("currentKey");
-        var currentKey = comboBox[comboBox.selectedIndex].value;
-        location.href = 'csr-list-view.jsp?currentKey=' + currentKey;
-    }
     function viewCertificate(serialNo) {
-        location.href = "view-certificate.jsp?redirect=csr&view=true&serialNo=" + serialNo;
+        location.href = "view-certificate.jsp?from=csr&serialNo=" + serialNo;
     }
 
     function downloadCertificate(serialNo) {
@@ -160,9 +116,6 @@
     <h2><fmt:message key="csr.dashboard"/></h2>
 
     <div id="workArea">
-        <%
-            if (view) {
-        %>
         <div class="sectionSub" style="width: 100%">
             <table style="width: 100%" id="csrDashboard" cellspacing="0" cellpadding="0" border="0">
                 <tr>
@@ -176,22 +129,22 @@
                             </thead>
                             <tr>
                                 <td style="width: 50%"><fmt:message key='user'/></td>
-                                <td><%=csr.getCsrMetaInfo().getUserName()%>
+                                <td><%=csr.getUserName()%>
                                 </td>
                             </tr>
                             <tr>
                                 <td><fmt:message key='serial.No'/></td>
-                                <td><%=csr.getCsrMetaInfo().getSerialNo()%>
+                                <td><%=csr.getSerialNo()%>
                                 </td>
                             </tr>
                             <tr>
                                 <td><fmt:message key='status'/></td>
-                                <td><%=csr.getCsrMetaInfo().getStatus()%>
+                                <td><%=csr.getStatus()%>
                                 </td>
                             </tr>
                             <tr>
                                 <td><fmt:message key='csr.detail.cn'/></td>
-                                <td><%=csr.getCsrMetaInfo().getCommonName()%>
+                                <td><%=csr.getCommonName()%>
                                 </td>
                             </tr>
                             <tr>
@@ -201,7 +154,7 @@
                             </tr>
                             <tr>
                                 <td><fmt:message key='csr.detail.org'/></td>
-                                <td><%=csr.getCsrMetaInfo().getOrganization()%>
+                                <td><%=csr.getOrganization()%>
                                 </td>
                             </tr>
                             <tr>
@@ -221,7 +174,7 @@
                             </tr>
                             <tr>
                                 <td><fmt:message key='requested.date'/></td>
-                                <td><%=csr.getCsrMetaInfo().getRequestedDate()%>
+                                <td><%=csr.getRequestedDate().toString()%>
                                 </td>
                             </tr>
                         </table>
@@ -238,24 +191,27 @@
                             <tbody>
                             <tr>
                                 <%
-                                    if (csr.getCsrMetaInfo().getStatus().equals(resourceBundle.getString("pending"))) {
+                                    if (CsrStatus.PENDING.toString().equals(csr.getStatus())) {
                                 %>
                                 <td>
                                     <form method="post" action="" name="signForm">
                                         <table style="width: 100%;border: none;" id="sign">
                                             <tr>
                                                 <td style="border: transparent">
-                                                    <label for="validity"><fmt:message key="days.of.validity"/></label>
+                                                    <label for="validity"><fmt:message
+                                                            key="days.of.validity"/></label>
                                                 </td>
                                                 <td style="border: transparent">
-                                                    <input type="number" name="validity" value="3650" id="validity">
+                                                    <input type="number" name="validity"
+                                                           value="3650" id="validity">
                                                 </td>
                                                 <input type="hidden" name="action" value="sign"/>
-                                                <input type="hidden" name="serial"
-                                                       value="<%=csr.getCsrMetaInfo().getSerialNo() %>">
+                                                <input type="hidden" name="serialNo"
+                                                       value="<%=csr.getSerialNo() %>">
                                                 <td style="border: transparent">
                                                     <a onclick="signCsr();return false;"
-                                                       href="#" style="background-image: url(images/sign.gif);"
+                                                       href="#"
+                                                       style="background-image: url(images/sign.gif);"
                                                        class="icon-link">
                                                         <fmt:message key='sign'/></a>
                                                 </td>
@@ -268,38 +224,36 @@
                                     <form method="post" action="" name="reject">
                                         <input type="hidden" name="action" value="reject">
                                         <input type="hidden" name="serial"
-                                               value="<%=csr.getCsrMetaInfo().getSerialNo() %>">
+                                               value="<%=csr.getSerialNo() %>">
 
                                         <a onclick="rejectCsr();return false;"
-                                           href="#" style="background-image: url(images/reject.gif);"
+                                           href="#"
+                                           style="background-image: url(images/reject.gif);"
                                            class="icon-link">
                                             <fmt:message key='reject'/></a>
                                     </form>
                                 </td>
+
+                                <%
+                                } else if (CsrStatus.SIGNED.toString().equals(csr.getStatus())) {
+                                %>
+                                <td>
+                                    <a onclick="viewCertificate('<%=csr.getSerialNo()%>');return false;"
+                                       href="#" style="background-image: url(images/view.gif);"
+                                       class="icon-link">
+                                        <fmt:message key='view.certificate'/></a>
+                                </td>
+                                <td>
+                                    <a onclick="downloadCertificate('<%=csr.getSerialNo()%>');return false;"
+                                       href="#" style="background-image: url(images/download.gif);"
+                                       class="icon-link">
+                                        <fmt:message key='download.certificate'/></a>
+                                </td>
+                                <%
+                                    }
+                                %>
                             </tr>
-                            <%
-                            } else if (csr.getCsrMetaInfo().getStatus().equals(resourceBundle.getString("signed"))) {
-                            %>
-                            <td>
-                                <a onclick="viewCertificate('<%=csr.getCsrMetaInfo().getSerialNo()%>');return false;"
-                                   href="#" style="background-image: url(images/view.gif);"
-                                   class="icon-link">
-                                    <fmt:message key='view.certificate'/></a>
-                            </td>
-                            <td>
-                                <a onclick="downloadCertificate('<%=csr.getCsrMetaInfo().getSerialNo()%>');return false;"
-                                   href="#" style="background-image: url(images/download.gif);"
-                                   class="icon-link">
-                                    <fmt:message key='download.certificate'/></a>
-                            </td>
-                            <%
-                                } else {
-
-                                }
-                            %>
                             </form>
-
-
                             </tbody>
                         </table>
                     </td>
@@ -314,11 +268,33 @@
 
             <div style="clear:both"></div>
         </div>
-        <%
-            }
-        %>
-
         </form>
     </div>
 </div>
 </fmt:bundle>
+<%
+            }
+        }
+        if (csr == null) {
+            //serial no is null, or csr not found with given serial
+            String message = resourceBundle.getString("csr.not.found");
+            CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
+            forwardTo = "../admin/error.jsp";
+        }
+    } catch (Exception e) {
+        String message = resourceBundle.getString("error.while.viewing.csr");
+        CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
+        forwardTo = "../admin/error.jsp";
+%>
+<script type="text/javascript">
+    function forward() {
+        location.href = "<%=forwardTo%>";
+    }
+</script>
+
+<script type="text/javascript">
+    forward();
+</script>
+<%
+    }
+%>

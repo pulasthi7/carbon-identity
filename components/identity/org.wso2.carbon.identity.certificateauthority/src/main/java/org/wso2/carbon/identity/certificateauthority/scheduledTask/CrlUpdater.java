@@ -22,33 +22,41 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.certificateauthority.CaException;
 import org.wso2.carbon.identity.certificateauthority.crl.CrlFactory;
-import org.wso2.carbon.identity.certificateauthority.internal.CAServiceComponent;
+import org.wso2.carbon.identity.certificateauthority.internal.CaServiceComponent;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserRealmService;
+import org.wso2.carbon.user.api.UserStoreException;
 
 public class CrlUpdater implements Runnable {
     private static final Log log = LogFactory.getLog(CrlUpdater.class);
 
-    public void buildFullCrl() throws Exception {
+    public void buildFullCrl() throws CaException {
         CrlFactory crlFactory = new CrlFactory();
-        UserRealmService service = CAServiceComponent.getRealmService();
-        setTenant(MultitenantConstants.SUPER_TENANT_ID, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        UserRealmService service = CaServiceComponent.getRealmService();
+        setTenant(MultitenantConstants.SUPER_TENANT_ID,
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         crlFactory.createAndStoreCrl(MultitenantConstants.SUPER_TENANT_ID);
 
-        for (Tenant tenant : service.getTenantManager().getAllTenants()) {
-            setTenant(tenant.getId(), tenant.getDomain());
-            crlFactory.createAndStoreCrl(tenant.getId());
+        try {
+            for (Tenant tenant : service.getTenantManager().getAllTenants()) {
+                setTenant(tenant.getId(), tenant.getDomain());
+                crlFactory.createAndStoreCrl(tenant.getId());
+            }
+        } catch (UserStoreException e) {
+            log.error("Error getting tenant list", e);
+            throw new CaException("CRL list was not build, Error when accessing tenants", e);
         }
     }
 
     @Override
     public void run() {
         try {
-            log.info("building full crls for tenants... and testing for scripts");
+            log.debug("Creating full CRLs for tenants...");
             buildFullCrl();
         } catch (Exception e) {
-            log.error(e.getMessage(),e);
+            log.error("Error when updating CRL", e);
         }
     }
 
