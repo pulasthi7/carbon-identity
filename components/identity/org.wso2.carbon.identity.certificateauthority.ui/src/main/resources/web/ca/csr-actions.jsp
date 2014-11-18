@@ -21,44 +21,59 @@
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"
            prefix="carbon" %>
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
-<%@ page import="org.wso2.carbon.identity.certificateauthority.ui.CAConstants" %>
-<%@ page import="org.wso2.carbon.identity.certificateauthority.ui.client.CAAdminServiceClient" %>
+<%@ page import="org.wso2.carbon.identity.certificateauthority.ui.CaUiConstants" %>
+<%@ page import="org.wso2.carbon.identity.certificateauthority.ui.client.CaAdminServiceClient" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
+<%@ page import="org.wso2.carbon.ui.util.CharacterEncoder" %>
+<%@ page import="java.util.ResourceBundle" %>
+<%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 
 
 <%
     String forwardTo = "view-csr.jsp?view=true&serialNo=";
-    String serverURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
-    ConfigurationContext configContext =
-            (ConfigurationContext) config.getServletContext().getAttribute(CarbonConstants.
-                    CONFIGURATION_CONTEXT);
-    String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
-    CAAdminServiceClient client = (CAAdminServiceClient) session.getAttribute(CAConstants.CA_ADMIN_CLIENT);
+    ResourceBundle resourceBundle =
+            ResourceBundle.getBundle(CaUiConstants.BUNDLE, request.getLocale());
+    try{
+        String serverURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
+        ConfigurationContext configContext =
+                (ConfigurationContext) config.getServletContext().getAttribute(CarbonConstants.
+                        CONFIGURATION_CONTEXT);
+        String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
+        CaAdminServiceClient client = (CaAdminServiceClient) session.getAttribute(CaUiConstants.CA_ADMIN_CLIENT);
 
-    if (client == null) {
-        client = new CAAdminServiceClient(cookie, serverURL, configContext);
-        session.setAttribute(CAConstants.CA_ADMIN_CLIENT, client);
-    }
-    String serialNo = "";
+        if (client == null) {
+            client = new CaAdminServiceClient(cookie, serverURL, configContext);
+            session.setAttribute(CaUiConstants.CA_ADMIN_CLIENT, client);
+        }
+        String serialNo = "";
 
-    String action = request.getParameter("action");
-    if ("sign".equals(action)) {
-        serialNo = request.getParameter("serial");
-        int validity = Integer.parseInt(request.getParameter("validity"));
-        client.sign(serialNo, validity);
-    } else if ("reject".equals(action)) {
-        serialNo = request.getParameter("serial");
-        client.rejectCSR(serialNo);
+        String action = CharacterEncoder.getSafeText(request.getParameter(CaUiConstants.ACTION_PARAM));
+        if (CaUiConstants.SIGN_ACTION.equals(action)) {
+            serialNo =
+                    CharacterEncoder.getSafeText(request.getParameter(CaUiConstants.SERIAL_NO_PARAM));
+            int validity = Integer.parseInt(CharacterEncoder.getSafeText(request.getParameter(
+                    CaUiConstants.VALIDITY_PARAM)));
+            client.sign(serialNo, validity);
+        } else if (CaUiConstants.REJECT_ACTION.equals(action)) {
+            serialNo =
+                    CharacterEncoder.getSafeText(request.getParameter(CaUiConstants.SERIAL_NO_PARAM));
+            client.rejectCSR(serialNo);
+        }
+        forwardTo += serialNo;
+    } catch (Exception e) {
+        String message = resourceBundle.getString("error.while.signing.csr");
+        CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
+        forwardTo = "../admin/error.jsp";
+        e.printStackTrace();
     }
     //todo: fix url for redirect
     //  response.sendRedirect("/carbon/ca/csr-list-view.jsp");
 %>
-<script
-        type="text/javascript">
+<script type="text/javascript">
 
     function forward() {
-        location.href = "<%=forwardTo%><%=serialNo%>";
+        location.href = "<%=forwardTo%>";
     }
 </script>
 

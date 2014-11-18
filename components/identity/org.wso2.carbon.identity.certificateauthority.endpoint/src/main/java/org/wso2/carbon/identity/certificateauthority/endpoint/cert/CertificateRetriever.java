@@ -20,7 +20,8 @@ package org.wso2.carbon.identity.certificateauthority.endpoint.cert;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.certificateauthority.CertificateService;
+import org.wso2.carbon.identity.certificateauthority.config.CaConfiguration;
+import org.wso2.carbon.identity.certificateauthority.CertificateManager;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -34,15 +35,31 @@ public class CertificateRetriever {
 
     @GET
     @Path("/{serial}.crt")
-    @Produces("application/octet-string")
+    @Produces("application/x-x509-user-cert")
     public Response getCertificate(@PathParam("serial") String serial) {
-        CertificateService service = new CertificateService();
         try {
-            String certificate = service.getCertificate(serial);
+            String certificate = CertificateManager.getInstance().getPemEncodedCertificate(serial);
 
             //the actual mime type for certificate is "application/x-x509-user-cert",
             // but that will cause browsers issuing warnings and not allowing the download.
-            return Response.ok().type("application/octet-string").entity(certificate).build();
+            return Response.ok().type("application/x-x509-user-cert").entity(certificate).build();
+        } catch (Exception e) {
+            log.error("Error occurred retrieving certificate", e);
+            return Response.serverError().build();
+        }
+    }
+
+    @GET
+    @Path("/_t/{tenantDomain}.crt")
+    @Produces("application/x-x509-ca-cert")
+    public Response getCaCertificate(@PathParam("tenantDomain") String tenantDomain) {
+        try {
+            String certificate = CaConfiguration.getInstance().getPemEncodedCaCert
+                    (tenantDomain);
+
+            //the actual mime type for certificate is "application/x-x509-ca-cert",
+            // but that will cause browsers issuing warnings and not allowing the download.
+            return Response.ok().type("application/x-x509-ca-cert").entity(certificate).build();
         } catch (Exception e) {
             log.error("Error occurred retrieving certificate", e);
             return Response.serverError().build();

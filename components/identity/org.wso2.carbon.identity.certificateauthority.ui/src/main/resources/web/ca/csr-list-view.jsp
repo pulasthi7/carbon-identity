@@ -21,49 +21,53 @@
            prefix="carbon" %>
 <%@ page import="org.apache.axis2.context.ConfigurationContext" %>
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
-<%@ page import="org.wso2.carbon.identity.certificateauthority.stub.CsrMetaInfo" %>
-<%@page import="org.wso2.carbon.identity.certificateauthority.ui.CAConstants" %>
-<%@ page import="org.wso2.carbon.identity.certificateauthority.ui.client.CAAdminServiceClient" %>
+<%@ page import="org.wso2.carbon.identity.certificateauthority.common.CsrStatus" %>
+<%@ page import="org.wso2.carbon.identity.certificateauthority.stub.CsrInfo" %>
+<%@ page import="org.wso2.carbon.identity.certificateauthority.ui.CaUiConstants" %>
+<%@ page import="org.wso2.carbon.identity.certificateauthority.ui.client.CaAdminServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.certificateauthority.ui.util.ClientUtil" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.ui.util.CharacterEncoder" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%
 
-    CsrMetaInfo[] csrPerPage = null;
-    CAAdminServiceClient client = null;
-    CsrMetaInfo[] csrs = null;
+    CsrInfo[] csrsToDisplay = null;
+    CaAdminServiceClient client = null;
+    CsrInfo[] csrs = null;
     int numberOfPages = 0;
     int pageNumberInt = 0;
 
 
-    String statusTypeFilter = CharacterEncoder.getSafeText(request.getParameter("statusTypeFilter"));
+    String statusTypeFilter =
+            CharacterEncoder.getSafeText(request.getParameter(CaUiConstants.STATUS_PARAM));
     if (statusTypeFilter == null || "".equals(statusTypeFilter)) {
-        statusTypeFilter = "ALL";
+        statusTypeFilter = CaUiConstants.STATUS_ALL;
     }
 
-    String[] statusTypes = new String[]{"PENDING", "REJECTED", "SIGNED"};
-    boolean isPaginated = Boolean.parseBoolean(request.getParameter("isPaginated"));
-    String csrSearchString = request.getParameter("csrSearchString");
+    boolean isPaginated =
+            Boolean.parseBoolean(request.getParameter(CaUiConstants.IS_PAGINATED_PARAM));
+    String csrSearchString =
+            CharacterEncoder.getSafeText(request.getParameter(CaUiConstants.SEARCH_STRING_PARAM));
 
     if (csrSearchString == null) {
-        csrSearchString = "*";
+        csrSearchString = CaUiConstants.SEARCH_STRING_ANY;
     } else {
         csrSearchString = csrSearchString.trim();
     }
 
-    String paginationValue = "isPaginated=true&csrSearchString=" + csrSearchString;
+    //todo:
+    String paginationValue = CaUiConstants.IS_PAGINATED_PARAM + "=true&" +
+            CaUiConstants.SEARCH_STRING_PARAM + "=" + csrSearchString;
 
-    String pageNumber = request.getParameter("pageNumber");
+    String pageNumber =
+            CharacterEncoder.getSafeText(request.getParameter(CaUiConstants.PAGE_NUMBER_PARAM));
 
-    if (pageNumber == null) {
-        pageNumber = "0";
-    }
-
-    try {
-        pageNumberInt = Integer.parseInt(pageNumber);
-    } catch (NumberFormatException ignored) {
-        // ignore
+    if (pageNumber != null) {
+        try {
+            pageNumberInt = Integer.parseInt(pageNumber);
+        } catch (NumberFormatException ignored) {
+            // ignored since defaults to 0
+        }
     }
 
     String serverURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
@@ -74,40 +78,40 @@
 
     try {
         if (client == null) {
-            client = new CAAdminServiceClient(cookie,
+            client = new CaAdminServiceClient(cookie,
                     serverURL, configContext);
-            session.setAttribute(CAConstants.CA_ADMIN_CLIENT, client);
+            session.setAttribute(CaUiConstants.CA_ADMIN_CLIENT, client);
         }
 
 
-        csrs = (CsrMetaInfo[]) session.getAttribute("csrs");
+        csrs = (CsrInfo[]) session.getAttribute(CaUiConstants.CSRS_ATTRIB);
         if (csrs == null || !isPaginated) {
 
-            if (statusTypeFilter.equals("ALL")) {
-                csrs = client.getCSRFileList();
+            if (CaUiConstants.SEARCH_STRING_ANY.equals(csrSearchString)) {
+                if (statusTypeFilter.equals(CaUiConstants.STATUS_ALL)) {
+                    csrs = client.getCSRFileList();
+                } else {
+                    csrs = client.getCSRsFromType(statusTypeFilter);
+                }
             } else {
-                csrs = client.getCSRsFromType(statusTypeFilter);
-            }
-            if (!csrSearchString.equals("*")) {
                 csrs = client.getCSRsFromCommonName(csrSearchString);
             }
-
-            session.setAttribute("csrs", csrs);
+            session.setAttribute(CaUiConstants.CSRS_ATTRIB, csrs);
         }
 
-        int itemsPerPageInt = CAConstants.DEFAULT_ITEMS_PER_PAGE;
-
+        int itemsPerPageInt = CaUiConstants.DEFAULT_ITEMS_PER_PAGE;
 
         if (csrs != null) {
-            numberOfPages = (int) Math.ceil((double) csrs.length / itemsPerPageInt);
-            csrPerPage = ClientUtil.doPagingForStrings(pageNumberInt, itemsPerPageInt, csrs);
+//            numberOfPages = (int) Math.ceil((double) csrs.length / itemsPerPageInt);
+            numberOfPages = (csrs.length + itemsPerPageInt - 1) / itemsPerPageInt;
+            csrsToDisplay = ClientUtil.doPagingForCsrs(pageNumberInt, itemsPerPageInt, csrs);
         }
     } catch (Exception e) {
 %>
 
 <script type="text/javascript">
     CARBON.showErrorDialog('<%=e.getMessage()%>', function () {
-        location.href = "csr-list-view.jsp";
+        location.href = "../admin/index.jsp";
     });
 </script>
 <%
@@ -162,25 +166,30 @@
                                             <select name="statusTypeFilter" id="statusTypeFilter"
                                                     onchange="getSelectedStatusType();">
                                                 <%
-                                                    if (statusTypeFilter.equals("ALL")) {
+                                                    if (CaUiConstants.STATUS_ALL
+                                                            .equals(statusTypeFilter)) {
                                                 %>
                                                 <option value="ALL" selected="selected"><fmt:message
                                                         key="all"/></option>
                                                 <%
                                                 } else {
                                                 %>
-                                                <option value="ALL"><fmt:message key="all"/></option>
+                                                <option value="ALL"><fmt:message
+                                                        key="all"/></option>
                                                 <%
                                                     }
-                                                    for (String status : statusTypes) {
-                                                        if (statusTypeFilter.equals(status)) {
+                                                    for (CsrStatus status : CsrStatus.values()) {
+                                                        if (statusTypeFilter
+                                                                .equals(status.toString())) {
                                                 %>
-                                                <option value="<%= status%>" selected="selected"><%= status%>
+                                                <option value="<%= status.toString()%>"
+                                                        selected="selected"><%= status.toString()%>
                                                 </option>
                                                 <%
                                                 } else {
                                                 %>
-                                                <option value="<%= status%>"><%= status%>
+                                                <option value="<%= status.toString()%>">
+                                                    <%= status.toString()%>
                                                 </option>
                                                 <%
                                                         }
@@ -190,11 +199,15 @@
                                             &nbsp;&nbsp;&nbsp;
                                             <fmt:message key="search.csr"/>
                                             <input type="text" name="csrSearchString"
-                                                   value="<%= csrSearchString != null? csrSearchString :""%>"/>&nbsp;
+                                                   value="<%= csrSearchString != null?
+                                                    csrSearchString
+                                                    : CaUiConstants.SEARCH_STRING_ANY %>"/>
+                                            &nbsp;
                                         </nobr>
                                     </td>
                                     <td style="border:0; !important">
-                                        <a class="icon-link" href="#" style="background-image: url(images/search.gif);"
+                                        <a class="icon-link" href="#"
+                                           style="background-image: url(images/search.gif);"
                                            onclick="searchServices(); return false;"
                                            alt="<fmt:message key="search"/>"></a>
                                     </td>
@@ -220,8 +233,8 @@
                     </tr>
                     </thead>
                     <%
-                        if (csrPerPage != null && csrPerPage.length > 0) {
-                            for (CsrMetaInfo csr : csrPerPage) {
+                        if (csrsToDisplay != null && csrsToDisplay.length > 0) {
+                            for (CsrInfo csr : csrsToDisplay) {
                                 if (csr != null && csr.getSerialNo().trim().length() > 0) {
                     %>
                     <tr>

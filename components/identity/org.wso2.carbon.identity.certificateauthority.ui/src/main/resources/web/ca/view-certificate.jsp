@@ -21,86 +21,52 @@
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"
            prefix="carbon" %>
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
-<%@ page import="org.wso2.carbon.identity.certificateauthority.stub.CertificateDTO" %>
-<%@ page import="org.wso2.carbon.identity.certificateauthority.ui.CAConstants" %>
-<%@ page import="org.wso2.carbon.identity.certificateauthority.ui.client.CAAdminServiceClient" %>
-<%@ page import="org.wso2.carbon.identity.certificateauthority.ui.util.ClientUtil" %>
+<%@ page import="org.wso2.carbon.identity.certificateauthority.common.RevokeReason" %>
+<%@ page import="org.wso2.carbon.identity.certificateauthority.stub.CertificateInfo" %>
+<%@ page import="org.wso2.carbon.identity.certificateauthority.ui.CaUiConstants" %>
+<%@ page import="org.wso2.carbon.identity.certificateauthority.ui.client.CaAdminServiceClient" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.ui.util.CharacterEncoder" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
-<%@ page import="java.util.HashMap" %>
 <%@ page import="java.util.ResourceBundle" %>
+<%@ page import="org.wso2.carbon.identity.certificateauthority.common.CertificateStatus" %>
 
 <%
     String serialNo;
-    CertificateDTO certificate = null;
+    CertificateInfo certificate = null;
     String revokedReason = "";
-    String forwardTo = null;
-    boolean view = false;
-    CAAdminServiceClient client = null;
-    int revokedReasonVal = 0;
+    String forwardTo;
+    CaAdminServiceClient client =
+            (CaAdminServiceClient) session.getAttribute(CaUiConstants.CA_ADMIN_CLIENT);
 
-    String viewString = request.getParameter("view");
-    serialNo = request.getParameter("serialNo");
-    String redirect = request.getParameter("redirect");
-    String selectedReason = CharacterEncoder.getSafeText(request.getParameter("selectedReason"));
-
-    if (selectedReason == null || "".equals(selectedReason)) {
-        selectedReason = "Unspecified";
-    }
-
-    HashMap<String, Integer> reasonList = ClientUtil.getReasonMap();
-
-    if ((viewString != null)) {
-        view = Boolean.parseBoolean(viewString);
-    }
+    serialNo = CharacterEncoder.getSafeText(request.getParameter(CaUiConstants.SERIAL_NO_PARAM));
+    String previousPage = CharacterEncoder.getSafeText(request.getParameter(CaUiConstants.FROM_PARAM));
 
     String serverURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
     ConfigurationContext configContext =
             (ConfigurationContext) config.getServletContext().getAttribute(CarbonConstants.
                     CONFIGURATION_CONTEXT);
     String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
-    String bundle = "org.wso2.carbon.identity.certificateauthority.ui.i18n.Resources";
-    ResourceBundle resourceBundle = ResourceBundle.getBundle(bundle, request.getLocale());
+    ResourceBundle resourceBundle = ResourceBundle.getBundle(CaUiConstants.BUNDLE,
+            request.getLocale());
 
     try {
 
         if (client == null) {
-            client = new CAAdminServiceClient(cookie,
+            client = new CaAdminServiceClient(cookie,
                     serverURL, configContext);
-            session.setAttribute(CAConstants.CA_ADMIN_CLIENT, client);
+            session.setAttribute(CaUiConstants.CA_ADMIN_CLIENT, client);
         }
 
         if (serialNo != null) {
             certificate = client.getCertificateBySerialNo(serialNo);
-        }
-        if (certificate.getStatus().equals("REVOKED")) {
-            revokedReasonVal = client.getRevokeReason(serialNo);
-        }
-        for (String reason : ClientUtil.getReasonMap().keySet()) {
-            if (ClientUtil.getReasonMap().get(reason) == revokedReasonVal) {
-                revokedReason = reason;
-                break;
-            }
-        }
+            if(certificate!=null) {
+                if (CertificateStatus.REVOKED.toString().equals(certificate.getStatus())) {
+                    revokedReason = RevokeReason.getRevocationReason(
+                            client.getRevokeReason(serialNo)).getDisplayName();
+                }
 
-    } catch (Exception e) {
-        String message = resourceBundle.getString("error.while.performing.advance.search");
-        CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
-        forwardTo = "../admin/error.jsp";
-%>
-<script type="text/javascript">
-    function forward() {
-        location.href = "<%=forwardTo%>";
-    }
-</script>
-
-<script type="text/javascript">
-    forward();
-</script>
-<%
-    }
 %>
 
 
@@ -127,17 +93,13 @@
         }
 
         function redirectToCSR(serialNo) {
-            location.href = "view-csr.jsp?view=true&serialNo=" + serialNo;
+            location.href = "view-csr.jsp?serialNo=" + serialNo;
         }
-        function getSelectedReason() {
-            var comboBox = document.getElementById("selectedReason");
-            var selectedReason = comboBox[comboBox.selectedIndex].value;
-            location.href = 'certificate-list-view.jsp?selectedReason=' + selectedReason;
-        }
+
         function revokeCertificate() {
             CARBON.showConfirmationDialog("<fmt:message key="revoke.single.certificate"/>", function () {
-                document.searchForm.action = "revoke-single-certificate.jsp";
-                document.searchForm.submit();
+                document.revokeForm.action = "certificate-actions.jsp";
+                document.revokeForm.submit();
             });
         }
 
@@ -149,9 +111,6 @@
         <h2><fmt:message key="cert.dashboard"/></h2>
 
         <div id="workArea">
-            <%
-                if (view) {
-            %>
             <div class="sectionSub" style="width: 100%">
                 <table style="width: 100%" id="certDashboard" cellspacing="0" cellpadding="0" border="0">
                     <tr>
@@ -199,13 +158,14 @@
                         </td>
                         <td width="10px">&nbsp;</td>
                         <td>
-                            <form action="" name="searchForm" method="post">
+                            <form action="" name="revokeForm" method="post">
+                                <input type="hidden" name="action" value="revoke-single">
                                 <table style="width: 100%" id="actions" class="styledLeft">
                                     <thead>
                                     <tr>
                                         <th colspan="3"><fmt:message key='action'/></th>
                                         <input type="hidden" name="serialNo" value="<%=certificate.getSerialNo() %>">
-                                        <input type="hidden" name="redirect" value="<%=redirect %>">
+                                        <input type="hidden" name="from" value="<%=previousPage %>">
 
                                     </tr>
                                     </thead>
@@ -216,26 +176,17 @@
                                                 <fmt:message key="revoke.reason"/>
                                                 <select name="selectedReason" id="selectedReason">
                                                     <%
-                                                        if (selectedReason.equals("Unspecified")) {
+                                                        for (RevokeReason reason : RevokeReason.values()) {
+                                                            if (reason==CaUiConstants.DEFAULT_REVOKE_REASON) {
                                                     %>
-                                                    <option value="Unspecified" selected="selected"><fmt:message
-                                                            key="unspecified"/></option>
-                                                    <%
-                                                    } else {
-                                                    %>
-                                                    <option value="Unspecified"><fmt:message
-                                                            key="unspecified"/></option>
-                                                    <%
-                                                        }
-                                                        for (String reason : reasonList.keySet()) {
-                                                            if (selectedReason.equals(reason)) {
-                                                    %>
-                                                    <option value="<%= reason%>" selected="selected"><%= reason%>
+                                                    <option value="<%= reason.toString()%>"
+                                                            selected="selected"><%= reason.getDisplayName()%>
                                                     </option>
                                                     <%
                                                     } else {
                                                     %>
-                                                    <option value="<%= reason%>"><%= reason%>
+                                                    <option value="<%= reason.toString()%>"><%=
+                                                    reason.getDisplayName()%>
                                                     </option>
                                                     <%
                                                             }
@@ -270,14 +221,7 @@
 
             <div class="buttonRow">
                 <%
-                    if (redirect.equals("list")) {
-                %>
-                <a onclick="redirectToList()" class="icon-link" style="background-image:none;"><fmt:message
-                        key="back.to.cert.list"/></a>
-
-                <div style="clear:both"></div>
-                <%
-                } else if (redirect.equals("csr")) {
+                    if (CaUiConstants.FROM_PARAM_VALUE_CSR.equals(previousPage)) {
                 %>
                 <a onclick="redirectToCSR('<%=certificate.getSerialNo()%>')" class="icon-link"
                    style="background-image:none;"><fmt:message key="back.to.csr"/></a>
@@ -285,16 +229,41 @@
                 <div style="clear:both"></div>
                 <%
                     } else {
+                %>
+                <a onclick="redirectToList()" class="icon-link" style="background-image:none;"><fmt:message
+                        key="back.to.cert.list"/></a>
 
+                <div style="clear:both"></div>
+                <%
                     }
                 %>
-
             </div>
-            <%
-                }
-            %>
-
-            </form>
         </div>
     </div>
 </fmt:bundle>
+<%
+        }
+    }
+    if(certificate == null){
+        //serial no is null, or certificate not found with given serial
+        String message = resourceBundle.getString("certificate.not.found");
+        CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
+        forwardTo = "../admin/error.jsp";
+    }
+} catch (Exception e) {
+    String message = resourceBundle.getString("error.while.viewing.certificate");
+    CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
+    forwardTo = "../admin/error.jsp";
+%>
+<script type="text/javascript">
+    function forward() {
+        location.href = "<%=forwardTo%>";
+    }
+</script>
+
+<script type="text/javascript">
+    forward();
+</script>
+<%
+    }
+%>

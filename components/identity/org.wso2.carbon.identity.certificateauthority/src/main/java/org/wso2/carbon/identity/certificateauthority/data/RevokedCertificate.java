@@ -28,7 +28,7 @@ public class RevokedCertificate {
 
     public RevokedCertificate(String serialNo, Date revokedDate, int reason) {
         this.serialNo = serialNo;
-        this.revokedDate = revokedDate;
+        this.revokedDate = (Date) revokedDate.clone();
         this.reason = reason;
     }
 
@@ -37,26 +37,11 @@ public class RevokedCertificate {
 
     }
 
-    public void setSerialNo(String serialNo) {
-        this.serialNo = serialNo;
-    }
-
-
     public Date getRevokedDate() {
-        return revokedDate;
-    }
-
-    public void setRevokedDate(Date revokedDate) {
-        this.revokedDate = revokedDate;
+        return (Date) revokedDate.clone();
     }
 
     public int getReason() {
         return reason;
     }
-
-    public void setReason(int reason) {
-        this.reason = reason;
-    }
-
-
 }

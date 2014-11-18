@@ -18,11 +18,12 @@
 
 package org.wso2.carbon.identity.certificateauthority.endpoint.ocsp;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.bouncycastle.ocsp.OCSPReq;
-import org.bouncycastle.ocsp.OCSPResp;
-import org.wso2.carbon.identity.certificateauthority.OCSPService;
+import org.bouncycastle.cert.ocsp.OCSPReq;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.wso2.carbon.identity.certificateauthority.OcspHandler;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
@@ -35,16 +36,16 @@ public class OCSPResponder {
     private static Log log = LogFactory.getLog(OCSPResponder.class);
 
     @POST
-    @Path("/{tenantID}")
+    @Path("/_t/{tenantDomain}")
     @Consumes("application/ocsp-request")
     @Produces("application/ocsp-response")
-    public Response handleOCSPRequest(@Context HttpServletRequest request, @PathParam("tenantID") String tenant) {
+    public Response handleOCSPRequest(@Context HttpServletRequest request, @PathParam("tenantDomain") String tenant) {
         try {
-            int tenantID = Integer.parseInt(tenant);
-            OCSPReq ocspReq = new OCSPReq(request.getInputStream());
-            OCSPService ocspService = new OCSPService();
-            OCSPResp ocspResp = ocspService.handleOCSPRequest(ocspReq, tenantID);
-            return Response.ok().type("application/ocsp-response").entity(ocspResp.getEncoded()).build();
+            OCSPReq ocspReq = new OCSPReq(IOUtils.toByteArray(request.getInputStream()));
+            OcspHandler ocspHandler = new OcspHandler();
+            OCSPResp ocspResp = ocspHandler.handleOCSPRequest(ocspReq, tenant);
+            return Response.ok().type("application/ocsp-response").entity(ocspResp.getEncoded())
+                    .build();
         } catch (Exception e) {
             log.error(e);
         }

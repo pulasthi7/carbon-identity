@@ -70,6 +70,9 @@
                                 <includedFeatureDef>
                                     org.wso2.carbon:org.wso2.carbon.identity.certificateauthority.ui.feature
                                 </includedFeatureDef>
+                                <includedFeatureDef>
+                                    org.wso2.carbon:org.wso2.carbon.identity.certificateauthority.common.feature
+                                </includedFeatureDef>
                             </includedFeatures>
                         </configuration>
                     </execution>

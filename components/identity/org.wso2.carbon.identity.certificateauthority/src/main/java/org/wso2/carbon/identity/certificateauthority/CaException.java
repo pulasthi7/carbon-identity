@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.certificateauthority;
 
-public class CaException extends Exception{
+public class CaException extends Exception {
 
     public CaException() {
         super();

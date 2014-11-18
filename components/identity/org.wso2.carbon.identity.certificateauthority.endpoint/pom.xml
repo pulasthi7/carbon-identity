@@ -60,15 +60,14 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon</groupId>
-            <artifactId>org.wso2.carbon.identity.provider</artifactId>
-            <version>${project.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>org.apache.cxf.wso2</groupId>
             <artifactId>cxf-bundle</artifactId>
             <version>2.6.1.wso2v2</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle.wso2</groupId>
+            <artifactId>bcprov-jdk15on</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -77,6 +76,7 @@
             <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
+
     </dependencies>
 
     <build>

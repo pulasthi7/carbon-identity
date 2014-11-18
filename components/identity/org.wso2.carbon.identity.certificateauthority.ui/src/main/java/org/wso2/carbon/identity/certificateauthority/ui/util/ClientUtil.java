@@ -21,11 +21,8 @@ package org.wso2.carbon.identity.certificateauthority.ui.util;
 import org.apache.axis2.AxisFault;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.certificateauthority.stub.CertificateMetaInfo;
-import org.wso2.carbon.identity.certificateauthority.stub.CsrMetaInfo;
-import org.wso2.carbon.identity.certificateauthority.ui.CAConstants;
-
-import java.util.HashMap;
+import org.wso2.carbon.identity.certificateauthority.stub.CertificateInfo;
+import org.wso2.carbon.identity.certificateauthority.stub.CsrInfo;
 
 /**
  *
@@ -33,93 +30,39 @@ import java.util.HashMap;
 public class ClientUtil {
     private static final Log log = LogFactory.getLog(ClientUtil.class);
 
+    public static CsrInfo[] doPagingForCsrs(int pageNumber, int itemsPerPage, CsrInfo[] csrs) {
 
-    public static CsrMetaInfo[] doPagingForStrings(int pageNumber, int itemsPerPageInt, CsrMetaInfo[] names) {
+        CsrInfo[] returnedCsrs;
 
-        CsrMetaInfo[] returnedSubscriberNameSet;
-
-        int startIndex = pageNumber * itemsPerPageInt;
-        int endIndex = (pageNumber + 1) * itemsPerPageInt;
-        if (itemsPerPageInt < names.length) {
-            returnedSubscriberNameSet = new CsrMetaInfo[itemsPerPageInt];
+        int startIndex = pageNumber * itemsPerPage;
+        int endIndex = (pageNumber + 1) * itemsPerPage;
+        if (itemsPerPage < csrs.length) {
+            returnedCsrs = new CsrInfo[itemsPerPage];
         } else {
-            returnedSubscriberNameSet = new CsrMetaInfo[names.length];
+            returnedCsrs = new CsrInfo[csrs.length];
         }
-        for (int i = startIndex, j = 0; i < endIndex && i < names.length; i++, j++) {
-            returnedSubscriberNameSet[j] = names[i];
+        for (int i = startIndex, j = 0; i < endIndex && i < csrs.length; i++, j++) {
+            returnedCsrs[j] = csrs[i];
         }
 
-        return returnedSubscriberNameSet;
+        return returnedCsrs;
     }
 
-    public static CertificateMetaInfo[] doPagingForCertificates(int pageNumber, int itemsPerPageInt, CertificateMetaInfo[] names) {
+    public static CertificateInfo[] doPagingForCertificates(int pageNumber, int itemsPerPage, CertificateInfo[] certificates) {
 
-        CertificateMetaInfo[] returnedSubscriberNameSet;
+        CertificateInfo[] returnedCertificates;
 
-        int startIndex = pageNumber * itemsPerPageInt;
-        int endIndex = (pageNumber + 1) * itemsPerPageInt;
-        if (itemsPerPageInt < names.length) {
-            returnedSubscriberNameSet = new CertificateMetaInfo[itemsPerPageInt];
+        int startIndex = pageNumber * itemsPerPage;
+        int endIndex = (pageNumber + 1) * itemsPerPage;
+        if (itemsPerPage < certificates.length) {
+            returnedCertificates = new CertificateInfo[itemsPerPage];
         } else {
-            returnedSubscriberNameSet = new CertificateMetaInfo[names.length];
+            returnedCertificates = new CertificateInfo[certificates.length];
         }
-        for (int i = startIndex, j = 0; i < endIndex && i < names.length; i++, j++) {
-            returnedSubscriberNameSet[j] = names[i];
+        for (int i = startIndex, j = 0; i < endIndex && i < certificates.length; i++, j++) {
+            returnedCertificates[j] = certificates[i];
         }
 
-        return returnedSubscriberNameSet;
+        return returnedCertificates;
     }
-
-    public static HashMap<String, Integer> getReasonMap() {
-        HashMap<String, Integer> reasonList = new HashMap<String, Integer>();
-        reasonList.put(CAConstants.REVOCATION_REASON_UNSPECIFIED, CAConstants.REVOCATION_REASON_UNSPECIFIED_VAL);
-        reasonList.put(CAConstants.REVOCATION_REASON_KEYCOMPROMISE, CAConstants.REVOCATION_REASON_KEYCOMPROMISE_VAL);
-        reasonList.put(CAConstants.REVOCATION_REASON_CACOMPROMISE, CAConstants.REVOCATION_REASON_CACOMPROMISE_VAL);
-        reasonList.put(CAConstants.REVOCATION_REASON_AFFILIATIONCHANGED, CAConstants.REVOCATION_REASON_AFFILIATIONCHANGED_VAL);
-        reasonList.put(CAConstants.REVOCATION_REASON_SUPERSEDED, CAConstants.REVOCATION_REASON_SUPERSEDED_VAL);
-        reasonList.put(CAConstants.REVOCATION_REASON_CESSATIONOFOPERATION, CAConstants.REVOCATION_REASON_CESSATIONOFOPERATION_VAL);
-        reasonList.put(CAConstants.REVOCATION_REASON_CERTIFICATEHOLD, CAConstants.REVOCATION_REASON_CERTIFICATEHOLD_VAL);
-        reasonList.put(CAConstants.REVOCATION_REASON_REMOVEFROMCRL, CAConstants.REVOCATION_REASON_REMOVEFROMCRL_VAL);
-        reasonList.put(CAConstants.REVOCATION_REASON_PRIVILEGESWITHDRAWN, CAConstants.REVOCATION_REASON_PRIVILEGESWITHDRAWN_VAL);
-        reasonList.put(CAConstants.REVOCATION_REASON_AACOMPROMISE, CAConstants.REVOCATION_REASON_AACOMPROMISE_VAL);
-        return reasonList;
-
-    }
-
-
-    /*public static void downloadServiceArchive(String certificateContent,HttpServletResponse response) throws AxisFault {
-        try {
-            ServletOutputStream os = response.getOutputStream();
-
-
-            response.setHeader("Content-Disposition", "fileName=txt.key");
-            response.setContentType("application/octet-string");
-            String s = "hduehduhe";
-            InputStream in = new ByteArrayInputStream(s.getBytes("UTF8"));
-
-
-            int read = 0;
-            byte[] bytes = new byte[1024];
-
-
-            //data form resultset
-
-            while ((read = in.read(bytes)) != -1) {
-                os.write(bytes, 0, read);
-            }
-            os.flush();
-            os.close();
-
-        } catch (RemoteException e) {
-            handleException("error.downloading.service", e);
-        } catch (IOException e) {
-            handleException("error.downloading.service", e);
-        }
-    }*/
-    public static void handleException(String msg, Exception e) throws AxisFault {
-        log.error(msg, e);
-        throw new AxisFault(msg, e);
-    }
-
-
 }

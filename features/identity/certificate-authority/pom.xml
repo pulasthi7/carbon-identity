@@ -30,9 +30,10 @@
     <url>http://wso2.org</url>
 
     <modules>
-        <module>org.wso2.carbon.identity.certificateauthority.feature</module>
         <module>org.wso2.carbon.identity.certificateauthority.server.feature</module>
         <module>org.wso2.carbon.identity.certificateauthority.ui.feature</module>
+        <module>org.wso2.carbon.identity.certificateauthority.common.feature</module>
+        <module>org.wso2.carbon.identity.certificateauthority.feature</module>
     </modules>
 
 
