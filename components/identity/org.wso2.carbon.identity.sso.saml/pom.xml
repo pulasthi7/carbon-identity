@@ -22,7 +22,6 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/ma
 	<relativePath>../pom.xml</relativePath>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.wso2.carbon</groupId>
 	<artifactId>org.wso2.carbon.identity.sso.saml</artifactId>
 	<packaging>bundle</packaging>
 	<name>WSO2 Carbon - SAML Web Browser SSO</name>
@@ -69,9 +68,9 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/ma
 			<!--<version>4.3.0-SNAPSHOT</version>-->
 		</dependency>
 		<dependency>
-			<groupId>bouncycastle</groupId>
-			<artifactId>bcprov-jdk15</artifactId>
-			<!--<version>132</version>-->
+            <groupId>org.bouncycastle.wso2</groupId>
+            <artifactId>bcprov-jdk15on</artifactId>
+            <!--<version>132</version>-->
 		</dependency>
         <dependency>
             <groupId>org.wso2.carbon</groupId>
@@ -126,7 +125,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/ma
 							*;resolution:=optional</Import-Package>
 						<Export-Package>!org.wso2.carbon.identity.sso.saml.internal,
 							org.wso2.carbon.identity.sso.saml.*</Export-Package>
-						<Embed-Dependency>bcprov-jdk15|naming-factory|naming-resources|commons-collections;scope=compile|runtime;inline=false</Embed-Dependency>
+                        <Embed-Dependency>bcprov-jdk15on|naming-factory|naming-resources|commons-collections;scope=compile|runtime;inline=false</Embed-Dependency>
 						<DynamicImport-Package>*</DynamicImport-Package>
 					</instructions>
 				</configuration>
