@@ -50,9 +50,22 @@
             <region>region1</region>
             <order>14</order>
             <style-class>manage</style-class>
+            <icon>../ca/images/list.gif</icon>
+            <require-permission>/permission/login</require-permission>
+        </menu>
+        <menu>
+            <id>ca_scep_menu</id>
+            <i18n-key>identity.ca.scep</i18n-key>
+            <i18n-bundle>org.wso2.carbon.identity.certificateauthority.ui.i18n.Resources</i18n-bundle>
+            <parent-menu>identity_ca_menu</parent-menu>
+            <link>../ca/scep-tokens.jsp</link>
+            <region>region1</region>
+            <order>15</order>
+            <style-class>manage</style-class>
             <icon>../ca/images/config.gif</icon>
             <require-permission>/permission/admin/configure</require-permission>
         </menu>
+
 
     </menus>
 </component>

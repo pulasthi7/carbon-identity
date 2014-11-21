@@ -18,7 +18,6 @@
 package org.wso2.carbon.identity.certificateauthority.ui.util;
 
 
-import org.apache.axis2.AxisFault;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.certificateauthority.stub.CertificateInfo;

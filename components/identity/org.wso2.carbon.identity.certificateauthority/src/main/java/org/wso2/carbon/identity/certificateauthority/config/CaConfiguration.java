@@ -173,13 +173,15 @@ public class CaConfiguration {
             KeyStoreData[] keyStores =
                     admin.getKeyStores(tenantId == MultitenantConstants.SUPER_TENANT_ID);
             for (KeyStoreData keyStore : keyStores) {
-                String keyStoreName = keyStore.getKeyStoreName();
-                KeyStore keyStoreManagerKeyStore = keyStoreManager.getKeyStore(keyStoreName);
-                Enumeration<String> aliases = keyStoreManagerKeyStore.aliases();
-                while (aliases.hasMoreElements()) {
-                    String alias = aliases.nextElement();
-                    if (keyStoreManagerKeyStore.isKeyEntry(alias)) {
-                        keyList.add(keyStoreName + "/" + alias);
+                if(keyStore != null){
+                    String keyStoreName = keyStore.getKeyStoreName();
+                    KeyStore keyStoreManagerKeyStore = keyStoreManager.getKeyStore(keyStoreName);
+                    Enumeration<String> aliases = keyStoreManagerKeyStore.aliases();
+                    while (aliases.hasMoreElements()) {
+                        String alias = aliases.nextElement();
+                        if (keyStoreManagerKeyStore.isKeyEntry(alias)) {
+                            keyList.add(keyStoreName + "/" + alias);
+                        }
                     }
                 }
             }

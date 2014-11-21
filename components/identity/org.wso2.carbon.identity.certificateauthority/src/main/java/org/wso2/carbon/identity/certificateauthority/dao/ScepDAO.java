@@ -32,6 +32,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.sql.*;
+import java.util.Date;
 
 public class ScepDAO {
     private static Log log = LogFactory.getLog(ScepDAO.class);
@@ -40,6 +41,7 @@ public class ScepDAO {
 
     public void addScepToken(String token, String userName,
                              String userStoreDomain, int tenantId) throws CaException {
+//        todo check existance
         Connection connection = null;
         PreparedStatement prepStmt = null;
         ResultSet resultSet;
@@ -48,11 +50,12 @@ public class ScepDAO {
             connection = JDBCPersistenceManager.getInstance().getDBConnection();
             prepStmt = connection.prepareStatement(sql);
             prepStmt.setString(1, token);
-            prepStmt.setDate(2, new Date(new java.util.Date().getTime()));
+            prepStmt.setTimestamp(2,new Timestamp(new Date().getTime()));
             prepStmt.setString(3, userName);
             prepStmt.setInt(4, tenantId);
             prepStmt.setString(5, userStoreDomain);
             prepStmt.executeUpdate();
+            connection.commit();
         } catch (IdentityException e) {
             String errorMsg = "Error when getting an Identity Persistence Store instance.";
             log.error(errorMsg, e);
@@ -65,7 +68,8 @@ public class ScepDAO {
         }
     }
 
-    public String addScepCsr(PKCS10CertificationRequest certReq, String transId, int tenantId)
+    public String addScepCsr(PKCS10CertificationRequest certReq, String transId,
+                             String token, int tenantId)
             throws CaException {
         Connection connection = null;
         PreparedStatement prepStmt = null;
@@ -74,7 +78,7 @@ public class ScepDAO {
         try {
             connection = JDBCPersistenceManager.getInstance().getDBConnection();
             prepStmt = connection.prepareStatement(sql);
-            prepStmt.setString(1, transId);
+            prepStmt.setString(1, token);
             prepStmt.setInt(2,tenantId);
             resultSet = prepStmt.executeQuery();
             if (resultSet.next()){
@@ -83,7 +87,7 @@ public class ScepDAO {
                 if( serialNo != null){
                     throw new CaException("The token is already used");
                 }
-                Date date = resultSet.getDate(SqlConstants.CREATED_TIME_COLUMN);
+                Date date = resultSet.getTimestamp(SqlConstants.CREATED_TIME_COLUMN);
                 if (date.getTime() + caConfiguration.getTokenValidity() < new java.util
                         .Date().getTime()){
                     throw new CaException("The token is expired, create a new token");
@@ -96,7 +100,7 @@ public class ScepDAO {
                 sql = SqlConstants.UPDATE_SCEP_TOKEN;
                 prepStmt = connection.prepareStatement(sql);
                 prepStmt.setString(1,serialNo);
-                prepStmt.setString(2,transId);
+                prepStmt.setString(2,token);
                 prepStmt.executeUpdate();
                 connection.commit();
                 return serialNo;

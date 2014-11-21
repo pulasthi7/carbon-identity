@@ -49,7 +49,7 @@ public class RevocationDAO {
         Connection connection = null;
         String sql= null;
         PreparedStatement prepStmt = null;
-        java.sql.Date updatedAt = new java.sql.Date(new Date().getTime());
+        Date updatedAt = new Date();
         try {
             if(getRevokeReason(serialNo)>=0){
                 log.debug("updating revoked certificate's reason");
@@ -57,7 +57,7 @@ public class RevocationDAO {
                 connection = JDBCPersistenceManager.getInstance().getDBConnection();
                 prepStmt = connection.prepareStatement(sql);
                 prepStmt.setInt(1,reason);
-                prepStmt.setDate(2, updatedAt);
+                prepStmt.setTimestamp(2, new Timestamp(updatedAt.getTime()));
                 prepStmt.setString(3, serialNo);
                 prepStmt.setInt(4, tenantID);
             } else {
@@ -66,7 +66,7 @@ public class RevocationDAO {
                 sql = SqlConstants.ADD_REVOKED_CERTIFICATE_QUERY;
                 prepStmt = connection.prepareStatement(sql);
                 prepStmt.setString(1,serialNo);
-                prepStmt.setDate(2,updatedAt);
+                prepStmt.setTimestamp(2, new Timestamp(updatedAt.getTime()));
                 prepStmt.setInt(3,tenantID);
                 prepStmt.setInt(4,reason);
             }
@@ -106,6 +106,8 @@ public class RevocationDAO {
             String errorMsg = "Error when getting an Identity Persistence Store instance.";
             log.error(errorMsg, e);
             throw new CaException(errorMsg, e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
     }
 
@@ -158,7 +160,7 @@ public class RevocationDAO {
         while (resultSet.next()) {
             String serialNo = resultSet.getString(SqlConstants.SERIAL_NO_COLUMN);
             int reason = resultSet.getInt(SqlConstants.REVOCATION_REASON_CODE_COLUMN);
-            Date revokedDate = resultSet.getDate(SqlConstants.REVOCATION_DATE_COLUMN);
+            Date revokedDate = resultSet.getTimestamp(SqlConstants.REVOCATION_DATE_COLUMN);
             RevokedCertificate revCertificate =
                     new RevokedCertificate(serialNo, revokedDate, reason);
             revokedCertificatesList.add(revCertificate);

@@ -216,28 +216,6 @@ public class CaAdminServiceClient {
     }
 
     /**
-     * Downloading a certificate file with a given serial number
-     *
-     * @param certificate
-     * @param response
-     * @throws AxisFault
-     */
-
-    public void downloadServiceArchive(String certificate, HttpServletResponse response) throws AxisFault {
-        try {
-            ServletOutputStream out = response.getOutputStream();
-            response.setHeader("Content-Disposition", "fileName=certificate.key");
-            response.setContentType("application/octet-string");
-            out.write(certificate.getBytes());
-            out.flush();
-        } catch (RemoteException e) {
-            handleException("error.downloading.service", e);
-        } catch (IOException e) {
-            handleException("error.downloading.service", e);
-        }
-    }
-
-    /**
      * Returns the list of keyAliases
      *
      * @return keyAlias list
@@ -248,7 +226,6 @@ public class CaAdminServiceClient {
         try {
             return stub.listKeyAliases();
         } catch (Exception e) {
-            String message = e.getMessage();
             handleException(e.getMessage(), e);
         }
         return null;
@@ -327,16 +304,22 @@ public class CaAdminServiceClient {
     public void changeKeyStore(String keyPath) throws AxisFault {
         String[] keyStoreAndAlias = keyPath.split("/");
         if (keyStoreAndAlias.length == 2) {
-            CaConfig caConfig = new CaConfig();
-            caConfig.setKeyStore(keyStoreAndAlias[0]);
-            caConfig.setAlias(keyStoreAndAlias[1]);
             try {
-                stub.updateConfigurations(caConfig);
+                stub.updateSigningKey(keyStoreAndAlias[0],keyStoreAndAlias[1]);
             } catch (Exception e) {
                 handleException(e.getMessage(), e);
             }
         }
 
+    }
+
+    public String generateScepToken() throws AxisFault {
+        try {
+            return stub.generateScepToken();
+        } catch (Exception e) {
+            handleException(e.getMessage(), e);
+        }
+        return null;    //returning null, since this is unreachable
     }
 
     /**

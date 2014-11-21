@@ -41,7 +41,7 @@ public class CaConstants {
     public static final int CRL_UPDATE_INTERVAL = 60 * 60 * 24;     //once a day
 
     public static final int DEFAULT_SCEP_TOKEN_LENGTH = 10;
-    public static final int DEFAULT_SCEP_TOKEN_VALIDITY = 3 * 60;
+    public static final int DEFAULT_SCEP_TOKEN_VALIDITY = 3 * 60 * 60 * 1000;   //3 hrs
     public static final int DEFAULT_SCEP_CERTIFICATE_VALIDITY = 356;
 
     public static final String SHA256_WITH_RSA_ENCRYPTION = "SHA256WithRSAEncryption";

@@ -31,7 +31,7 @@
 
 <%
     String forwardTo = null;
-    String[] keys = null;
+    String token = null;
     CaAdminServiceClient client =
             (CaAdminServiceClient) session.getAttribute(CaUiConstants.CA_ADMIN_CLIENT);
     String serverURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
@@ -51,16 +51,9 @@
         }
         String action =
                 CharacterEncoder.getSafeText(request.getParameter(CaUiConstants.ACTION_PARAM));
-        String token = null;
-        if (CaUiConstants.KEY_CHANGE_ACTION.equals(action)) {
-            client.changeKeyStore(CharacterEncoder.getSafeText(request.getParameter(CaUiConstants.
-                    SELECTED_KEY_PARAM)));
-        } else if (CaUiConstants.GENERATE_SCEP_TOKEN_ACTION.equals(action)){
+        if (CaUiConstants.GENERATE_SCEP_TOKEN_ACTION.equals(action)){
             token = client.generateScepToken();
         }
-
-        keys = client.getListKeyAliases();
-
 
     } catch (Exception e) {
         String message = resourceBundle.getString("error.while.loading.configurations");
@@ -99,10 +92,8 @@
 
     <script type="text/javascript">
 
-        function configure() {
-            CARBON.showConfirmationDialog("<fmt:message key="configure.keystore.prompt"/>", function () {
-                document.configureForm.submit();
-            });
+        function generate() {
+            document.tokenGenForm.submit();
         }
 
     </script>
@@ -116,36 +107,28 @@
         <div class="sectionSub" style="width: 100%">
             <table style="border:0; !important">
                 <tbody>
+                <%
+                    if(token !=null){
+                %>
                 <tr style="border:0; !important">
-                    <td></td>
-
+                    <td><fmt:message key="generated.token.description"/></td>
+                </tr>
+                <tr style="border:0; !important">
+                    <td><b><%=token %></b></td>
+                </tr>
+                <%
+                    }
+                %>
+                <tr style="border:0; !important"><td>&nbsp;</td></tr>
+                <tr style="border:0; !important">
                     <td style="border:0; !important">
                         <nobr>
-                            <form method="post" name="configureForm">
-                                <fmt:message key="configure.key.alis.pair"/>
-                                <input type="hidden" name="action" value="keyChange">
-                                <select name="key" id="selectedKeyAlias">
-                                    <%
-                                        boolean firstItem = true;
-                                        for (String keyAlias : keys) {
-                                    %>
-                                    <option value="<%= keyAlias%>" <%= firstItem ? "selected" :
-                                            ""%>><%= keyAlias%>
-                                    </option>
-                                    <%
-                                            firstItem = false;
-                                        }
-                                    %>
-                                </select>
+                            <form method="post" name="tokenGenForm">
+                                <input type="hidden" name="action" value="generateScepToken">
+                                <input type="button" value="<fmt:message
+                                key="generate.new.scep.token"/>" onclick="generate();">
                             </form>
-
                         </nobr>
-                    </td>
-                    <td>
-                        <a onclick="configure();return false;"
-                           href="#" style="background-image: url(images/config.gif);"
-                           class="icon-link">
-                            <fmt:message key='configure'/></a>
                     </td>
                 </tr>
                 </tbody>

@@ -33,6 +33,10 @@
     </description>
     <dependencies>
         <dependency>
+            <groupId>commons-io.wso2</groupId>
+            <artifactId>commons-io</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.bouncycastle.wso2</groupId>
             <artifactId>bcprov-jdk15on</artifactId>
         </dependency>
@@ -130,7 +134,8 @@
                                 </properties>
                             </adviceFile>
                             <bundles>
-                                <bundleDef>org.bouncycastle.wso2:bcprov-jdk15on</bundleDef>
+                                <bundleDef>commons-io.wso2:commons-io</bundleDef>
+                                <bundleDef>org.bouncycastle.wso2:bcpkix-jdk15on</bundleDef>
                                 <bundleDef>org.bouncycastle.wso2:bcpkix-jdk15on</bundleDef>
                                 <bundleDef>com.google.code.jscep.wso2:jscep</bundleDef>
                                 <bundleDef>org.wso2.carbon:org.wso2.carbon.identity.certificateauthority</bundleDef>

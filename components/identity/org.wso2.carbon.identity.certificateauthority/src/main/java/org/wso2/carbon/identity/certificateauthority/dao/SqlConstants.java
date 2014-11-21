@@ -47,10 +47,6 @@ public class SqlConstants {
 
     public static final String KEY_STORE_COLUMN = "KEY_STORE";
     public static final String ALIAS_COLUMN = "ALIAS";
-    public static final String SCEP_ENABLED_COLUMN = "SCEP_ENABLED";
-    public static final String SCEP_TOKEN_VALIDITY_COLUMN = "SCEP_TOKEN_VALIDITY";
-    public static final String SCEP_TOKEN_LENGTH_COLUMN = "SCEP_TOKEN_LENGTH";
-    public static final String SCEP_CERTIFICATE_VALIDITY_COLUMN = "SCEP_CERTIFICATE_VALIDITY";
 
     public static final String TOKEN_COLUMN = "TOKEN";
     public static final String CREATED_TIME_COLUMN = "CREATED_TIME";

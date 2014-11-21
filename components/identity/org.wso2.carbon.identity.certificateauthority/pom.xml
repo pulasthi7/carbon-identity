@@ -109,6 +109,7 @@
                             org.bouncycastle.asn1; version="[1.40.0.wso2v1, 1.50.0)",
                             org.bouncycastle.asn1.cms; version="[1.40.0.wso2v1, 1.50.0)",
                             org.bouncycastle.asn1.ocsp; version="[1.40.0.wso2v1, 1.50.0)",
+                            org.bouncycastle.asn1.pkcs; version="[1.40.0.wso2v1, 1.50.0)",
                             org.bouncycastle.asn1.x500; version="[1.40.0.wso2v1, 1.50.0)",
                             org.bouncycastle.asn1.x500.style; version="[1.40.0.wso2v1, 1.50.0)",
                             org.bouncycastle.asn1.x509; version="[1.40.0.wso2v1, 1.50.0)",

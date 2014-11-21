@@ -39,6 +39,7 @@ public class CaUiConstants {
     public static final String SELECTED_REASON_PARAM = "selectedReason";
     public static final String FROM_PARAM = "from";
     public static final String CERTIFICATES_PARAM = "certificates";
+    public static final String SELECTED_KEY_PARAM = "key";
 
     public static final String FROM_PARAM_VALUE_CSR = "csr";
     public static final String FROM_PARAM_VALUE_LIST = "list";
@@ -47,6 +48,7 @@ public class CaUiConstants {
     public static final String CERTIFICATES_ATTRIB = "certificates";
 
     public static final String KEY_CHANGE_ACTION = "keyChange";
+    public static final String GENERATE_SCEP_TOKEN_ACTION = "generateScepToken";
     public static final String SIGN_ACTION = "sign";
     public static final String REJECT_ACTION = "reject";
     public static final String REVOKE_MULTIPLE_ACTION = "revoke-multiple";

@@ -1,4 +1,4 @@
-<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:tns="http://certificateauthority.identity.carbon.wso2.org" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:ax2215="http://data.certificateauthority.identity.carbon.wso2.org/xsd" xmlns:ax2213="http://certificateauthority.identity.carbon.wso2.org/xsd" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://certificateauthority.identity.carbon.wso2.org">
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:tns="http://certificateauthority.identity.carbon.wso2.org" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:ax2215="http://data.certificateauthority.identity.carbon.wso2.org/xsd" xmlns:ax2213="http://certificateauthority.identity.carbon.wso2.org/xsd" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://certificateauthority.identity.carbon.wso2.org">
     <wsdl:documentation>CaAdminService</wsdl:documentation>
     <wsdl:types>
         <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://certificateauthority.identity.carbon.wso2.org/xsd">
@@ -16,10 +16,11 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="updateConfigurations">
+            <xs:element name="updateSigningKey">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="caConfig" nillable="true" type="ax2216:CaConfig"></xs:element>
+                        <xs:element minOccurs="0" name="keyStore" nillable="true" type="xs:string"></xs:element>
+                        <xs:element minOccurs="0" name="alias" nillable="true" type="xs:string"></xs:element>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -150,18 +151,6 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getConfigurations">
-                <xs:complexType>
-                    <xs:sequence></xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getConfigurationsResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2216:CaConfig"></xs:element>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
             <xs:element name="getCertificate">
                 <xs:complexType>
                     <xs:sequence>
@@ -197,13 +186,6 @@
             </xs:element>
         </xs:schema>
         <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://data.certificateauthority.identity.carbon.wso2.org/xsd">
-            <xs:complexType name="CaConfig">
-                <xs:sequence>
-                    <xs:element minOccurs="0" name="alias" nillable="true" type="xs:string"></xs:element>
-                    <xs:element minOccurs="0" name="keyStore" nillable="true" type="xs:string"></xs:element>
-                    <xs:element minOccurs="0" name="tenantId" type="xs:int"></xs:element>
-                </xs:sequence>
-            </xs:complexType>
             <xs:complexType name="CertificateInfo">
                 <xs:sequence>
                     <xs:element minOccurs="0" name="expiryDate" nillable="true" type="xs:date"></xs:element>
@@ -257,15 +239,6 @@
     <wsdl:message name="deleteCsrRequest">
         <wsdl:part name="parameters" element="ns1:deleteCsr"></wsdl:part>
     </wsdl:message>
-    <wsdl:message name="getConfigurationsRequest">
-        <wsdl:part name="parameters" element="ns1:getConfigurations"></wsdl:part>
-    </wsdl:message>
-    <wsdl:message name="getConfigurationsResponse">
-        <wsdl:part name="parameters" element="ns1:getConfigurationsResponse"></wsdl:part>
-    </wsdl:message>
-    <wsdl:message name="updateConfigurationsRequest">
-        <wsdl:part name="parameters" element="ns1:updateConfigurations"></wsdl:part>
-    </wsdl:message>
     <wsdl:message name="getRevokedReasonRequest">
         <wsdl:part name="parameters" element="ns1:getRevokedReason"></wsdl:part>
     </wsdl:message>
@@ -292,6 +265,9 @@
     </wsdl:message>
     <wsdl:message name="rejectCSRRequest">
         <wsdl:part name="parameters" element="ns1:rejectCSR"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="updateSigningKeyRequest">
+        <wsdl:part name="parameters" element="ns1:updateSigningKey"></wsdl:part>
     </wsdl:message>
     <wsdl:message name="signCSRRequest">
         <wsdl:part name="parameters" element="ns1:signCSR"></wsdl:part>
@@ -333,15 +309,6 @@
             <wsdl:input message="tns:deleteCsrRequest" wsaw:Action="urn:deleteCsr"></wsdl:input>
             <wsdl:fault message="tns:CaAdminServiceCaException" name="CaAdminServiceCaException" wsaw:Action="urn:deleteCsrCaAdminServiceCaException"></wsdl:fault>
         </wsdl:operation>
-        <wsdl:operation name="getConfigurations">
-            <wsdl:input message="tns:getConfigurationsRequest" wsaw:Action="urn:getConfigurations"></wsdl:input>
-            <wsdl:output message="tns:getConfigurationsResponse" wsaw:Action="urn:getConfigurationsResponse"></wsdl:output>
-            <wsdl:fault message="tns:CaAdminServiceCaException" name="CaAdminServiceCaException" wsaw:Action="urn:getConfigurationsCaAdminServiceCaException"></wsdl:fault>
-        </wsdl:operation>
-        <wsdl:operation name="updateConfigurations">
-            <wsdl:input message="tns:updateConfigurationsRequest" wsaw:Action="urn:updateConfigurations"></wsdl:input>
-            <wsdl:fault message="tns:CaAdminServiceCaException" name="CaAdminServiceCaException" wsaw:Action="urn:updateConfigurationsCaAdminServiceCaException"></wsdl:fault>
-        </wsdl:operation>
         <wsdl:operation name="getRevokedReason">
             <wsdl:input message="tns:getRevokedReasonRequest" wsaw:Action="urn:getRevokedReason"></wsdl:input>
             <wsdl:output message="tns:getRevokedReasonResponse" wsaw:Action="urn:getRevokedReasonResponse"></wsdl:output>
@@ -365,6 +332,10 @@
         <wsdl:operation name="rejectCSR">
             <wsdl:input message="tns:rejectCSRRequest" wsaw:Action="urn:rejectCSR"></wsdl:input>
             <wsdl:fault message="tns:CaAdminServiceCaException" name="CaAdminServiceCaException" wsaw:Action="urn:rejectCSRCaAdminServiceCaException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="updateSigningKey">
+            <wsdl:input message="tns:updateSigningKeyRequest" wsaw:Action="urn:updateSigningKey"></wsdl:input>
+            <wsdl:fault message="tns:CaAdminServiceCaException" name="CaAdminServiceCaException" wsaw:Action="urn:updateSigningKeyCaAdminServiceCaException"></wsdl:fault>
         </wsdl:operation>
         <wsdl:operation name="signCSR">
             <wsdl:input message="tns:signCSRRequest" wsaw:Action="urn:signCSR"></wsdl:input>
@@ -430,27 +401,6 @@
                 <soap:fault use="literal" name="CaAdminServiceCaException"></soap:fault>
             </wsdl:fault>
         </wsdl:operation>
-        <wsdl:operation name="getConfigurations">
-            <soap:operation soapAction="urn:getConfigurations" style="document"></soap:operation>
-            <wsdl:input>
-                <soap:body use="literal"></soap:body>
-            </wsdl:input>
-            <wsdl:output>
-                <soap:body use="literal"></soap:body>
-            </wsdl:output>
-            <wsdl:fault name="CaAdminServiceCaException">
-                <soap:fault use="literal" name="CaAdminServiceCaException"></soap:fault>
-            </wsdl:fault>
-        </wsdl:operation>
-        <wsdl:operation name="updateConfigurations">
-            <soap:operation soapAction="urn:updateConfigurations" style="document"></soap:operation>
-            <wsdl:input>
-                <soap:body use="literal"></soap:body>
-            </wsdl:input>
-            <wsdl:fault name="CaAdminServiceCaException">
-                <soap:fault use="literal" name="CaAdminServiceCaException"></soap:fault>
-            </wsdl:fault>
-        </wsdl:operation>
         <wsdl:operation name="getRevokedReason">
             <soap:operation soapAction="urn:getRevokedReason" style="document"></soap:operation>
             <wsdl:input>
@@ -504,6 +454,15 @@
             <wsdl:output>
                 <soap:body use="literal"></soap:body>
             </wsdl:output>
+            <wsdl:fault name="CaAdminServiceCaException">
+                <soap:fault use="literal" name="CaAdminServiceCaException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="updateSigningKey">
+            <soap:operation soapAction="urn:updateSigningKey" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
             <wsdl:fault name="CaAdminServiceCaException">
                 <soap:fault use="literal" name="CaAdminServiceCaException"></soap:fault>
             </wsdl:fault>
@@ -598,27 +557,6 @@
                 <soap12:fault use="literal" name="CaAdminServiceCaException"></soap12:fault>
             </wsdl:fault>
         </wsdl:operation>
-        <wsdl:operation name="getConfigurations">
-            <soap12:operation soapAction="urn:getConfigurations" style="document"></soap12:operation>
-            <wsdl:input>
-                <soap12:body use="literal"></soap12:body>
-            </wsdl:input>
-            <wsdl:output>
-                <soap12:body use="literal"></soap12:body>
-            </wsdl:output>
-            <wsdl:fault name="CaAdminServiceCaException">
-                <soap12:fault use="literal" name="CaAdminServiceCaException"></soap12:fault>
-            </wsdl:fault>
-        </wsdl:operation>
-        <wsdl:operation name="updateConfigurations">
-            <soap12:operation soapAction="urn:updateConfigurations" style="document"></soap12:operation>
-            <wsdl:input>
-                <soap12:body use="literal"></soap12:body>
-            </wsdl:input>
-            <wsdl:fault name="CaAdminServiceCaException">
-                <soap12:fault use="literal" name="CaAdminServiceCaException"></soap12:fault>
-            </wsdl:fault>
-        </wsdl:operation>
         <wsdl:operation name="getRevokedReason">
             <soap12:operation soapAction="urn:getRevokedReason" style="document"></soap12:operation>
             <wsdl:input>
@@ -672,6 +610,15 @@
             <wsdl:output>
                 <soap12:body use="literal"></soap12:body>
             </wsdl:output>
+            <wsdl:fault name="CaAdminServiceCaException">
+                <soap12:fault use="literal" name="CaAdminServiceCaException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="updateSigningKey">
+            <soap12:operation soapAction="urn:updateSigningKey" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
             <wsdl:fault name="CaAdminServiceCaException">
                 <soap12:fault use="literal" name="CaAdminServiceCaException"></soap12:fault>
             </wsdl:fault>
@@ -754,21 +701,6 @@
                 <mime:content type="text/xml" part="parameters"></mime:content>
             </wsdl:input>
         </wsdl:operation>
-        <wsdl:operation name="getConfigurations">
-            <http:operation location="getConfigurations"></http:operation>
-            <wsdl:input>
-                <mime:content type="text/xml" part="parameters"></mime:content>
-            </wsdl:input>
-            <wsdl:output>
-                <mime:content type="text/xml" part="parameters"></mime:content>
-            </wsdl:output>
-        </wsdl:operation>
-        <wsdl:operation name="updateConfigurations">
-            <http:operation location="updateConfigurations"></http:operation>
-            <wsdl:input>
-                <mime:content type="text/xml" part="parameters"></mime:content>
-            </wsdl:input>
-        </wsdl:operation>
         <wsdl:operation name="getRevokedReason">
             <http:operation location="getRevokedReason"></http:operation>
             <wsdl:input>
@@ -810,6 +742,12 @@
             <wsdl:output>
                 <mime:content type="text/xml" part="parameters"></mime:content>
             </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="updateSigningKey">
+            <http:operation location="updateSigningKey"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
         </wsdl:operation>
         <wsdl:operation name="getCsrList">
             <http:operation location="getCsrList"></http:operation>

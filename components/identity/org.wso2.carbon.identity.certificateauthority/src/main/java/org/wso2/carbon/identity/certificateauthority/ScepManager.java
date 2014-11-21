@@ -21,6 +21,9 @@ package org.wso2.carbon.identity.certificateauthority;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.bouncycastle.asn1.ASN1Set;
+import org.bouncycastle.asn1.pkcs.Attribute;
+import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.certificateauthority.config.CaConfiguration;
@@ -51,22 +54,22 @@ public class ScepManager {
         try {
             tenantId = CaServiceComponent.getRealmService().getTenantManager().getTenantId
                     (tenantDomain);
-            String serialNo = scepDAO.addScepCsr(certReq, transId, tenantId);
+            String token = "";
+            Attribute[] attributes =
+                    certReq.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_challengePassword);
+            if(attributes!=null && attributes.length>0){
+                ASN1Set attributeValues = attributes[0].getAttrValues();
+                if(attributeValues.size()>0){
+                    token = attributeValues.getObjectAt(0).toString();
+                }
+            }
+            String serialNo = scepDAO.addScepCsr(certReq, transId, token, tenantId);
             PrivilegedCarbonContext.startTenantFlow();
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
-            if(serialNo!=null){
-                //The request should be signed and the certificate should be issued
-                CertificateManager.getInstance().signCSR(serialNo,
-                        CaConfiguration.getInstance().getScepIssuedCertificateValidity());
-                return CertificateManager.getInstance().getX509Certificate(serialNo);
-            } else {
-                //The CSR is either kept in pending mode or rejected immediately,
-                // Admin will have to manually sign it later, if it's pending and will be made
-                // available to the subsequent scep request
-                // If rejected the client will ignore the request after configured timeout
-                return null;
-            }
+            CertificateManager.getInstance().signCSR(serialNo,
+                    CaConfiguration.getInstance().getScepIssuedCertificateValidity());
+            return CertificateManager.getInstance().getX509Certificate(serialNo);
         } catch (UserStoreException e) {
             throw new CaException("Invalid tenant domain :"+tenantDomain);
         } finally {

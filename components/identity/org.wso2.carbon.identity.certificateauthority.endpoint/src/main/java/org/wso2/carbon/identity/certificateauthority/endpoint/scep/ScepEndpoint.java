@@ -39,9 +39,14 @@ public class ScepEndpoint {
     public void service(@Context HttpServletRequest request, @Context HttpServletResponse
             response, @PathParam("tenantDomain") String tenant) {
         try {
-            //int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
             ScepServlet scepServlet = new ScepServletImpl(tenant);
             scepServlet.service(request,response);
+
+            //If the response is not committed jax-rs seems to modify the response headers to
+            // return text/xml. So we are committing the response if it has not already
+            if(!response.isCommitted()){
+                response.flushBuffer();
+            }
         } catch (ServletException e) {
             log.error("Error serving the request",e);
         } catch (IOException e) {
