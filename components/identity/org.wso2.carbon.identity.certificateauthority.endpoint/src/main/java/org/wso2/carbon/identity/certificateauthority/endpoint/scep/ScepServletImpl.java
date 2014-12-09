@@ -40,6 +40,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Implements the abstract methods from ScepServlet class from jscep.
+ */
 public class ScepServletImpl extends ScepServlet {
 
     private ScepManager scepManager = ScepManager.getInstance();
@@ -100,7 +103,7 @@ public class ScepServletImpl extends ScepServlet {
 
     @Override
     protected X509CRL doGetCrl(X500Name x500Name, BigInteger bigInteger) throws Exception {
-        CrlManager crlManager = new CrlManager();
+        CrlManager crlManager = CrlManager.getInstance();
         return crlManager.getLatestX509Crl(tenantDomain);
     }
 

@@ -94,7 +94,7 @@
     }
 
     function downloadCertificate(serialNo) {
-        location.href = "/ca/certificate/" + serialNo + ".crt";
+        location.href = "/ca/certificate/download/" + serialNo + ".crt";
     }
     function signCsr() {
         CARBON.showConfirmationDialog("<fmt:message key="sign.csr"/>", function () {

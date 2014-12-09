@@ -48,7 +48,16 @@ public class ScepManager {
         return instance;
     }
 
-    public X509Certificate enroll(PKCS10CertificationRequest certReq, String transId, String tenantDomain)
+    /**
+     * Enrolls a CSR from SCEP protocol
+     * @param certReq The certificate request
+     * @param transactionId The transcation id that is used to identify the SCEP transaction
+     * @param tenantDomain The tenant domain for which the request is made
+     * @return The enrolled certificate
+     * @throws CaException
+     */
+    public X509Certificate enroll(PKCS10CertificationRequest certReq, String transactionId,
+                                  String tenantDomain)
             throws CaException {
         int tenantId = 0;
         try {
@@ -63,11 +72,13 @@ public class ScepManager {
                     token = attributeValues.getObjectAt(0).toString();
                 }
             }
-            String serialNo = scepDAO.addScepCsr(certReq, transId, token, tenantId);
+            String serialNo = scepDAO.addScepCsr(certReq, transactionId, token, tenantId);
+            //To sign the certificate as admin, start a tenant flow (This is executed from an
+            // unauthenticated endpoint, so need to set the tenant info before proceed to signing
             PrivilegedCarbonContext.startTenantFlow();
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
-            CertificateManager.getInstance().signCSR(serialNo,
+            CertificateManager.getInstance().signCSR(tenantId,serialNo,
                     CaConfiguration.getInstance().getScepIssuedCertificateValidity());
             return CertificateManager.getInstance().getX509Certificate(serialNo);
         } catch (UserStoreException e) {
@@ -77,6 +88,13 @@ public class ScepManager {
         }
     }
 
+    /**
+     * Gets the certificate that is issued in the transaction identified by transactionId
+     * @param tenantDomain The tenant domain for which the request is made
+     * @param transactionId The transcation id that is used to identify the SCEP transaction
+     * @return The enrolled certificate for the transaction
+     * @throws CaException
+     */
     public X509Certificate getCertificate(String tenantDomain, String transactionId)
             throws CaException {
         int tenantId = 0;
@@ -89,6 +107,12 @@ public class ScepManager {
         }
     }
 
+    /**
+     * Gives the CA certificate for the given tenant
+     * @param tenantDomain The tenant domain whose CA certificate is required
+     * @return The CA certificate for the tenant
+     * @throws CaException
+     */
     public X509Certificate getCaCert(String tenantDomain) throws CaException{
         int tenantId = 0;
         try {
@@ -101,6 +125,12 @@ public class ScepManager {
 
     }
 
+    /**
+     * Gets the CA's private key for the SCEP operations
+     * @param tenantDomain The tenant domain whose CA key is required
+     * @return The CA's private key
+     * @throws CaException
+     */
     public PrivateKey getCaKey(String tenantDomain) throws CaException {
         int tenantId = 0;
         try {
@@ -113,13 +143,33 @@ public class ScepManager {
 
     }
 
+    /**
+     * Generate a SCEP token to be used for SCEP operations
+     * @param username The user who is generating the token
+     * @param tenantId The tenantId of the user
+     * @param userStoreDomain The user store domain of the user
+     * @return The generated SCEP token
+     * @throws CaException
+     */
     public String generateScepToken(String username, int tenantId, String userStoreDomain)
             throws CaException {
         CaConfiguration caConfiguration =
                 CaConfiguration.getInstance();
         int tokenLength = caConfiguration.getTokenLength();
-        String token = RandomStringUtils.randomAlphanumeric(tokenLength);
-        scepDAO.addScepToken(token,username,userStoreDomain,tenantId);
+        String token = "";
+        boolean added = false;
+        int retries = 0;
+        //If the generated token exists in the db (used/available/expired) try with another
+        while (!added){
+            token = RandomStringUtils.randomAlphanumeric(tokenLength);
+            added = scepDAO.addScepToken(token, username, userStoreDomain, tenantId);
+            retries++;
+            if(retries >= CaConstants.MAX_SCEP_TOKEN_RETRIES){
+                log.error("Token creation failed, All tried keys exists in db. Try updating token" +
+                        "length.");
+                throw new CaException("Could not create SCEP token. Failed all retry attempts.");
+            }
+        }
         return token;
     }
 }

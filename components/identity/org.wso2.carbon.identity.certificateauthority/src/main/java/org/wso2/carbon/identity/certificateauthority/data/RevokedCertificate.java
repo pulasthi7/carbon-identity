@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.certificateauthority.data;
 
 import java.util.Date;
 
+/**
+ * Represents a revoked certificate
+ */
 public class RevokedCertificate {
 
     private String serialNo;

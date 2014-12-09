@@ -35,6 +35,12 @@ public class ScepEndpoint {
 
     private static final Log log = LogFactory.getLog(ScepEndpoint.class);
 
+    /**
+     * Responds to the SCEP requests
+     * @param request The HttpServletRequest from context
+     * @param response The HttpServletResponse from context
+     * @param tenant The tenant domain for whom the request is made
+     */
     @Path("/_t/{tenantDomain}")
     public void service(@Context HttpServletRequest request, @Context HttpServletResponse
             response, @PathParam("tenantDomain") String tenant) {

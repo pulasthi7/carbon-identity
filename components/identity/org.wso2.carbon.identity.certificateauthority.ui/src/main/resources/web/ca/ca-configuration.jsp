@@ -55,7 +55,7 @@
         if (CaUiConstants.KEY_CHANGE_ACTION.equals(action)) {
             client.changeKeyStore(CharacterEncoder.getSafeText(request.getParameter(CaUiConstants.
                     SELECTED_KEY_PARAM)));
-        } else if (CaUiConstants.GENERATE_SCEP_TOKEN_ACTION.equals(action)){
+        } else if (CaUiConstants.GENERATE_SCEP_TOKEN_ACTION.equals(action)) {
             token = client.generateScepToken();
         }
 
@@ -100,8 +100,9 @@
     <script type="text/javascript">
 
         function configure() {
-            CARBON.showConfirmationDialog("<fmt:message key="configure.keystore.prompt"/>", function () {
-                document.configureForm.submit();
+            CARBON.showConfirmationDialog("<fmt:message key="configure.keystore.prompt"/>",
+                    function () {
+                        document.configureForm.submit();
             });
         }
 

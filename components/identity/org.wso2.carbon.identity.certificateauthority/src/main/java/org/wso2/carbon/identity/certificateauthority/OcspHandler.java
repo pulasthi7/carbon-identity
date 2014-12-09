@@ -57,8 +57,16 @@ public class OcspHandler {
         this.revocationDAO = new RevocationDAO();
     }
 
-    public OCSPResp handleOCSPRequest(OCSPReq req, String tenantDomain) throws CaException,
-            OCSPException {
+    /**
+     * handles the OCSP requests
+     * @param req The OCSP request
+     * @param tenantDomain The tenant domain of the CA for whom the request is made
+     * @return The OCSP response
+     * @throws OCSPException
+     * @throws CaException
+     */
+    public OCSPResp handleOCSPRequest(OCSPReq req, String tenantDomain)
+            throws OCSPException, CaException {
         OCSPRespBuilder respGenerator = new OCSPRespBuilder();
         try {
             int tenantId = CaServiceComponent.getRealmService().getTenantManager().getTenantId
@@ -80,8 +88,8 @@ public class OcspHandler {
             BasicOCSPRespBuilder basicRespGen = new BasicOCSPRespBuilder(keyinfo, digestCalculator);
             Extension ext = req.getExtension(OCSPObjectIdentifiers.id_pkix_ocsp_nonce);
             if (ext != null) {
-                basicRespGen.setResponseExtensions(new Extensions(new Extension[] { ext })); // Put the
-                // nonce back in the response
+                // Put the nonce back in the response
+                basicRespGen.setResponseExtensions(new Extensions(new Extension[] { ext }));
             }
             for (Req request : requests) {
                 certID = request.getCertID();
@@ -117,14 +125,26 @@ public class OcspHandler {
                     new Date());
 
             return respGenerator.build(OCSPRespBuilder.SUCCESSFUL, basicOCSPResp);
+
+            //OCSP requests are generated from an unauthenticated endpoint,
+            // so the errors are logged at debug level to prevent logs being created unnecessarily
         } catch (OperatorCreationException e) {
-            log.debug("Error when processing request", e);
+            if(log.isDebugEnabled()){
+                log.debug("Error when processing request", e);
+            }
         } catch (CertificateEncodingException e) {
-            log.debug("Error in certificate encoding", e);
+            if(log.isDebugEnabled()){
+                log.debug("Error in certificate encoding", e);
+            }
         } catch (IOException e) {
+            if(log.isDebugEnabled()){
+                log.debug("Error in certificate encoding", e);
+            }
             log.debug("IO Error reading CA certificate", e);
         } catch (UserStoreException e) {
-            throw new CaException("Invalid tenant domain",e);
+            if(log.isDebugEnabled()){
+                log.debug("Error in certificate encoding", e);
+            }
         }
         return respGenerator.build(OCSPRespBuilder.INTERNAL_ERROR, null);
     }

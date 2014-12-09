@@ -39,6 +39,7 @@ public class EmailConfigTransformer {
 		
 		Set<String> keySet = props.stringPropertyNames();
 		for (String key : keySet) {
+
 			EmailTemplateDTO template = new EmailTemplateDTO();
 			template.setName(key);
 			

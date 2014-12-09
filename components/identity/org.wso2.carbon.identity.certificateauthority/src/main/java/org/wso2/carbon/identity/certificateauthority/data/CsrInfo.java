@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.certificateauthority.data;
 
 import java.util.Date;
 
+/**
+ * Represents a CSR
+ */
 public class CsrInfo {
     private String serialNo;
     private Date requestedDate;

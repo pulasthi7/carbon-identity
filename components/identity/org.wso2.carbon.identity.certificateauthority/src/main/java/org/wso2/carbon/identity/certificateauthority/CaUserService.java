@@ -29,19 +29,34 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.List;
 
+/**
+ * This class contains the services that will be used by the CA users
+ */
 public class CaUserService {
     private static final Log log = LogFactory.getLog(CaUserService.class);
 
     private CsrDAO csrDAO = new CsrDAO();
     private CertificateDAO certificateDAO = new CertificateDAO();
 
-    public String addCsr(String csrContent) throws CaException {
+    /**
+     * Sends a CSR to the CA to be signed
+     * @param csr PEM encoded CSR
+     * @return The serial no of the CSR that was stored at CA
+     * @throws CaException
+     */
+    public String addCsr(String csr) throws CaException {
         String username = CarbonContext.getThreadLocalCarbonContext().getUsername();
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         String userStoreDomain = UserCoreUtil.extractDomainFromName(username);
-        return csrDAO.addCsr(csrContent, username, tenantId, userStoreDomain);
+        return csrDAO.addCsr(csr, username, tenantId, userStoreDomain);
     }
 
+    /**
+     * Gets the CSR specified by the given serial no
+     * @param serial The serial no
+     * @return The CSR
+     * @throws CaException
+     */
     public CsrInfo getCsr(String serial) throws CaException {
         String username = CarbonContext.getThreadLocalCarbonContext().getUsername();
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
@@ -49,6 +64,11 @@ public class CaUserService {
         return csrDAO.getCSR(serial, userStoreDomain, username, tenantID);
     }
 
+    /**
+     * Gets the CSR list requested by the current user
+     * @return List of CSRs by the current user
+     * @throws CaException
+     */
     public CsrInfo[] getCsrList() throws CaException {
         String username = CarbonContext.getThreadLocalCarbonContext().getUsername();
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
@@ -57,6 +77,12 @@ public class CaUserService {
         return csrList.toArray(new CsrInfo[csrList.size()]);
     }
 
+    /**
+     * Gets the certificate given by the serial no
+     * @param serialNo The serial no of the certificate
+     * @return The certificate with the given serial no
+     * @throws CaException
+     */
     public CertificateInfo getCertificate(String serialNo) throws CaException {
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         return certificateDAO.getCertificateInfo(serialNo, tenantID);

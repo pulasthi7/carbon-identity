@@ -35,6 +35,12 @@ public class OCSPResponder {
 
     private static Log log = LogFactory.getLog(OCSPResponder.class);
 
+    /**
+     * Responds for the OCSP requests
+     * @param request The HttpServletRequest from the context
+     * @param tenant The tenant domain for whom the request is made
+     * @return The OCSP response
+     */
     @POST
     @Path("/_t/{tenantDomain}")
     @Consumes("application/ocsp-request")

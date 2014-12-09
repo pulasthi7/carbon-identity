@@ -29,18 +29,21 @@ import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.certificateauthority.CaConstants;
 import org.wso2.carbon.identity.certificateauthority.CaException;
 import org.wso2.carbon.identity.certificateauthority.CertificateManager;
+import org.wso2.carbon.identity.certificateauthority.CrlManager;
+import org.wso2.carbon.identity.certificateauthority.common.CertificateStatus;
 import org.wso2.carbon.identity.certificateauthority.common.RevokeReason;
+import org.wso2.carbon.identity.certificateauthority.dao.CertificateDAO;
 import org.wso2.carbon.identity.certificateauthority.dao.ConfigurationDAO;
-import org.wso2.carbon.identity.certificateauthority.data.CaConfig;
 import org.wso2.carbon.identity.certificateauthority.data.CertificateInfo;
 import org.wso2.carbon.identity.certificateauthority.internal.CaServiceComponent;
-import org.wso2.carbon.identity.certificateauthority.utils.ConversionUtils;
+import org.wso2.carbon.identity.certificateauthority.utils.CaObjectUtils;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.security.keystore.KeyStoreAdmin;
 import org.wso2.carbon.security.keystore.service.KeyStoreData;
 import org.wso2.carbon.user.api.UserStoreException;
 
+import javax.xml.namespace.QName;
 import java.security.Key;
 import java.security.KeyStore;
 import java.security.PrivateKey;
@@ -49,44 +52,109 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 
+/**
+ * Reads and store the configuration needed for CA.
+ * Configurations are read from identity.xml
+ */
 public class CaConfiguration {
+
+    private static final String CA_ROOT_ELEMENT = "CertificateAuthority";
+    private static final String SCEP_CONF_ELEMENT = "ScepConfiguration";
+    private static final String SCEP_TOKEN_LENGTH_ELEM = "TokenLength";
+    private static final String SCEP_TOKEN_VALIDITY_ELEM = "TokenValidity";
+    private static final String SCEP_CERTIFICATE_VALIDITY_ELEM = "CertificateValidity";
 
     private static CaConfiguration instance = new CaConfiguration();
 
     private static final Log log = LogFactory.getLog(CaConfiguration.class);
 
+    //initializing to default values in case of reading configs fails
+    private int scepTokenLength = CaConstants.DEFAULT_SCEP_TOKEN_LENGTH;
+    private int scepTokenValidity = CaConstants.DEFAULT_SCEP_TOKEN_VALIDITY;
+    private int scepCertificateValidity = CaConstants.DEFAULT_SCEP_CERTIFICATE_VALIDITY;
+
+    /**
+     * Gets the instance of the CaConfiguration
+     * @return
+     */
     public static CaConfiguration getInstance() {
         return instance;
     }
 
+    /**
+     * Private constructor that initialize the configs from identity.xml
+     */
     private CaConfiguration() {
-        //buildCaConfiguration();
+//        buildCaConfiguration();
     }
 
+    /**
+     * Reads the configuration from identity.xml and store them. If any of the configs are
+     * missing they are initialized to the default values
+     */
     private void buildCaConfiguration(){
         IdentityConfigParser configParser = null;
         try {
             configParser = IdentityConfigParser.getInstance();
-            OMElement caRootElem = configParser.getConfigElement(CaConstants.CA_ROOT_ELEMENT);
+            OMElement caRootElem = configParser.getConfigElement(CA_ROOT_ELEMENT);
             if(caRootElem == null){
-                log.error("Certificate Authority configuration was not found in identity.xml");
+                log.warn("Certificate Authority configuration was not found in identity.xml, " +
+                        "using the default configuration");
                 return;
             }
-            //todo:read configs
+            OMElement scepElement = caRootElem.getFirstChildWithName(new QName
+                    (IdentityConfigParser.IDENTITY_DEFAULT_NAMESPACE,
+                            SCEP_CONF_ELEMENT));
+            if(scepElement != null){
+                OMElement tokenLengthElem = scepElement.getFirstChildWithName(new QName
+                        (IdentityConfigParser.IDENTITY_DEFAULT_NAMESPACE,SCEP_TOKEN_LENGTH_ELEM));
+                if(tokenLengthElem!=null){
+                    scepTokenLength = Integer.parseInt(tokenLengthElem.getText().trim());
+                } else {
+                    scepTokenLength = CaConstants.DEFAULT_SCEP_TOKEN_LENGTH;
+                }
 
+                OMElement tokenValidityElem = scepElement.getFirstChildWithName(new QName
+                        (IdentityConfigParser.IDENTITY_DEFAULT_NAMESPACE,SCEP_TOKEN_VALIDITY_ELEM));
+                if(tokenValidityElem!=null){
+                    scepTokenValidity = Integer.parseInt(tokenValidityElem.getText().trim());
+                } else {
+                    scepTokenValidity = CaConstants.DEFAULT_SCEP_TOKEN_VALIDITY;
+                }
+
+                OMElement certificateValidityElem = scepElement.getFirstChildWithName(new QName
+                        (IdentityConfigParser.IDENTITY_DEFAULT_NAMESPACE,
+                                SCEP_CERTIFICATE_VALIDITY_ELEM));
+                if(certificateValidityElem!=null){
+                    scepCertificateValidity = Integer.parseInt(certificateValidityElem.getText()
+                            .trim());
+                } else {
+                    scepCertificateValidity = CaConstants.DEFAULT_SCEP_CERTIFICATE_VALIDITY;
+                }
+            }
         } catch (ServerConfigurationException e) {
            log.error("Error loading CA related configurations.",e);
-        } catch (ClassCastException e){
-            log.error("SCEP configuration provider should implement ScepConfigProvider " +
-                    "interface",e);
         }
     }
 
+    /**
+     * Gives the CA certificate of the current tenant. Returns the default certificate if
+     * certificate is not configured
+     * @return The CA certificate of the current tenant
+     * @throws CaException
+     */
     public X509Certificate getConfiguredCaCert() throws CaException {
         int tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
         return getConfiguredCaCert(tenantId);
     }
 
+    /**
+     * Gives the CA certificate of the tenant given by the tenantId. Returns the default certificate
+     * if certificate is not configured
+     * @param tenantId The tenant id of the tenant whose certificate should be returned
+     * @return The CA certificate of the given tenant
+     * @throws CaException
+     */
     public X509Certificate getConfiguredCaCert(int tenantId) throws CaException {
         KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
         String tenantDomain =
@@ -113,21 +181,40 @@ public class CaConfiguration {
         }
     }
 
+    /**
+     * Return the CA certificate of the tenant specified by the tenantDomain as a PEM encoded
+     * string
+     * @param tenantDomain The tenantDomain whose certificate is needed
+     * @return The CA certificate as a PEM encoded string
+     * @throws CaException
+     */
     public String getPemEncodedCaCert(String tenantDomain) throws CaException{
         try {
             int tenantId = CaServiceComponent.getRealmService().getTenantManager().getTenantId
                     (tenantDomain);
-            return ConversionUtils.toPemEncodedCertificate(getConfiguredCaCert(tenantId));
+            return CaObjectUtils.toPemEncodedCertificate(getConfiguredCaCert(tenantId));
         } catch (UserStoreException e) {
             throw new CaException("Invalid tenant domain",e);
         }
     }
 
+    /**
+     * Returns the private key of the current tenant which is used to sign CSRs,
+     * CRL and OCSP requests
+     * @return The private key of the current tenant
+     * @throws CaException
+     */
     public PrivateKey getConfiguredPrivateKey() throws CaException {
         int tenantID = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
         return getConfiguredPrivateKey(tenantID);
     }
 
+    /**
+     * Returns the private key of the given tenant, which is used to sign CSRs,
+     * CRL and OCSP requests
+     * @return The private key of the given tenant
+     * @throws CaException
+     */
     public PrivateKey getConfiguredPrivateKey(int tenantId) throws CaException {
         KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
         String tenantDomain =
@@ -154,6 +241,13 @@ public class CaConfiguration {
         }
     }
 
+    /**
+     * Lists all the keys available for the current tenant. Tenant admin can configure one of
+     * them as the key to sign the CSRs, CRLs and OCSP requests
+     * @param registry The registry where the keystores are
+     * @return List of keystores and key aliases in the format "keystore/alias"
+     * @throws CaException
+     */
     public List<String> listAllKeys(Registry registry) throws CaException {
         List<String> keyList = new ArrayList<String>();
 
@@ -192,39 +286,67 @@ public class CaConfiguration {
         return keyList;
     }
 
-
+    /**
+     * Update the key that the tenant will be using for CA operations.<br/>
+     * <b>Note: </b> Updating the key will revoke all the certificates that were signed using the
+     * key
+     * @param tenantId The tenant id of the tenant whose key should be updated
+     * @param keyStore The new keystore where the key is
+     * @param alias The alias for the key
+     * @throws CaException
+     */
     public void updateKey(int tenantId, String keyStore, String alias) throws CaException {
         ConfigurationDAO configurationDAO = new ConfigurationDAO();
+        CertificateDAO certificateDAO = new CertificateDAO();
         String currentKeyPath = configurationDAO.getConfiguredKey(tenantId);
         String newKeyPath = keyStore+"/"+alias;
         if(currentKeyPath!=null && !currentKeyPath.equals(newKeyPath)){
-            configurationDAO.updateCaConfiguration(tenantId, keyStore, alias);
-            CertificateManager.getInstance().revokeAllIssuedCertificates(RevokeReason
-                    .REVOCATION_REASON_CACOMPROMISE.getCode());
+            //revoke the ca certificate itself
+            X509Certificate caCert = getConfiguredCaCert();
+
+            List<CertificateInfo> certificates =
+                    certificateDAO.listCertificates(CertificateStatus.ACTIVE.toString(), tenantId);
+            configurationDAO.updateCaConfiguration(tenantId, keyStore, alias,caCert);
+
+            //Revoke each issued certificates
+            for (CertificateInfo certificate : certificates) {
+                try{
+                    CertificateManager.getInstance().revokeCert(tenantId,
+                            certificate.getSerialNo(),RevokeReason.REVOCATION_REASON_CACOMPROMISE
+                                    .getCode());
+                } catch (CaException e){
+                    //If any certificate revocation fails it should not affect the rest of the
+                    // certificate revocations. So the error is not propagated to the callee
+                    log.error(e);
+                }
+            }
+            CrlManager.getInstance().createAndStoreDeltaCrl(tenantId);
         }
 
     }
 
+    /**
+     * Get the validity of a generated SCEP token
+     * @return
+     */
     public int getTokenValidity(){
-        //todo:read from config
-        return CaConstants.DEFAULT_SCEP_TOKEN_VALIDITY;
+        return scepTokenValidity;
     }
 
+    /**
+     * Get the length of the SCEP token.
+     * @return
+     */
     public int getTokenLength(){
-        //todo:read from config
-        return CaConstants.DEFAULT_SCEP_TOKEN_LENGTH;
+        return scepTokenLength;
     }
 
+    /**
+     * Get the validity of the certificates that are issued from a SCEP operation
+     * @return
+     */
     public int getScepIssuedCertificateValidity(){
-        //todo:read from config
-        return CaConstants.DEFAULT_SCEP_CERTIFICATE_VALIDITY;
+        return scepCertificateValidity;
     }
 
-    private boolean nullSafeEquals(String s1, String s2){
-        if(s1==null){
-            return s2 == null;
-        } else {
-            return s1.equals(s2);
-        }
-    }
 }

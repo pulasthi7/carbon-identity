@@ -23,9 +23,10 @@ import org.apache.commons.logging.LogFactory;
 
 import java.util.Date;
 
+/**
+ * Represents a CRL
+ */
 public class CrlData {
-
-    private static final Log log = LogFactory.getLog(CrlData.class);
     private Date thisUpdate;
     private Date nextUpdate;
     private String base64Crl;
@@ -47,47 +48,23 @@ public class CrlData {
         return crlNumber;
     }
 
-    public void setCrlNumber(int crlNumber) {
-        this.crlNumber = crlNumber;
-    }
-
     public int getDeltaCrlIndicator() {
         return deltaCrlIndicator;
-    }
-
-    public void setDeltaCrlIndicator(int deltaCrlIndicator) {
-        this.deltaCrlIndicator = deltaCrlIndicator;
     }
 
     public int getTenantID() {
         return tenantID;
     }
 
-    public void setTenantID(int tenantID) {
-        this.tenantID = tenantID;
-    }
-
     public Date getNextUpdate() {
         return (Date) nextUpdate.clone();
-    }
-
-    public void setNextUpdate(Date nextUpdate) {
-        this.nextUpdate = (Date) nextUpdate.clone();
     }
 
     public Date getThisUpdate() {
         return (Date) thisUpdate.clone();
     }
 
-    public void setThisUpdate(Date thisUpdate) {
-        this.thisUpdate = (Date) thisUpdate.clone();
-    }
-
     public String getBase64Crl() {
         return base64Crl;
-    }
-
-    public void setBase64Crl(String base64Crl) {
-        this.base64Crl = base64Crl;
     }
 }

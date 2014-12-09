@@ -34,14 +34,24 @@ import java.security.cert.X509Certificate;
 import java.sql.*;
 import java.util.Date;
 
+/**
+ * Performs DAO operations related to SCEP enrollments
+ */
 public class ScepDAO {
     private static Log log = LogFactory.getLog(ScepDAO.class);
 
-
-
-    public void addScepToken(String token, String userName,
+    /**
+     * Adds an generated scep token to the db. This token can be later used by the user in
+     * certificate enrollment process to authenticate user.
+     * @param token The token to be stored
+     * @param userName The user for whom the token in generated
+     * @param userStoreDomain The user store of the domain
+     * @param tenantId The user's tenant id
+     * @return <code>true</code> if token is added successfully, <code>false</code> otherwise
+     * @throws CaException
+     */
+    public boolean addScepToken(String token, String userName,
                              String userStoreDomain, int tenantId) throws CaException {
-//        todo check existance
         Connection connection = null;
         PreparedStatement prepStmt = null;
         ResultSet resultSet;
@@ -56,6 +66,7 @@ public class ScepDAO {
             prepStmt.setString(5, userStoreDomain);
             prepStmt.executeUpdate();
             connection.commit();
+            return true;
         } catch (IdentityException e) {
             String errorMsg = "Error when getting an Identity Persistence Store instance.";
             log.error(errorMsg, e);
@@ -68,20 +79,29 @@ public class ScepDAO {
         }
     }
 
+    /**
+     * Adds a CSR from SCEP PKI operation to the DB
+     * @param certReq The CSR to be added
+     * @param transId The transaction ID which can be used to identify the CSR
+     * @param token The token associated with the operation
+     * @param tenantId The tenant id of CA
+     * @return The serial no of the CSR that was added.
+     * @throws CaException
+     */
     public String addScepCsr(PKCS10CertificationRequest certReq, String transId,
-                             String token, int tenantId)
-            throws CaException {
+                             String token, int tenantId) throws CaException {
         Connection connection = null;
         PreparedStatement prepStmt = null;
-        ResultSet resultSet;
+        ResultSet resultSet = null;
         String sql = SqlConstants.GET_SCEP_TOKEN;
         try {
-            connection = JDBCPersistenceManager.getInstance().getDBConnection();
+            connection = IdentityDatabaseUtil.getDBConnection();
             prepStmt = connection.prepareStatement(sql);
             prepStmt.setString(1, token);
             prepStmt.setInt(2,tenantId);
             resultSet = prepStmt.executeQuery();
             if (resultSet.next()){
+                //token exists
                 CaConfiguration caConfiguration = CaConfiguration.getInstance();
                 String serialNo = resultSet.getString(SqlConstants.SERIAL_NO_COLUMN);
                 if( serialNo != null){
@@ -95,12 +115,14 @@ public class ScepDAO {
                 String userName = resultSet.getString(SqlConstants.USERNAME_COLUMN);
                 String userStoreDomain = resultSet.getString(SqlConstants.USERSTORE_DOMAIN_COLUMN);
 
+                //Adds to the CSR table
                 CsrDAO csrDAO = new CsrDAO();
                 serialNo = csrDAO.addCsr(certReq, userName, tenantId, userStoreDomain);
                 sql = SqlConstants.UPDATE_SCEP_TOKEN;
                 prepStmt = connection.prepareStatement(sql);
                 prepStmt.setString(1,serialNo);
-                prepStmt.setString(2,token);
+                prepStmt.setString(2,transId);
+                prepStmt.setString(3,token);
                 prepStmt.executeUpdate();
                 connection.commit();
                 return serialNo;
@@ -115,17 +137,24 @@ public class ScepDAO {
             log.error("Error when executing the SQL : " + sql, e);
             throw new CaException("Error when adding the request", e);
         } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
+            IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
         }
     }
 
+    /**
+     * Gets the certificate that was enrolled for the given transaction id
+     * @param transactionId The id that is used to identify the PKI operation
+     * @param tenantId The tenant id of CA
+     * @return The certificate that was enrolled from the PKI operation
+     * @throws CaException
+     */
     public X509Certificate getCertificate(String transactionId, int tenantId) throws CaException {
         Connection connection = null;
         PreparedStatement prepStmt = null;
         ResultSet resultSet;
         String sql = SqlConstants.GET_ENROLLED_CERTIFICATE_QUERY;
         try {
-            connection = JDBCPersistenceManager.getInstance().getDBConnection();
+            connection = IdentityDatabaseUtil.getDBConnection();
             prepStmt = connection.prepareStatement(sql);
             prepStmt.setString(1, transactionId);
             prepStmt.setInt(2,tenantId);
@@ -155,7 +184,7 @@ public class ScepDAO {
         }
         //Reaches below when certificate does not exist
         if(log.isDebugEnabled()){
-            log.debug("Transcation id : "+ transactionId+" is valid, " +
+            log.debug("Transaction id : "+ transactionId+" is valid, " +
                     "but the certificate is not found in database for its serial no");
         }
         throw new CaException("Requested certificate is not available");

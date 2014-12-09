@@ -22,9 +22,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.certificateauthority.CaException;
+import org.wso2.carbon.identity.certificateauthority.common.CertificateStatus;
 import org.wso2.carbon.identity.certificateauthority.common.RevokeReason;
 import org.wso2.carbon.identity.certificateauthority.data.RevokedCertificate;
-import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
 import java.sql.*;
@@ -32,68 +32,140 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * Performs revocation related DAO operations
+ */
 public class RevocationDAO {
     private static final Log log = LogFactory.getLog(RevocationDAO.class);
 
     /**
-     * add revoked certificate to the database
+     * Add a revoked certificate to the database
      *
-     * @param serialNo serialNo of the revoked certificate
-     * @param tenantID
-     * @param reason   reason for the revoke
+     * @param serialNo SerialNo of the revoked certificate
+     * @param tenantId The tenant Id
+     * @param reason   The reason code for revoking
      * @throws CaException
+     * @see org.wso2.carbon.identity.certificateauthority.common.RevokeReason
      */
-
-    public void addOrUpdateRevokedCertificate(String serialNo, int tenantID, int reason)
-            throws CaException {
+    public void addRevokedCertificate(String serialNo, int tenantId,
+                                              int reason) throws CaException {
         Connection connection = null;
         String sql= null;
         PreparedStatement prepStmt = null;
         Date updatedAt = new Date();
         try {
-            if(getRevokeReason(serialNo)>=0){
-                log.debug("updating revoked certificate's reason");
-                sql = SqlConstants.UPDATE_REVOKE_REASON_QUERY;
-                connection = JDBCPersistenceManager.getInstance().getDBConnection();
-                prepStmt = connection.prepareStatement(sql);
-                prepStmt.setInt(1,reason);
-                prepStmt.setTimestamp(2, new Timestamp(updatedAt.getTime()));
-                prepStmt.setString(3, serialNo);
-                prepStmt.setInt(4, tenantID);
-            } else {
-                log.debug("adding revoked certificate to database");
-                connection = JDBCPersistenceManager.getInstance().getDBConnection();
-                sql = SqlConstants.ADD_REVOKED_CERTIFICATE_QUERY;
-                prepStmt = connection.prepareStatement(sql);
-                prepStmt.setString(1,serialNo);
-                prepStmt.setTimestamp(2, new Timestamp(updatedAt.getTime()));
-                prepStmt.setInt(3,tenantID);
-                prepStmt.setInt(4,reason);
+            if(log.isDebugEnabled()){
+                log.debug("Adding revoked reason as "+reason+" of certificate "+serialNo);
             }
+            connection = IdentityDatabaseUtil.getDBConnection();
+            sql = SqlConstants.ADD_REVOKED_CERTIFICATE_QUERY;
+            prepStmt = connection.prepareStatement(sql);
+            prepStmt.setString(1,serialNo);
+            prepStmt.setTimestamp(2, new Timestamp(updatedAt.getTime()));
+            prepStmt.setInt(3,tenantId);
+            prepStmt.setInt(4,reason);
             prepStmt.execute();
+            updateCertificateStatus(connection,serialNo,reason);
             connection.commit();
-        } catch (IdentityException e) {
-            String errorMsg = "Error when getting an Identity Persistence Store instance.";
-            log.error(errorMsg, e);
-            throw new CaException(errorMsg, e);
-        } catch (SQLException e) {
+        }catch (IdentityException e) {
             log.error("Error when executing the SQL : " + sql,e);
             throw new CaException("Error when revoking the certificate", e);
+        } catch (SQLException e) {
+            try{
+                connection.rollback();
+            } catch (SQLException e1) {
+                log.error("Error when rolling back the revocation of certificate. Serial " +
+                                "no:"+serialNo, e1);
+            }
+            log.error("Error when revoking certificate. Serial No:"+serialNo+", " +
+                    "given reason code:"+reason, e);
+            throw new CaException("Error revoking certificate", e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection,null,prepStmt);
+        }
+    }
+
+    /**
+     * Update the revoke reason of the given certificate
+     * @param serialNo The SerialNo of the revoked certificate
+     * @param tenantId The tenant Id
+     * @param reason The new reason code for the revocation
+     * @throws CaException
+     * @see org.wso2.carbon.identity.certificateauthority.common.RevokeReason
+     */
+    public void updateRevokedCertificate(String serialNo, int tenantId,
+                                              int reason) throws CaException {
+        Connection connection = null;
+        String sql= null;
+        PreparedStatement prepStmt = null;
+        Date updatedAt = new Date();
+        try {
+            if(log.isDebugEnabled()){
+                log.debug("updating revoked reason to "+reason+" of certificate "+serialNo);
+            }
+            connection = IdentityDatabaseUtil.getDBConnection();
+            sql = SqlConstants.UPDATE_REVOKE_REASON_QUERY;
+            prepStmt = connection.prepareStatement(sql);
+            prepStmt.setInt(1,reason);
+            prepStmt.setTimestamp(2, new Timestamp(updatedAt.getTime()));
+            prepStmt.setString(3, serialNo);
+            prepStmt.setInt(4, tenantId);
+            prepStmt.execute();
+            updateCertificateStatus(connection,serialNo,reason);
+            connection.commit();
+        } catch (IdentityException e) {
+            log.error("Error when executing the SQL : " + sql,e);
+            throw new CaException("Error when updating the revoke reason", e);
+        } catch (SQLException e) {
+            try{
+                connection.rollback();
+            } catch (SQLException e1) {
+                log.error("Error when rolling back the update of revoke reason",e1);
+            }
+            log.error("Error updating revoke reason for certificate. Serial No:"+serialNo,e);
+            throw new CaException("Error updating revoke reason", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
     }
 
+    /**
+     * Updates the certificate status based on whether the reason is "Remove from CRL"
+     * @param connection The db connection which does the db updates related
+     * @param serialNo The SerialNo of the revoked certificate
+     * @param reason The reason code for revoking
+     * @throws SQLException
+     */
+    private void updateCertificateStatus(Connection connection, String serialNo, int reason)
+            throws SQLException {
+        CertificateDAO certificateDAO = new CertificateDAO();
+        if (reason == RevokeReason.REVOCATION_REASON_REMOVEFROMCRL.getCode()) {
+            //Undo previous revoking
+            certificateDAO.updateCertificateStatus(connection,serialNo,
+                    CertificateStatus.ACTIVE.toString());
+        } else {
+            certificateDAO.updateCertificateStatus(connection,serialNo,
+                    CertificateStatus.REVOKED.toString());
+        }
+    }
+
+    /**
+     * Gets the revoke reason of the certificate
+     * @param serialNo
+     * @return The reason code for the revocation if the certificate is revoked,
+     * -1 if certificate is not revoked, or not available
+     * @throws CaException
+     */
     public int getRevokeReason(String serialNo) throws CaException {
         Connection connection = null;
         String sql = SqlConstants.GET_CERTIFICATE_REVOKED_REASON_QUERY;
         PreparedStatement prepStmt = null;
+        ResultSet resultSet = null;
         try {
-            log.debug("adding revoked certificate to database");
-            connection = JDBCPersistenceManager.getInstance().getDBConnection();
+            connection = IdentityDatabaseUtil.getDBConnection();
             prepStmt = connection.prepareStatement(sql);
             prepStmt.setString(1, serialNo);
-            ResultSet resultSet = prepStmt.executeQuery();
+            resultSet = prepStmt.executeQuery();
             if (resultSet.next()) {
                 return resultSet.getInt(SqlConstants.REVOCATION_REASON_CODE_COLUMN);
             } else {
@@ -107,25 +179,25 @@ public class RevocationDAO {
             log.error(errorMsg, e);
             throw new CaException(errorMsg, e);
         } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
+            IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
         }
     }
 
     /**
-     * get Revoked certificate from serial number
+     * Get Revoked certificate details from serial number
      *
-     * @param serialNo
-     * @return RevokedCertificate with given serial number
+     * @param serialNo The SerialNo of the revoked certificate
+     * @return The details of the revoked certificate
      * @throws CaException
      */
     public RevokedCertificate getRevokedCertificate(String serialNo) throws CaException {
         Connection connection = null;
         PreparedStatement prepStmt = null;
-        ResultSet resultSet;
+        ResultSet resultSet = null;
         String sql = SqlConstants.GET_REVOKED_CERTIFICATE_QUERY;
 
         try {
-            connection = JDBCPersistenceManager.getInstance().getDBConnection();
+            connection = IdentityDatabaseUtil.getDBConnection();
             prepStmt = connection.prepareStatement(sql);
 
             prepStmt.setString(1, serialNo);
@@ -140,19 +212,18 @@ public class RevocationDAO {
             log.error(errorMsg, e);
             throw new CaException(errorMsg, e);
         } catch (SQLException e) {
-            log.error("Error when executing the SQL : " + sql);
+            log.error("Error when executing the SQL : " + sql,e);
             throw new CaException("Error when retrieving revoked certificates", e);
         } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
+            IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
         }
         throw new CaException("No revoked certificate with given serial number");
     }
 
     /**
-     * get RevokedCertificateArray from resultset
-     *
-     * @param resultSet
-     * @return
+     * Gets RevokedCertificate list from a ResultSet
+     * @param resultSet The resultSet where the Revoked Certificate details are
+     * @return List of the details of the revoked certificates
      */
     private List<RevokedCertificate> getRevokedCertificatesList(ResultSet resultSet)
             throws SQLException {
@@ -169,19 +240,19 @@ public class RevocationDAO {
     }
 
     /**
-     * get revoked certificate by a tenant
+     * Gets revoked certificates by a tenant
      *
-     * @param
-     * @return
+     * @param tenantId The tenant Id
+     * @return List of Revoked certificates by the tenant
      * @throws CaException
      */
     public List<RevokedCertificate> listRevokedCertificates(int tenantId) throws CaException {
         Connection connection = null;
         PreparedStatement prepStmt = null;
-        ResultSet resultSet;
+        ResultSet resultSet = null;
         String sql = SqlConstants.LIST_REVOKED_CERTIFICATES_QUERY;
         try {
-            connection = JDBCPersistenceManager.getInstance().getDBConnection();
+            connection = IdentityDatabaseUtil.getDBConnection();
             prepStmt = connection.prepareStatement(sql);
             prepStmt.setInt(1, tenantId);
             resultSet = prepStmt.executeQuery();
@@ -191,16 +262,15 @@ public class RevocationDAO {
             log.error(errorMsg, e);
             throw new CaException(errorMsg, e);
         } catch (SQLException e) {
-            log.error("Error when executing the SQL : " + sql);
+            log.error("Error when executing the SQL : " + sql,e);
             throw new CaException("Error when retrieving revoked certificates", e);
         } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
+            IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
         }
     }
 
     /**
-     * remove all actived certificates from revocation table
-     *
+     * Remove all activated certificates (after temporary revocation) from revocation table
      * @throws CaException
      */
     public void removeReactivatedCertificates() throws CaException {
@@ -209,16 +279,17 @@ public class RevocationDAO {
         String sql = SqlConstants.REMOVE_REACTIVATED_CERTIFICATES_QUERY;
 
         try {
-            connection = JDBCPersistenceManager.getInstance().getDBConnection();
+            connection = IdentityDatabaseUtil.getDBConnection();
             prepStmt = connection.prepareStatement(sql);
             prepStmt.setInt(1, RevokeReason.REVOCATION_REASON_REMOVEFROMCRL.getCode());
             prepStmt.executeUpdate();
+            connection.commit();
         } catch (IdentityException e) {
             String errorMsg = "Error when getting an Identity Persistence Store instance.";
             log.error(errorMsg, e);
             throw new CaException(errorMsg, e);
         } catch (SQLException e) {
-            log.error("Error when executing the SQL : " + sql);
+            log.error("Error when executing the SQL : " + sql,e);
             throw new CaException("Error when removing reactivated certificates", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
@@ -226,22 +297,24 @@ public class RevocationDAO {
     }
 
     /**
-     * returns revoked certificates after the given date
+     * Gets revoked certificates after the given timestamp
      *
-     * @param tenantId id of the tenant
-     * @param date     date to be compared
-     * @return set of revoked certificates which are revoked after the given date
+     * @param tenantId The tenant Id
+     * @param date     The timestamp from when the revoked certificates are listed
+     * @return The list of revoked certificates which are revoked after the given timestamp
      * @throws CaException
      */
     public List<RevokedCertificate> getRevokedCertificatesAfter(int tenantId,
                                                                 Date date) throws CaException {
         Connection connection = null;
         PreparedStatement prepStmt = null;
-        ResultSet resultSet;
+        ResultSet resultSet = null;
         String sql = SqlConstants.LIST_REVOKED_CERTIFICATES_AFTER_QUERY;
         try {
-            log.debug("retriving revoked certs after date:" + date + " for tenant :" + tenantId);
-            connection = JDBCPersistenceManager.getInstance().getDBConnection();
+            if(log.isDebugEnabled()){
+                log.debug("retrieving revoked certs after date:" + date + " for tenant :" + tenantId);
+            }
+            connection = IdentityDatabaseUtil.getDBConnection();
             prepStmt = connection.prepareStatement(sql);
             prepStmt.setInt(1, tenantId);
             prepStmt.setTimestamp(2, new Timestamp(date.getTime()));
@@ -252,10 +325,10 @@ public class RevocationDAO {
             log.error(errorMsg, e);
             throw new CaException(errorMsg, e);
         } catch (SQLException e) {
-            log.error("Error when executing the SQL : " + sql);
+            log.error("Error when executing the SQL : " + sql,e);
             throw new CaException("Error when retrieving revoked certificates", e);
         } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
+            IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
         }
     }
 }

@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.certificateauthority;
 
 import org.wso2.carbon.base.ServerConfiguration;
 
+/**
+ * Constants required by CA
+ */
 public class CaConstants {
 
     static {
@@ -43,6 +46,7 @@ public class CaConstants {
     public static final int DEFAULT_SCEP_TOKEN_LENGTH = 10;
     public static final int DEFAULT_SCEP_TOKEN_VALIDITY = 3 * 60 * 60 * 1000;   //3 hrs
     public static final int DEFAULT_SCEP_CERTIFICATE_VALIDITY = 356;
+    public static final int MAX_SCEP_TOKEN_RETRIES = 10;
 
     public static final String SHA256_WITH_RSA_ENCRYPTION = "SHA256WithRSAEncryption";
     public static final String SHA1_WITH_RSA = "SHA1withRSA";
@@ -50,10 +54,6 @@ public class CaConstants {
 
     public static final String BC_PROVIDER = "BC";
     public static final String UTF_8_CHARSET = "UTF-8";
-
-    //Configs from identity.xml
-    public static final String CA_ROOT_ELEMENT = "CertificateAuthority";
-    public static final String SCEP_CONF_PROVIDER_ELEMENT = "ScepConfigurationProvider";
 
     //Endpoints
     //Any change to this section should be done in sync with the CA endpoint component

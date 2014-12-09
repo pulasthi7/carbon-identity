@@ -88,28 +88,11 @@ public class CaAdminServiceClient {
         try {
             return stub.getCsrList();
         } catch (Exception e) {
-            String message = e.getMessage();
-            handleException(e.getMessage(), e);
+            handleException("Error listing CSRs", e);
         }
         return new CsrInfo[0];
     }
 
-    /**
-     * Returns the list of keystores
-     *
-     * @return keystore list
-     * @throws AxisFault
-     */
-    public String[] getKeyStoreList() throws AxisFault {
-        try {
-            return stub.listKeyAliases();
-        } catch (RemoteException e) {
-            handleException(e.getMessage(), e);
-        } catch (CaAdminServiceCaException e) {
-            handleException(e.getMessage(), e);
-        }
-        return new String[0];
-    }
 
     /**
      * Sign the CSR file with a given serial number and validity period
@@ -118,14 +101,11 @@ public class CaAdminServiceClient {
      * @param validity validity period
      */
 
-    public void sign(String serial, int validity) {
+    public void sign(String serial, int validity) throws AxisFault {
         try {
             stub.signCSR(serial, validity);
-        } catch (RemoteException e) {
-            //todo: exception handling
-            e.printStackTrace();
-        } catch (CaAdminServiceCaException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            handleException("Error calling the webservice", e);
         }
     }
 
@@ -134,14 +114,11 @@ public class CaAdminServiceClient {
      *
      * @param serialNo serial number of rejecting CSR
      */
-    public void rejectCSR(String serialNo) {
+    public void rejectCSR(String serialNo) throws AxisFault {
         try {
             stub.rejectCSR(serialNo);
-        } catch (RemoteException e) {
-            //todo: exception handling
-            e.printStackTrace();
-        } catch (CaAdminServiceCaException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            handleException("Error calling the webservice", e);
         }
     }
 
@@ -156,8 +133,7 @@ public class CaAdminServiceClient {
         try {
             return stub.getCsr(serialNo);
         } catch (Exception e) {
-            String message = e.getMessage();
-            handleException(e.getMessage(), e);
+            handleException("Error when getting the CSR", e);
         }
         return null;
     }
@@ -174,8 +150,7 @@ public class CaAdminServiceClient {
         try {
             return stub.listCertificatesWithStatus(CertificateStatus.ACTIVE.toString());
         } catch (Exception e) {
-            String message = e.getMessage();
-            handleException(e.getMessage(), e);
+            handleException("Error when listing the certificates", e);
         }
         return null;
     }
@@ -191,8 +166,7 @@ public class CaAdminServiceClient {
         try {
             stub.revokeCert(serialNo, reason);
         } catch (Exception e) {
-            String message = e.getMessage();
-            handleException(e.getMessage(), e);
+            handleException("Error when revoking the certificate", e);
         }
 
     }
@@ -209,8 +183,7 @@ public class CaAdminServiceClient {
         try {
             return stub.getCertificate(serialNo);
         } catch (Exception e) {
-            String message = e.getMessage();
-            handleException(e.getMessage(), e);
+            handleException("Error when getting the certificate", e);
         }
         return null;
     }
@@ -226,7 +199,7 @@ public class CaAdminServiceClient {
         try {
             return stub.listKeyAliases();
         } catch (Exception e) {
-            handleException(e.getMessage(), e);
+            handleException("Error listing the keys", e);
         }
         return null;
 
@@ -244,8 +217,7 @@ public class CaAdminServiceClient {
         try {
             return stub.getRevokedReason(serialNo);
         } catch (Exception e) {
-            String message = e.getMessage();
-            handleException(e.getMessage(), e);
+            handleException("Error when getting the revoke reason", e);
         }
         return 0;
     }
@@ -261,8 +233,7 @@ public class CaAdminServiceClient {
         try {
             return stub.getCsrListWithStatus(status);
         } catch (Exception e) {
-            String message = e.getMessage();
-            handleException(e.getMessage(), e);
+            handleException("Error when listing the CSRs by status", e);
         }
         return new CsrInfo[0];
     }
@@ -295,29 +266,38 @@ public class CaAdminServiceClient {
         try {
             return stub.listCertificatesWithStatus(status);
         } catch (Exception e) {
-            String message = e.getMessage();
-            handleException(e.getMessage(), e);
+            handleException("Error when listing certificates by status ", e);
         }
         return new CertificateInfo[0];
     }
 
+    /**
+     * Change the key used for CA operations
+     * @param keyPath The new key path
+     * @throws AxisFault
+     */
     public void changeKeyStore(String keyPath) throws AxisFault {
         String[] keyStoreAndAlias = keyPath.split("/");
         if (keyStoreAndAlias.length == 2) {
             try {
                 stub.updateSigningKey(keyStoreAndAlias[0],keyStoreAndAlias[1]);
             } catch (Exception e) {
-                handleException(e.getMessage(), e);
+                handleException("Error when updating the key", e);
             }
         }
 
     }
 
+    /**
+     * Generates a SCEP token to be used in enrollments
+     * @return The generated token
+     * @throws AxisFault
+     */
     public String generateScepToken() throws AxisFault {
         try {
             return stub.generateScepToken();
         } catch (Exception e) {
-            handleException(e.getMessage(), e);
+            handleException("Error when generating a new token", e);
         }
         return null;    //returning null, since this is unreachable
     }

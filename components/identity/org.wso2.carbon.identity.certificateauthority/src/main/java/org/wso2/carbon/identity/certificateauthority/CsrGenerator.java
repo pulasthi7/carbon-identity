@@ -26,19 +26,36 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.pkcs.PKCS10CertificationRequestBuilder;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
-import org.wso2.carbon.identity.certificateauthority.utils.ConversionUtils;
+import org.wso2.carbon.identity.certificateauthority.utils.CaObjectUtils;
 
 import java.security.*;
 
+/**
+ * This contains the methods required to generate key pairs, and CSRs.
+ */
+@SuppressWarnings("UnusedDeclaration")
 public class CsrGenerator {
     private PublicKey publicKey = null;
     private PrivateKey privateKey = null;
     private KeyPairGenerator keyGen = null;
 
     public String getPrivateKey() throws CaException {
-        return ConversionUtils.toEncodedPrivateKey(privateKey);
+        return CaObjectUtils.toEncodedPrivateKey(privateKey);
     }
 
+    /**
+     * Generate a CSR from given attributes
+     * @param alg The signature algorithm
+     * @param keyLength The key length to be used in key generation
+     * @param cn Common name
+     * @param ou Organization unit
+     * @param o Organization
+     * @param l City
+     * @param st State
+     * @param c Country
+     * @return The generated PEM encoded CSR
+     * @throws Exception
+     */
     public String generateCSR(String alg, int keyLength, String cn, String ou, String o, String l,
                               String st, String c) throws Exception {
         keyGen = KeyPairGenerator.getInstance(alg);
@@ -49,9 +66,21 @@ public class CsrGenerator {
         X500Name x500Name = buildX500Name(cn.trim(), ou.trim(), o.trim(), l.trim(), st.trim(),
                 c.trim());
         PKCS10CertificationRequest csr = generatePKCS10(x500Name);
-        return ConversionUtils.toEncodedCsr(csr);
+        return CaObjectUtils.toEncodedCsr(csr);
     }
 
+    /**
+     * Builds X500 name with the provided values, any null values will be ignored except for CN
+     * which is mandatory.
+     * @param cn Common name
+     * @param ou Organization unit
+     * @param o Organization
+     * @param l City
+     * @param st State
+     * @param c Country
+     * @return The X500 name build from not-null values
+     * @throws CaException
+     */
     private X500Name buildX500Name(String cn, String ou, String o, String l, String st, String c)
             throws CaException {
         X500NameBuilder x500NameBuilder = new X500NameBuilder();
@@ -77,6 +106,12 @@ public class CsrGenerator {
         return x500NameBuilder.build();
     }
 
+    /**
+     * Generate PKCS10CertificationRequest from given X500name
+     * @param x500Name
+     * @return
+     * @throws Exception
+     */
     private PKCS10CertificationRequest generatePKCS10(X500Name x500Name) throws Exception {
         PKCS10CertificationRequestBuilder p10Builder = new JcaPKCS10CertificationRequestBuilder(
                 x500Name, publicKey);

@@ -56,6 +56,7 @@ public class CaServiceComponent {
     }
 
     protected void activate(ComponentContext ctxt) {
+        //Schedule the CRL creation and update
         scheduler.scheduleAtFixedRate(new CrlUpdater(), CaConstants.CRL_UPDATER_INITIAL_DELAY,
                 CaConstants.CRL_UPDATE_INTERVAL, TimeUnit.SECONDS);
         log.info("Activated scheduled task for creating and updating CRLs");

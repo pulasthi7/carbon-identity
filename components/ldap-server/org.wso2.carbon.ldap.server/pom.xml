@@ -44,7 +44,7 @@
                     <instructions>
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Import-Package>
-                            org.apache.directory.server.core.*,
+                            org.apache.directory.server.core.*;version="[1.5.7,1.6.0)",
                             org.apache.directory.server.core.changelog.*,
                             org.apache.directory.server.ldap.handlers.bind.*,
                             org.apache.directory.shared.ldap.constants.*,
@@ -52,7 +52,6 @@
                             org.apache.directory.shared.ldap.exception.*,
                             org.apache.directory.shared.ldap.message.*,
                             org.apache.directory.shared.ldap.schema.*,
-                            *;resolution:=optional
                         </Import-Package>
                         <Export-Package>
                             org.wso2.carbon.ldap.server.*,

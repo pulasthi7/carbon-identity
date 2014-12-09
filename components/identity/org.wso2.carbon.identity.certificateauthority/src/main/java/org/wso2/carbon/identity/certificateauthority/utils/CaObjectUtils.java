@@ -31,12 +31,21 @@ import java.io.*;
 import java.security.PrivateKey;
 import java.security.cert.*;
 
-public class ConversionUtils {
-    private static final Log log = LogFactory.getLog(ConversionUtils.class);
+/**
+ * Contains the Util methods to encode/decode the certificates, CSRs, CRLs,..
+ */
+public class CaObjectUtils {
+    private static final Log log = LogFactory.getLog(CaObjectUtils.class);
 
-    private ConversionUtils() {
+    private CaObjectUtils() {
     }
 
+    /**
+     * Decode base 64 encoded CRL to X509CRL
+     * @param encodedCrl The crl in base 64 encoded format
+     * @return
+     * @throws CaException
+     */
     public static X509CRL toX509Crl(String encodedCrl) throws CaException {
         try {
             byte[] b64DecodeBytes = Base64.decode(encodedCrl.getBytes(CaConstants.UTF_8_CHARSET));
@@ -56,6 +65,11 @@ public class ConversionUtils {
         }
     }
 
+    /**
+     * PEM encode a given certificate
+     * @param certificate The X509 certificate to be encoded
+     * @return
+     */
     public static String toPemEncodedCertificate(X509Certificate certificate) {
         try {
             StringWriter stringWriter = new StringWriter();
@@ -69,9 +83,9 @@ public class ConversionUtils {
     }
 
     /**
-     * convert a base 64 encoded csr request into a PKCS10CertificateRequest class (bouncy-castle class)
+     * Decode a base 64 encoded csr into a PKCS10CertificateRequest
      *
-     * @param encodedCsr Base 64 encoded csr request
+     * @param encodedCsr Base 64 encoded CSR
      * @return PKCS10CertificationRequest constructed from the encoded string
      */
     public static PKCS10CertificationRequest toPkcs10CertificationRequest(String encodedCsr)
@@ -85,6 +99,12 @@ public class ConversionUtils {
         }
     }
 
+    /**
+     * Encode a CSR to a PEM encoded String
+     * @param request The CSR to be PEM encoded
+     * @return The PEM encoded representation of the CSR
+     * @throws CaException
+     */
     public static String toEncodedCsr(PKCS10CertificationRequest request) throws CaException {
         try {
             StringWriter writer = new StringWriter();
@@ -98,6 +118,12 @@ public class ConversionUtils {
         }
     }
 
+    /**
+     * PEM encode a private key
+     * @param key The key to be PEM encoded
+     * @return
+     * @throws CaException
+     */
     public static String toEncodedPrivateKey(PrivateKey key) throws CaException {
         try {
             StringWriter writer = new StringWriter();

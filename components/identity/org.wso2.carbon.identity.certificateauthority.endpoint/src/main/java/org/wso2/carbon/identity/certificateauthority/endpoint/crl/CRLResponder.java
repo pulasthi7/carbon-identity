@@ -30,13 +30,19 @@ import javax.ws.rs.core.Response;
 public class CRLResponder {
     private static final Log log = LogFactory.getLog(CRLResponder.class);
 
+    /**
+     * Responds with the CRL for the given tenant domain
+     * @param command
+     * @param tenant
+     * @return
+     */
     @GET
     @Path("/_t/{tenantDomain}")
     @Produces("application/pkix-crl")
     public Response getCRL(@QueryParam(CaConstants.CRL_COMMAND) String command,
                            @PathParam("tenantDomain") String tenant) {
         if (CaConstants.REQUEST_TYPE_CRL.equals(command)) {
-            CrlManager crlManager = new CrlManager();
+            CrlManager crlManager = CrlManager.getInstance();
             try {
                 byte[] crlBytes = crlManager.getLatestCrl(tenant);
                 return Response.ok().type("application/pkix-crl").entity(crlBytes).build();
@@ -44,8 +50,7 @@ public class CRLResponder {
                 log.error("error while trying to get CRL for the tenant :" + tenant, e);
             }
         } else if (CaConstants.REQUEST_TYPE_DELTA_CRL.equals(command)) {
-            //todo : fetch delta crl
-            CrlManager crlManager = new CrlManager();
+            CrlManager crlManager = CrlManager.getInstance();
             try {
                 return Response.ok().type("application/pkix-crl").entity(crlManager
                         .getLatestDeltaCrl(tenant)).build();

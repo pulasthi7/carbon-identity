@@ -18,17 +18,21 @@
 package org.wso2.carbon.identity.certificateauthority.ui.util;
 
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.certificateauthority.stub.CertificateInfo;
 import org.wso2.carbon.identity.certificateauthority.stub.CsrInfo;
 
 /**
- *
+ * Contains the util methods used by ui component
  */
 public class ClientUtil {
-    private static final Log log = LogFactory.getLog(ClientUtil.class);
 
+    /**
+     * Does paging for CSRs
+     * @param pageNumber The page no, of which the CSRs should be listed
+     * @param itemsPerPage No of items per a page
+     * @param csrs The list of all CSRs
+     * @return The list of CSRs to be displayed at the given page
+     */
     public static CsrInfo[] doPagingForCsrs(int pageNumber, int itemsPerPage, CsrInfo[] csrs) {
 
         CsrInfo[] returnedCsrs;
@@ -47,7 +51,15 @@ public class ClientUtil {
         return returnedCsrs;
     }
 
-    public static CertificateInfo[] doPagingForCertificates(int pageNumber, int itemsPerPage, CertificateInfo[] certificates) {
+     /**
+     * Does paging for CSRs
+     * @param pageNumber The page no, of which the certificates should be listed
+     * @param itemsPerPage No of items per a page
+     * @param certificates The list of all certificates
+     * @return The list of certificates to be displayed at the given page
+     */
+    public static CertificateInfo[] doPagingForCertificates(int pageNumber, int itemsPerPage,
+                                                            CertificateInfo[] certificates) {
 
         CertificateInfo[] returnedCertificates;
 

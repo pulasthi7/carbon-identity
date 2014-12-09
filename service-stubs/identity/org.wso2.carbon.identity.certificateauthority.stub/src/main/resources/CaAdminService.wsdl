@@ -1,4 +1,4 @@
-<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:tns="http://certificateauthority.identity.carbon.wso2.org" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:ax2215="http://data.certificateauthority.identity.carbon.wso2.org/xsd" xmlns:ax2213="http://certificateauthority.identity.carbon.wso2.org/xsd" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://certificateauthority.identity.carbon.wso2.org">
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:tns="http://certificateauthority.identity.carbon.wso2.org" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:ax2215="http://data.certificateauthority.identity.carbon.wso2.org/xsd" xmlns:ax2213="http://certificateauthority.identity.carbon.wso2.org/xsd" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://certificateauthority.identity.carbon.wso2.org">
     <wsdl:documentation>CaAdminService</wsdl:documentation>
     <wsdl:types>
         <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://certificateauthority.identity.carbon.wso2.org/xsd">
@@ -177,13 +177,6 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="deleteCsr">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="serial" nillable="true" type="xs:string"></xs:element>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
         </xs:schema>
         <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://data.certificateauthority.identity.carbon.wso2.org/xsd">
             <xs:complexType name="CertificateInfo">
@@ -235,9 +228,6 @@
     </wsdl:message>
     <wsdl:message name="getTenantIssuedCertificatesResponse">
         <wsdl:part name="parameters" element="ns1:getTenantIssuedCertificatesResponse"></wsdl:part>
-    </wsdl:message>
-    <wsdl:message name="deleteCsrRequest">
-        <wsdl:part name="parameters" element="ns1:deleteCsr"></wsdl:part>
     </wsdl:message>
     <wsdl:message name="getRevokedReasonRequest">
         <wsdl:part name="parameters" element="ns1:getRevokedReason"></wsdl:part>
@@ -304,10 +294,6 @@
             <wsdl:input message="tns:getTenantIssuedCertificatesRequest" wsaw:Action="urn:getTenantIssuedCertificates"></wsdl:input>
             <wsdl:output message="tns:getTenantIssuedCertificatesResponse" wsaw:Action="urn:getTenantIssuedCertificatesResponse"></wsdl:output>
             <wsdl:fault message="tns:CaAdminServiceCaException" name="CaAdminServiceCaException" wsaw:Action="urn:getTenantIssuedCertificatesCaAdminServiceCaException"></wsdl:fault>
-        </wsdl:operation>
-        <wsdl:operation name="deleteCsr">
-            <wsdl:input message="tns:deleteCsrRequest" wsaw:Action="urn:deleteCsr"></wsdl:input>
-            <wsdl:fault message="tns:CaAdminServiceCaException" name="CaAdminServiceCaException" wsaw:Action="urn:deleteCsrCaAdminServiceCaException"></wsdl:fault>
         </wsdl:operation>
         <wsdl:operation name="getRevokedReason">
             <wsdl:input message="tns:getRevokedReasonRequest" wsaw:Action="urn:getRevokedReason"></wsdl:input>
@@ -388,15 +374,6 @@
             <wsdl:output>
                 <soap:body use="literal"></soap:body>
             </wsdl:output>
-            <wsdl:fault name="CaAdminServiceCaException">
-                <soap:fault use="literal" name="CaAdminServiceCaException"></soap:fault>
-            </wsdl:fault>
-        </wsdl:operation>
-        <wsdl:operation name="deleteCsr">
-            <soap:operation soapAction="urn:deleteCsr" style="document"></soap:operation>
-            <wsdl:input>
-                <soap:body use="literal"></soap:body>
-            </wsdl:input>
             <wsdl:fault name="CaAdminServiceCaException">
                 <soap:fault use="literal" name="CaAdminServiceCaException"></soap:fault>
             </wsdl:fault>
@@ -548,15 +525,6 @@
                 <soap12:fault use="literal" name="CaAdminServiceCaException"></soap12:fault>
             </wsdl:fault>
         </wsdl:operation>
-        <wsdl:operation name="deleteCsr">
-            <soap12:operation soapAction="urn:deleteCsr" style="document"></soap12:operation>
-            <wsdl:input>
-                <soap12:body use="literal"></soap12:body>
-            </wsdl:input>
-            <wsdl:fault name="CaAdminServiceCaException">
-                <soap12:fault use="literal" name="CaAdminServiceCaException"></soap12:fault>
-            </wsdl:fault>
-        </wsdl:operation>
         <wsdl:operation name="getRevokedReason">
             <soap12:operation soapAction="urn:getRevokedReason" style="document"></soap12:operation>
             <wsdl:input>
@@ -694,12 +662,6 @@
             <wsdl:output>
                 <mime:content type="text/xml" part="parameters"></mime:content>
             </wsdl:output>
-        </wsdl:operation>
-        <wsdl:operation name="deleteCsr">
-            <http:operation location="deleteCsr"></http:operation>
-            <wsdl:input>
-                <mime:content type="text/xml" part="parameters"></mime:content>
-            </wsdl:input>
         </wsdl:operation>
         <wsdl:operation name="getRevokedReason">
             <http:operation location="getRevokedReason"></http:operation>

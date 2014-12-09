@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.certificateauthority.dao;
 
+/**
+ * Contains the SQL queries for CA operations
+ */
 public class SqlConstants {
 
     private SqlConstants() {
@@ -43,7 +46,7 @@ public class SqlConstants {
     public static final String NEXT__UPDATE_COLUMN = "NEXT_UPDATE";
     public static final String CRL_NUMBER_COLUMN = "CRL_NUMBER";
     public static final String DELTA_CRL_INDICATOR_COLUMN = "DELTA_CRL_INDICATOR";
-    public static final String CRL_LABLE = "CRL";
+    public static final String CRL_COLUMN = "CRL";
 
     public static final String KEY_STORE_COLUMN = "KEY_STORE";
     public static final String ALIAS_COLUMN = "ALIAS";
@@ -136,10 +139,10 @@ public class SqlConstants {
             "USER_NAME, TENANT_ID, UM_DOMAIN_NAME) VALUES (?,?,?,?,?)";
     public static final String GET_SCEP_TOKEN = "SELECT * FROM CA_SCEP_STORE WHERE TOKEN = ? AND " +
             "TENANT_ID = ?";
-    public static final String UPDATE_SCEP_TOKEN = "UPDATE CA_SCEP_STORE SET SERIAL_NO = ? WHERE " +
-            "TOKEN = ?";
+    public static final String UPDATE_SCEP_TOKEN = "UPDATE CA_SCEP_STORE SET SERIAL_NO = ?, " +
+            "TRANSACTION_ID = ? WHERE TOKEN = ?";
     public static final String GET_ENROLLED_CERTIFICATE_QUERY = "SELECT CA_CERTIFICATE_STORE" +
             ".CERTIFICATE FROM " +"CA_CERTIFICATE_STORE, CA_SCEP_STORE WHERE CA_CERTIFICATE_STORE" +
-            ".SERIAL_NO = CA_SCEP_STORE.SERIAL_NO AND CA_SCEP_STORE.TOKEN = ? AND CA_SCEP_STORE" +
-            ".TENANT_ID = ?";
+            ".SERIAL_NO = CA_SCEP_STORE.SERIAL_NO AND CA_SCEP_STORE.TRANSACTION_ID = ? AND " +
+            "CA_SCEP_STORE.TENANT_ID = ?";
 }

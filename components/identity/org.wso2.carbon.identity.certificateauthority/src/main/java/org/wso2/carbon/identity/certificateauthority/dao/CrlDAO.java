@@ -25,29 +25,29 @@ import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.certificateauthority.CaConstants;
 import org.wso2.carbon.identity.certificateauthority.CaException;
 import org.wso2.carbon.identity.certificateauthority.data.CrlData;
-import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
 import java.io.UnsupportedEncodingException;
 import java.security.cert.CRLException;
-import java.security.cert.CertificateException;
 import java.security.cert.X509CRL;
 import java.sql.*;
 import java.util.Date;
 
+/**
+ * Performs DAO operations related to CRLs
+ */
 public class CrlDAO {
     private static final Log log = LogFactory.getLog(CrlDAO.class);
 
     /**
-     * add crl data into database table CA_CRL_STORE
+     * Add CRL data into database
      *
-     * @param crl               x509 crl
-     * @param tenantId          issuer of the crl
-     * @param thisUpdate        time of this update
-     * @param nextUpdate        time of next crl will be released
-     * @param crlNumber         contiuolusly increasing number for a tenant
-     * @param deltaCrlIndicator
-     * @throws CRLException
+     * @param crl               x509 CRL
+     * @param tenantId          Issuer of the crl
+     * @param thisUpdate        Time of this update
+     * @param nextUpdate        Time when next CRL will be released
+     * @param crlNumber         The incrementing number for a tenant CA
+     * @param deltaCrlIndicator Whether the CRL is a deltaCRL
      * @throws CaException
      */
     public void addCRL(X509CRL crl, int tenantId, Date thisUpdate, Date nextUpdate, int crlNumber,
@@ -56,9 +56,10 @@ public class CrlDAO {
         String sql = SqlConstants.ADD_CRL_QUERY;
         PreparedStatement prepStmt = null;
         try {
-            connection = JDBCPersistenceManager.getInstance().getDBConnection();
+            connection = IdentityDatabaseUtil.getDBConnection();
             prepStmt = connection.prepareStatement(sql);
-            prepStmt.setString(1, new String(Base64.encode((crl).getEncoded()),CaConstants.UTF_8_CHARSET));
+            prepStmt.setString(1, new String(Base64.encode((crl).getEncoded()),
+                    CaConstants.UTF_8_CHARSET));
             prepStmt.setTimestamp(2, new Timestamp(thisUpdate.getTime()));
             prepStmt.setTimestamp(3, new Timestamp(nextUpdate.getTime()));
             prepStmt.setInt(4, crlNumber);
@@ -71,7 +72,7 @@ public class CrlDAO {
             log.error(errorMsg, e);
             throw new CaException(errorMsg, e);
         } catch (SQLException e) {
-            log.error("Error when executing the SQL : " + sql);
+            log.error("Error when executing the SQL : " + sql,e);
             throw new CaException("Error adding CRL", e);
         } catch (CRLException e) {
             log.error("Error when CRL encoding", e);
@@ -85,22 +86,21 @@ public class CrlDAO {
     }
 
     /**
-     * get the latest crl constructed for a tenant
+     * Get the latest CRL constructed for a tenant
      *
-     * @param tenantId   id of the tenant
-     * @param isDeltaCrl if delta crl is requested, true and if full crl is requested false
-     * @return the latest crl or delta crl
-     * @throws CertificateException
+     * @param tenantId   Id of the tenant
+     * @param isDeltaCrl <code>true</code>if delta crl is requested,
+     *                   and <code>false</code> if full crl is requested
+     * @return The latest CRL or delta CRL
      * @throws CaException
      */
-    public CrlData getLatestCRL(int tenantId, boolean isDeltaCrl)
-            throws CaException {
+    public CrlData getLatestCRL(int tenantId, boolean isDeltaCrl) throws CaException {
         Connection connection = null;
         PreparedStatement prepStmt = null;
         ResultSet resultSet;
         String sql = null;
         try {
-            connection = JDBCPersistenceManager.getInstance().getDBConnection();
+            connection = IdentityDatabaseUtil.getDBConnection();
             if (isDeltaCrl) {
                 sql = SqlConstants.GET_LATEST_DELTA_CRL;
             } else {
@@ -128,7 +128,7 @@ public class CrlDAO {
             log.error(errorMsg, e);
             throw new CaException(errorMsg, e);
         } catch (SQLException e) {
-            log.error("Error when executing the SQL : " + sql);
+            log.error("Error when executing the SQL : " + sql,e);
             throw new CaException("Error when retrieving CRL", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
@@ -137,23 +137,22 @@ public class CrlDAO {
     }
 
     /**
-     * find the highest number out of the clrs from a given tenant
+     * Finds the highest CRL number for given tenant
      *
-     * @param tenantId   id of the tenant
-     * @param isDeltaCrl true if the required number is for delta crl, false unless
-     * @return current highest number of the crl
-     * @throws CertificateException
+     * @param tenantId   Id of the tenantd of the tenant
+     * @param isDeltaCrl <code>true</code>if delta crl is requested,
+     *                   and <code>false</code> if full crl is requested
+     * @return Highest CRL number for the tenant
      * @throws CaException
      */
-    public int getHighestCrlNumber(int tenantId, boolean isDeltaCrl)
-            throws CaException {
+    public int getHighestCrlNumber(int tenantId, boolean isDeltaCrl) throws CaException {
         Connection connection = null;
         PreparedStatement prepStmt = null;
         ResultSet resultSet;
         String sql = null;
 
         try {
-            connection = JDBCPersistenceManager.getInstance().getDBConnection();
+            connection = IdentityDatabaseUtil.getDBConnection();
             if (isDeltaCrl) {
                 sql = SqlConstants.GET_HIGHEST_DELTA_CRL_NUMBER;
             } else {
@@ -163,14 +162,14 @@ public class CrlDAO {
             prepStmt.setInt(1, tenantId);
             resultSet = prepStmt.executeQuery();
             if (resultSet.next()) {
-                return resultSet.getInt(SqlConstants.CRL_LABLE);
+                return resultSet.getInt(SqlConstants.CRL_COLUMN);
             }
         } catch (IdentityException e) {
             String errorMsg = "Error when getting an Identity Persistence Store instance.";
             log.error(errorMsg, e);
             throw new CaException(errorMsg, e);
         } catch (SQLException e) {
-            log.error("Error when executing the SQL : " + sql);
+            log.error("Error when executing the SQL : " + sql,e);
             throw new CaException("Error when retrieving highest CRL number");
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);

@@ -204,7 +204,8 @@
 
                                         </td>
                                         <td>
-                                            <a href="/ca/certificate/<%=certificate.getSerialNo()%>.crt"
+                                            <a
+                                                    href="/ca/certificate/download/<%=certificate.getSerialNo()%>.crt"
                                                style="background-image: url(images/download.gif);"
                                                class="icon-link">
                                                 <fmt:message key='download.certificate'/></a>

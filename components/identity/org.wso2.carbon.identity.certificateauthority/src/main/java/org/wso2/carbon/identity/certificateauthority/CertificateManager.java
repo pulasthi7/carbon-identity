@@ -34,16 +34,13 @@ import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequest;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.certificateauthority.common.CertificateStatus;
 import org.wso2.carbon.identity.certificateauthority.common.CsrStatus;
-import org.wso2.carbon.identity.certificateauthority.common.RevokeReason;
 import org.wso2.carbon.identity.certificateauthority.config.CaConfiguration;
-import org.wso2.carbon.identity.certificateauthority.crl.CrlFactory;
 import org.wso2.carbon.identity.certificateauthority.dao.CertificateDAO;
 import org.wso2.carbon.identity.certificateauthority.dao.CsrDAO;
 import org.wso2.carbon.identity.certificateauthority.dao.RevocationDAO;
 import org.wso2.carbon.identity.certificateauthority.data.CertificateInfo;
 import org.wso2.carbon.identity.certificateauthority.data.CsrInfo;
-import org.wso2.carbon.identity.certificateauthority.data.RevokedCertificate;
-import org.wso2.carbon.identity.certificateauthority.utils.ConversionUtils;
+import org.wso2.carbon.identity.certificateauthority.utils.CaObjectUtils;
 
 import java.math.BigInteger;
 import java.security.PrivateKey;
@@ -67,10 +64,16 @@ public class CertificateManager {
     private CertificateManager() {
     }
 
-    public void signCSR(String serialNo, int validity) throws CaException {
+    /**
+     * Signs the CSR with the given serial no, so that the resulting certificate will have the
+     * given validity period from the time of signing
+     * @param serialNo The serial no of the CSR to be signed
+     * @param validity The validity of the resulting certificate
+     * @throws CaException If signing or storing the certificate fails
+     */
+    public void signCSR(int tenantId, String serialNo, int validity) throws CaException {
 
-        int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        CsrInfo csr = csrDAO.getCSR(serialNo, tenantID);
+        CsrInfo csr = csrDAO.getCSR(serialNo, tenantId);
 
         if (!CsrStatus.PENDING.toString().equals(csr.getStatus())) {
             throw new CaException("Certificate already signed, rejected or revoked");
@@ -81,43 +84,74 @@ public class CertificateManager {
                         (serialNo), validity, configurationManager.getConfiguredPrivateKey(),
                 configurationManager.getConfiguredCaCert()
         );
-        certificateDAO.addCertificate(serialNo, signedCert, tenantID, csr.getUserName(),
-                csr.getUserStoreDomain());
-        csrDAO.updateStatus(serialNo, CsrStatus.SIGNED, tenantID);
+        certificateDAO.addCertificate(serialNo, signedCert, tenantId,
+                csr.getUserName(), csr.getUserStoreDomain());
     }
 
-    public void revokeCert(String serial, int reason) throws CaException {
-        int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        CrlFactory crlFactory = new CrlFactory();
-        revocationDAO.addOrUpdateRevokedCertificate(serial,tenantID,reason);
-
-        if (reason == RevokeReason.REVOCATION_REASON_REMOVEFROMCRL.getCode()) {
-            certificateDAO.updateCertificateStatus(serial, CertificateStatus.ACTIVE.toString());
+    /**
+     * Revoke or update the revoke reason for the given certificate
+     * @param tenantId the tenant Id of the CA
+     * @param serial The serial no of the certificate to be revoked
+     * @param reason The reason code for the revocation
+     * @throws CaException
+     * @see org.wso2.carbon.identity.certificateauthority.common.RevokeReason
+     */
+    public void revokeCert(int tenantId, String serial, int reason) throws CaException {
+        int currentRevokeReason = revocationDAO.getRevokeReason(serial);
+        if(currentRevokeReason < 0){
+            revocationDAO.addRevokedCertificate(serial,tenantId,reason);
         } else {
-            certificateDAO.updateCertificateStatus(serial, CertificateStatus.REVOKED.toString());
+            revocationDAO.updateRevokedCertificate(serial,tenantId,reason);
         }
-        crlFactory.createAndStoreDeltaCrl(tenantID);
     }
 
-    public void revokeAllIssuedCertificates(int revokeReason) throws CaException {
+    /**
+     * Revokes all certificates issued by a tenant ID
+     * @param tenantId The tenant id of the CA
+     * @param revokeReason The reason code for the revocation
+     * @throws CaException
+     * @see org.wso2.carbon.identity.certificateauthority.common.RevokeReason
+     */
+    public void revokeAllIssuedCertificates(int tenantId, int revokeReason) throws CaException {
         CertificateDAO certificateDAO = new CertificateDAO();
-        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         List<CertificateInfo> certificates =
                 certificateDAO.listCertificates(CertificateStatus.ACTIVE.toString(), tenantId);
         for (CertificateInfo certificate : certificates) {
-            revokeCert(certificate.getSerialNo(),revokeReason);
+            revokeCert(tenantId, certificate.getSerialNo(),revokeReason);
         }
     }
 
+    /**
+     * Get the PEM encoded Certificate for the given serial no
+     * @param serial The serial no of the certificate
+     * @return The certificate as a PEM encoded string
+     * @throws CaException
+     */
     public String getPemEncodedCertificate(String serial) throws CaException {
         X509Certificate x509Certificate = certificateDAO.getCertificate(serial);
-        return ConversionUtils.toPemEncodedCertificate(x509Certificate);
+        return CaObjectUtils.toPemEncodedCertificate(x509Certificate);
     }
 
+    /**
+     * Get the certificate in X509 format for the given serial no
+     * @param serial The serial no of the certificate
+     * @return The certificate in X509 format
+     * @throws CaException
+     */
     public X509Certificate getX509Certificate(String serial) throws CaException{
         return certificateDAO.getCertificate(serial);
     }
 
+    /**
+     * Signs the CSR and return the certificate in x509 format
+     * @param serialNo The serial no of the CSR
+     * @param request The PKCS10CertificationRequest to be signed
+     * @param validity The validity of the resulting certificate
+     * @param privateKey The CA's private key
+     * @param caCert The CA's certificate
+     * @return Signed x509 certificate
+     * @throws CaException
+     */
     private X509Certificate getSignedCertificate(String serialNo, PKCS10CertificationRequest
             request, int validity, PrivateKey privateKey, X509Certificate caCert) throws
             CaException {

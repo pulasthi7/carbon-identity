@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.certificateauthority.data;
 
 import java.util.Date;
 
+/**
+ * Represents a Certificate
+ */
 public class CertificateInfo {
     private String serialNo;
     private Date issuedDate;
@@ -29,6 +32,17 @@ public class CertificateInfo {
     private int tenantID;
     private String userStoreDomain;
 
+    /**
+     * Default constructor
+     * @param serialNo The serial no of the certificate
+     * @param issuedDate The issued date of the certificate
+     * @param expiryDate The expiry date of the certificate
+     * @param status The status of the certificate
+     * @param username The username of the user for whom the certificate is issued
+     * @param tenantID The tenant id of the user
+     * @param userStoreDomain The user store of the user
+     * @see org.wso2.carbon.identity.certificateauthority.common.CertificateStatus
+     */
     public CertificateInfo(String serialNo, Date issuedDate, Date expiryDate, String status,
                            String username, int tenantID, String userStoreDomain) {
         this.serialNo = serialNo;
@@ -40,30 +54,58 @@ public class CertificateInfo {
         this.userStoreDomain = userStoreDomain;
     }
 
+    /**
+     * Gets the serial no of the certificate
+     * @return
+     */
     public String getSerialNo() {
         return serialNo;
     }
 
+    /**
+     * Get the certificate issued date
+     * @return
+     */
     public Date getIssuedDate() {
         return (Date) issuedDate.clone();
     }
 
+    /**
+     * Gets the certificate expiry date
+     * @return
+     */
     public Date getExpiryDate() {
         return (Date) expiryDate.clone();
     }
 
+    /**
+     * Get the certificate status
+     * @return
+     */
     public String getStatus() {
         return status;
     }
 
+    /**
+     * Get the username of the user for whom the certificate is issued
+     * @return
+     */
     public String getUsername() {
         return username;
     }
 
+    /**
+     * Get the tenant id of the user
+     * @return
+     */
     public int getTenantID() {
         return tenantID;
     }
 
+    /**
+     * Get the user domain of the user
+     * @return
+     */
     public String getUserStoreDomain() {
         return userStoreDomain;
     }
