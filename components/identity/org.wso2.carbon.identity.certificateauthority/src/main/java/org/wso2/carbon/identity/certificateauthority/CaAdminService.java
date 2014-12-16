@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.certificateauthority;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.core.AbstractAdmin;
 import org.wso2.carbon.identity.certificateauthority.config.CaConfiguration;
@@ -34,7 +32,6 @@ import java.util.List;
 
 public class CaAdminService extends AbstractAdmin {
 
-    private static final Log log = LogFactory.getLog(CaAdminService.class);
     private CsrDAO csrDAO;
     private CertificateDAO certificateDAO;
     private RevocationDAO revokeDAO;

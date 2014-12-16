@@ -25,7 +25,7 @@ public enum RevokeReason {
     REVOCATION_REASON_CACOMPROMISE (2,"CA Compromise"),
     REVOCATION_REASON_AFFILIATIONCHANGED (3, "Affiliation Changed"),
     REVOCATION_REASON_SUPERSEDED (4,"Superseded"),
-    REVOCATION_REASON_CESSATIONOFOPERATION (5,"Cessation of Opearation"),
+    REVOCATION_REASON_CESSATIONOFOPERATION (5,"Cessation of Operation"),
     REVOCATION_REASON_CERTIFICATEHOLD (6,"Certificate Hold"),
     // Value 7 is not used, see RFC5280
     REVOCATION_REASON_REMOVEFROMCRL (8,"Remove From CRL"),

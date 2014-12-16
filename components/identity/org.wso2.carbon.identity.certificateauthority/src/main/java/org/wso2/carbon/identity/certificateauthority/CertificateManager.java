@@ -68,7 +68,7 @@ public class CertificateManager {
      * Signs the CSR with the given serial no, so that the resulting certificate will have the
      * given validity period from the time of signing
      * @param serialNo The serial no of the CSR to be signed
-     * @param validity The validity of the resulting certificate
+     * @param validity The validity of the resulting certificate in days
      * @throws CaException If signing or storing the certificate fails
      */
     public void signCSR(int tenantId, String serialNo, int validity) throws CaException {
