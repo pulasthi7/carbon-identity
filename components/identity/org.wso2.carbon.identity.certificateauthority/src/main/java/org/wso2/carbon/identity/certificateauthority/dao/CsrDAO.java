@@ -450,7 +450,8 @@ public class CsrDAO {
             prepStmt.setInt(3, tenantID);
             prepStmt.executeUpdate();
         } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
+            //Keeps the database connection unclosed, because the callee of this method is responsible for closing it.
+            IdentityDatabaseUtil.closeAllConnections(null, null, prepStmt);
         }
     }
 

@@ -30,6 +30,8 @@
 <%@ page import="org.wso2.carbon.ui.util.CharacterEncoder" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.util.ResourceBundle" %>
+<%@ page import="java.text.SimpleDateFormat" %>
+<%@ page import="java.text.DateFormat" %>
 
 <%
     String serialNo;
@@ -38,6 +40,7 @@
     String forwardTo = null;
     CaAdminServiceClient client = null;
     CsrInfo csr = null;
+    DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
 
     client = (CaAdminServiceClient) session.getAttribute(CaUiConstants.CA_ADMIN_CLIENT);
     serialNo = CharacterEncoder.getSafeText(request.getParameter(CaUiConstants.SERIAL_NO_PARAM));
@@ -129,52 +132,52 @@
                             </thead>
                             <tr>
                                 <td style="width: 50%"><fmt:message key='user'/></td>
-                                <td><%=csr.getUserName()%>
+                                <td><%=csr.getUserName()==null?"":csr.getUserName()%>
                                 </td>
                             </tr>
                             <tr>
                                 <td><fmt:message key='serial.No'/></td>
-                                <td><%=csr.getSerialNo()%>
+                                <td><%=csr.getSerialNo()==null?"":csr.getSerialNo()%>
                                 </td>
                             </tr>
                             <tr>
                                 <td><fmt:message key='status'/></td>
-                                <td><%=csr.getStatus()%>
+                                <td><%=csr.getStatus()==null?"":csr.getStatus()%>
                                 </td>
                             </tr>
                             <tr>
                                 <td><fmt:message key='csr.detail.cn'/></td>
-                                <td><%=csr.getCommonName()%>
+                                <td><%=csr.getCommonName()==null?"":csr.getCommonName()%>
                                 </td>
                             </tr>
                             <tr>
                                 <td><fmt:message key='csr.detail.dept'/></td>
-                                <td><%=csr.getDepartment()%>
+                                <td><%=csr.getDepartment()==null?"":csr.getDepartment()%>
                                 </td>
                             </tr>
                             <tr>
                                 <td><fmt:message key='csr.detail.org'/></td>
-                                <td><%=csr.getOrganization()%>
+                                <td><%=csr.getOrganization()==null?"":csr.getOrganization()%>
                                 </td>
                             </tr>
                             <tr>
                                 <td><fmt:message key='csr.detail.city'/></td>
-                                <td><%=csr.getCity()%>
+                                <td><%=csr.getCity()==null?"":csr.getCity()%>
                                 </td>
                             </tr>
                             <tr>
                                 <td><fmt:message key='csr.detail.state'/></td>
-                                <td><%=csr.getState()%>
+                                <td><%=csr.getState()==null?"":csr.getState()%>
                                 </td>
                             </tr>
                             <tr>
                                 <td><fmt:message key='csr.detail.country'/></td>
-                                <td><%=csr.getCountry()%>
+                                <td><%=csr.getCountry()==null?"":csr.getCountry()%>
                                 </td>
                             </tr>
                             <tr>
                                 <td><fmt:message key='requested.date'/></td>
-                                <td><%=csr.getRequestedDate().toString()%>
+                                <td><%=csr.getRequestedDate()==null?"":dateFormat.format(csr.getRequestedDate())%>
                                 </td>
                             </tr>
                         </table>

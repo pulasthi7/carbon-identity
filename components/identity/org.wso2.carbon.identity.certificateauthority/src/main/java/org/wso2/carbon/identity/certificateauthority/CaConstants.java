@@ -29,8 +29,8 @@ public class CaConstants {
         HTTP_SERVER_URL = "http://" +
                 ServerConfiguration.getInstance().getFirstProperty("HostName")+":"+
                 //adds the offset defined in the server configs to the default 9763 port
-                Integer.parseInt(ServerConfiguration.getInstance().getFirstProperty("Ports" +
-                        ".Offset")) + 9763;
+                (Integer.parseInt(ServerConfiguration.getInstance().getFirstProperty("Ports" +
+                        ".Offset")) + 9763);
     }
 
     public static final String HTTP_SERVER_URL;

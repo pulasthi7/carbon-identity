@@ -171,12 +171,12 @@ public class CertificateManager {
                     .addExtension(Extension.subjectKeyIdentifier, false,
                             extUtils.createSubjectKeyIdentifier(jcaRequest
                                     .getPublicKey()))
-                    .addExtension(Extension.basicConstraints, true, new BasicConstraints(0))
+                    .addExtension(Extension.basicConstraints, true, new BasicConstraints(false))
                     .addExtension(Extension.keyUsage, true,
-                            new KeyUsage(KeyUsage.digitalSignature | KeyUsage
-                                    .keyEncipherment))
-                    .addExtension(Extension.extendedKeyUsage, true,
-                            new ExtendedKeyUsage(KeyPurposeId.id_kp_serverAuth));
+                            new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyEncipherment))
+                    .addExtension(Extension.extendedKeyUsage, false,
+                            new ExtendedKeyUsage(new KeyPurposeId[]{KeyPurposeId.id_kp_clientAuth,
+                                    KeyPurposeId.id_kp_serverAuth,KeyPurposeId.id_kp_emailProtection}));
             ContentSigner signer =
                     new JcaContentSignerBuilder(CaConstants.SHA1_WITH_RSA).setProvider
                             (CaConstants.BC_PROVIDER).build(privateKey);

@@ -30,6 +30,7 @@
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.ui.util.CharacterEncoder" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
+<%@ page import="org.wso2.carbon.utils.CarbonUtils" %>
 <%
 
     CertificateInfo[] certificatesToDisplay = null;
@@ -83,15 +84,17 @@
             session.setAttribute(CaUiConstants.CA_ADMIN_CLIENT, client);
         }
 
-        certificates = (CertificateInfo[]) session.getAttribute(CaUiConstants.CERTIFICATES_ATTRIB);
-        if (certificates == null || !isPaginated) {
+        String previousFilter = (String) session.getAttribute(CaUiConstants.CERTIFICATES_FILTER_ATTRIB);
+        if(!statusTypeFilter.equals(previousFilter)){
+            session.setAttribute(CaUiConstants.CERTIFICATES_FILTER_ATTRIB,statusTypeFilter);
             if (statusTypeFilter.equals(CaUiConstants.STATUS_ALL)) {
                 certificates = client.getCertificateList();
             } else {
                 certificates = client.getCertificatesFromStatus(statusTypeFilter);
             }
             session.setAttribute(CaUiConstants.CERTIFICATES_ATTRIB, certificates);
-
+        } else {
+            certificates = (CertificateInfo[])session.getAttribute(CaUiConstants.CERTIFICATES_ATTRIB);
         }
 
         int itemsPerPageInt = CaUiConstants.DEFAULT_ITEMS_PER_PAGE;
@@ -262,7 +265,7 @@
                                                 }
                                                 for (CertificateStatus status : CertificateStatus
                                                         .values()) {
-                                                    if (statusTypeFilter.equals(status)) {
+                                                    if (statusTypeFilter.equals(status.toString())) {
                                             %>
                                             <option value="<%= status.toString()%>"
                                                     selected="selected"><%=

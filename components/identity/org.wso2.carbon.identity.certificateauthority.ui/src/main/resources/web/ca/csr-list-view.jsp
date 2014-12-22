@@ -29,6 +29,8 @@
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.ui.util.CharacterEncoder" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
+<%@ page import="java.text.SimpleDateFormat" %>
+<%@ page import="java.text.DateFormat" %>
 <%
 
     CsrInfo[] csrsToDisplay = null;
@@ -36,7 +38,7 @@
     CsrInfo[] csrs = null;
     int numberOfPages = 0;
     int pageNumberInt = 0;
-
+    DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
 
     String statusTypeFilter =
             CharacterEncoder.getSafeText(request.getParameter(CaUiConstants.STATUS_PARAM));
@@ -246,7 +248,7 @@
                         </td>
                         <td><%=csr.getOrganization()%>
                         </td>
-                        <td><%=csr.getRequestedDate().toString()%>
+                        <td><%=dateFormat.format(csr.getRequestedDate())%>
                         </td>
                         <td><%=csr.getStatus()%>
                         </td>

@@ -46,6 +46,8 @@ public class CaUiConstants {
 
     public static final String CSRS_ATTRIB = "csrs";
     public static final String CERTIFICATES_ATTRIB = "certificates";
+    public static final String CERTIFICATES_FILTER_ATTRIB = "certificatesFilter";
+    public static final String CSRS_FILTER_ATTRIB = "csrsFilter";
 
     public static final String KEY_CHANGE_ACTION = "keyChange";
     public static final String GENERATE_SCEP_TOKEN_ACTION = "generateScepToken";
