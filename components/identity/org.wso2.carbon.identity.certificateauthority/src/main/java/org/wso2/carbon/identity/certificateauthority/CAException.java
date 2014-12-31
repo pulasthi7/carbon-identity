@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2015 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,21 +18,27 @@
 
 package org.wso2.carbon.identity.certificateauthority;
 
+/**
+ * The exception to be thrown when a CA operation fails
+ */
 public class CAException extends Exception {
 
-    public CAException() {
-        super();
-    }
-
+    /**
+     * Instantiate a new exception with the given exception message
+     *
+     * @param message The exception message
+     */
     public CAException(String message) {
         super(message);
     }
 
+    /**
+     * Instantiate a new exception by wrapping a given throwable
+     *
+     * @param message The exception message
+     * @param cause   The throwable to be wrapped
+     */
     public CAException(String message, Throwable cause) {
         super(message, cause);
-    }
-
-    public CAException(Throwable cause) {
-        super(cause);
     }
 }

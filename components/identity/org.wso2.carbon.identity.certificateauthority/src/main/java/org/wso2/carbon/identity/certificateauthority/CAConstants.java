@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2015 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -33,25 +33,25 @@ public class CAConstants {
                         ".Offset")) + 9763);
     }
 
+    /**
+     * The server URL for HTTP transport, used in building OCSP, CRL endpoint extensions
+     */
     public static final String HTTP_SERVER_URL;
 
-    public static final String CRL_COMMAND = "cmd";
-    public static final String REQUEST_TYPE_CRL = "crl";
-    public static final String REQUEST_TYPE_DELTA_CRL = "deltacrl";
-
-    public static final String X509 = "X.509";
+    //Constants for CRL updater scheduled task
     public static final int CRL_UPDATER_INITIAL_DELAY = 60 * 10;    //10 minutes
     public static final int CRL_UPDATE_INTERVAL = 60 * 60 * 24;     //once a day
 
+    //Constants for SCEP operations
     public static final int DEFAULT_SCEP_TOKEN_LENGTH = 10;
     public static final int DEFAULT_SCEP_TOKEN_VALIDITY = 3 * 60 * 60 * 1000;   //3 hrs
     public static final int DEFAULT_SCEP_CERTIFICATE_VALIDITY = 356;
-    public static final int MAX_SCEP_TOKEN_RETRIES = 10;
+    public static final int MAX_SCEP_TOKEN_RETRIES = 10; //tries to generate an unused token at most this times
 
-    public static final String SHA256_WITH_RSA_ENCRYPTION = "SHA256WithRSAEncryption";
+    //Constants for String literals
+    public static final String X509 = "X.509";
     public static final String SHA1_WITH_RSA = "SHA1withRSA";
     public static final String SHA256_WITH_RSA = "SHA256withRSA";
-
     public static final String BC_PROVIDER = "BC";
     public static final String UTF_8_CHARSET = "UTF-8";
 

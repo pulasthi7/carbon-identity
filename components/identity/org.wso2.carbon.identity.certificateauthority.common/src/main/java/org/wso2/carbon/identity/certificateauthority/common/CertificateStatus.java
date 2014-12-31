@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2015 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,7 +18,16 @@
 
 package org.wso2.carbon.identity.certificateauthority.common;
 
+/**
+ * Represents the different States of a certificate
+ */
 public enum CertificateStatus {
+    /**
+     * The certificate is valid and can be used to authenticate the subject, (if not expired)
+     */
     ACTIVE,
+    /**
+     * The certificate has been revoked and should not be accepted even if it is not expired yet
+     */
     REVOKED
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2015 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -37,15 +37,7 @@ import java.security.cert.X509Certificate;
 public class SCEPManager {
 
     private static final Log log = LogFactory.getLog(CAUserService.class);
-    private static SCEPManager instance = new SCEPManager();
     private SCEPDAO scepDAO = new SCEPDAO();
-
-    private SCEPManager() {
-    }
-
-    public static SCEPManager getInstance() {
-        return instance;
-    }
 
     /**
      * Enrolls a CSR from SCEP protocol
@@ -78,9 +70,10 @@ public class SCEPManager {
             PrivilegedCarbonContext.startTenantFlow();
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
-            CertificateManager.getInstance().signCSR(tenantId, serialNo,
+            CertificateManager certificateManager = new CertificateManager();
+            certificateManager.signCSR(tenantId, serialNo,
                     CAConfiguration.getInstance().getScepIssuedCertificateValidity());
-            return CertificateManager.getInstance().getX509Certificate(serialNo);
+            return certificateManager.getX509Certificate(serialNo);
         } catch (UserStoreException e) {
             throw new CAException("Invalid tenant domain :" + tenantDomain);
         } finally {
@@ -98,10 +91,8 @@ public class SCEPManager {
      */
     public X509Certificate getCertificate(String tenantDomain, String transactionId)
             throws CAException {
-        int tenantId = 0;
         try {
-            tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId
-                    (tenantDomain);
+            int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
             return scepDAO.getCertificate(transactionId, tenantId);
         } catch (UserStoreException e) {
             throw new CAException("Invalid tenant domain :" + tenantDomain);
@@ -116,10 +107,8 @@ public class SCEPManager {
      * @throws CAException
      */
     public X509Certificate getCaCert(String tenantDomain) throws CAException {
-        int tenantId = 0;
         try {
-            tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId
-                    (tenantDomain);
+            int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
             return CAConfiguration.getInstance().getConfiguredCaCert(tenantId);
         } catch (UserStoreException e) {
             throw new CAException("Invalid tenant domain :" + tenantDomain);
@@ -135,10 +124,8 @@ public class SCEPManager {
      * @throws CAException
      */
     public PrivateKey getCaKey(String tenantDomain) throws CAException {
-        int tenantId = 0;
         try {
-            tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId
-                    (tenantDomain);
+            int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
             return CAConfiguration.getInstance().getConfiguredPrivateKey(tenantId);
         } catch (UserStoreException e) {
             throw new CAException("Invalid tenant domain :" + tenantDomain);
@@ -157,8 +144,7 @@ public class SCEPManager {
      */
     public String generateScepToken(String username, int tenantId, String userStoreDomain)
             throws CAException {
-        CAConfiguration caConfiguration =
-                CAConfiguration.getInstance();
+        CAConfiguration caConfiguration = CAConfiguration.getInstance();
         int tokenLength = caConfiguration.getTokenLength();
         String token = "";
         boolean added = false;

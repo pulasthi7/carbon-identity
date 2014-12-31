@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2015 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -45,9 +45,15 @@ import java.util.Set;
 public class SCEPServletImpl extends ScepServlet {
 
     private static Log log = LogFactory.getLog(SCEPServletImpl.class);
+    private CRLManager crlManager = new CRLManager();
     private SCEPManager scepManager = SCEPManager.getInstance();
     private String tenantDomain;
 
+    /**
+     * Instantiate SCEPServletImpl with the CA's tenant domain.
+     *
+     * @param tenantDomain The tenant domain of the CA whose SCEP operations should be handled.
+     */
     public SCEPServletImpl(String tenantDomain) {
         this.tenantDomain = tenantDomain;
     }
@@ -80,6 +86,7 @@ public class SCEPServletImpl extends ScepServlet {
         X500Name issuerX500Name = new X500Name(x509Certificate.getIssuerX500Principal().getName());
         if (issuerX500Name.equals(x500Name)) {
             certificateList.add(x509Certificate);
+            //adds the CA certificate to the chain
             certificateList.addAll(doGetCaCertificate(null));
         }
         return certificateList;
@@ -95,6 +102,7 @@ public class SCEPServletImpl extends ScepServlet {
         X500Name certificateSubject = new X500Name(certificate.getSubjectX500Principal().getName());
         if (certificateIssuer.equals(issuer) && certificateSubject.equals(subject)) {
             certificateList.add(certificate);
+            //adds the CA certificate to the chain
             certificateList.addAll(doGetCaCertificate(null));
         }
         return certificateList;
@@ -102,7 +110,6 @@ public class SCEPServletImpl extends ScepServlet {
 
     @Override
     protected X509CRL doGetCrl(X500Name x500Name, BigInteger bigInteger) throws Exception {
-        CRLManager crlManager = CRLManager.getInstance();
         return crlManager.getLatestX509Crl(tenantDomain);
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2015 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,8 +18,20 @@
 
 package org.wso2.carbon.identity.certificateauthority.common;
 
+/**
+ * Enum to represent the different states of a CSR
+ */
 public enum CSRStatus {
+    /**
+     * The CSR is pending to be signed by the CA
+     */
     PENDING,
+    /**
+     * The CSR is signed by the CA
+     */
     SIGNED,
+    /**
+     * The CA has rejected the CSR without signing
+     */
     REJECTED
 }

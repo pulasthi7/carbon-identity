@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2015 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,10 +18,12 @@
 
 package org.wso2.carbon.identity.certificateauthority;
 
+import org.apache.commons.lang.StringUtils;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.pkcs.PKCS10CertificationRequestBuilder;
@@ -41,7 +43,6 @@ import java.security.SecureRandom;
 public class CSRGenerator {
     private PublicKey publicKey = null;
     private PrivateKey privateKey = null;
-    private KeyPairGenerator keyGen = null;
 
     public String getPrivateKey() throws CAException {
         return CAObjectUtils.toEncodedPrivateKey(privateKey);
@@ -63,7 +64,7 @@ public class CSRGenerator {
      */
     public String generateCSR(String alg, int keyLength, String cn, String ou, String o, String l,
                               String st, String c) throws Exception {
-        keyGen = KeyPairGenerator.getInstance(alg);
+        KeyPairGenerator keyGen = KeyPairGenerator.getInstance(alg);
         keyGen.initialize(keyLength, new SecureRandom());
         KeyPair keyPair = keyGen.generateKeyPair();
         publicKey = keyPair.getPublic();
@@ -90,23 +91,25 @@ public class CSRGenerator {
     private X500Name buildX500Name(String cn, String ou, String o, String l, String st, String c)
             throws CAException {
         X500NameBuilder x500NameBuilder = new X500NameBuilder();
-        if (cn == null || "".equals(cn)) {
+        //CN is mandatory
+        if (StringUtils.isBlank(cn)) {
             throw new CAException("Common Name (CN) should have a non empty value");
         }
         x500NameBuilder.addRDN(BCStyle.CN, cn);
-        if (ou != null && !"".equals(ou)) {
+        //These fields are optional and will be included only if given
+        if (StringUtils.isNotBlank(ou)) {
             x500NameBuilder.addRDN(BCStyle.OU, ou);
         }
-        if (o != null && !"".equals(o)) {
+        if (StringUtils.isNotBlank(o)) {
             x500NameBuilder.addRDN(BCStyle.O, o);
         }
-        if (l != null && !"".equals(l)) {
+        if (StringUtils.isNotBlank(l)) {
             x500NameBuilder.addRDN(BCStyle.L, l);
         }
-        if (st != null && !"".equals(st)) {
+        if (StringUtils.isNotBlank(st)) {
             x500NameBuilder.addRDN(BCStyle.ST, st);
         }
-        if (c != null && !"".equals(c)) {
+        if (StringUtils.isNotBlank(c)) {
             x500NameBuilder.addRDN(BCStyle.C, c);
         }
         return x500NameBuilder.build();
@@ -115,15 +118,19 @@ public class CSRGenerator {
     /**
      * Generate PKCS10CertificationRequest from given X500name
      *
-     * @param x500Name
-     * @return
-     * @throws Exception
+     * @param x500Name The X500Name for the resulting PKCS10CertificationRequest
+     * @return PKCS10CertificationRequest for the public key
+     * @throws CAException
      */
-    private PKCS10CertificationRequest generatePKCS10(X500Name x500Name) throws Exception {
-        PKCS10CertificationRequestBuilder p10Builder = new JcaPKCS10CertificationRequestBuilder(
-                x500Name, publicKey);
-        JcaContentSignerBuilder csBuilder = new JcaContentSignerBuilder(CAConstants.SHA256_WITH_RSA);
-        ContentSigner signer = csBuilder.build(privateKey);
-        return p10Builder.build(signer);
+    private PKCS10CertificationRequest generatePKCS10(X500Name x500Name) throws CAException {
+        try {
+            PKCS10CertificationRequestBuilder p10Builder = new JcaPKCS10CertificationRequestBuilder(
+                    x500Name, publicKey);
+            JcaContentSignerBuilder csBuilder = new JcaContentSignerBuilder(CAConstants.SHA256_WITH_RSA);
+            ContentSigner signer = csBuilder.build(privateKey);
+            return p10Builder.build(signer);
+        } catch (OperatorCreationException e) {
+            throw new CAException("Error when generating CSR for " + x500Name.toString(), e);
+        }
     }
 }

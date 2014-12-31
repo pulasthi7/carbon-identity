@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2015 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.certificateauthority.config;
 import org.apache.axiom.om.OMElement;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.bouncycastle.asn1.x509.CRLReason;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.base.ServerConfigurationException;
 import org.wso2.carbon.context.CarbonContext;
@@ -31,7 +32,6 @@ import org.wso2.carbon.identity.certificateauthority.CAException;
 import org.wso2.carbon.identity.certificateauthority.CRLManager;
 import org.wso2.carbon.identity.certificateauthority.CertificateManager;
 import org.wso2.carbon.identity.certificateauthority.common.CertificateStatus;
-import org.wso2.carbon.identity.certificateauthority.common.RevokeReason;
 import org.wso2.carbon.identity.certificateauthority.dao.CertificateDAO;
 import org.wso2.carbon.identity.certificateauthority.dao.ConfigurationDAO;
 import org.wso2.carbon.identity.certificateauthority.internal.CAServiceComponent;
@@ -317,16 +317,15 @@ public class CAConfiguration {
             for (Certificate certificate : certificates) {
                 try {
                     CertificateManager.getInstance().revokeCert(tenantId,
-                            certificate.getSerialNo(), RevokeReason.REVOCATION_REASON_CACOMPROMISE
-                                    .getCode()
-                    );
+                            certificate.getSerialNo(), CRLReason.cACompromise);
                 } catch (CAException e) {
                     //If any certificate revocation fails it should not affect the rest of the
                     // certificate revocations. So the error is not propagated to the callee
                     log.error(e);
                 }
             }
-            CRLManager.getInstance().createAndStoreDeltaCrl(tenantId);
+            CRLManager crlManager = new CRLManager();
+            crlManager.createAndStoreDeltaCrl(tenantId);
         }
 
     }

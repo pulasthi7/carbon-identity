@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2015 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -48,16 +48,15 @@ public class SCEPEndpoint {
         try {
             ScepServlet scepServlet = new SCEPServletImpl(tenant);
             scepServlet.service(request, response);
-
             //If the response is not committed jax-rs seems to modify the response headers to
-            // return text/xml. So we are committing the response if it has not already
+            // return text/xml. Therefore, committing the response if it is not committed
             if (!response.isCommitted()) {
                 response.flushBuffer();
             }
         } catch (ServletException e) {
-            log.error("Error serving the request", e);
+            log.error("Error when serving the request", e);
         } catch (IOException e) {
-            log.error("Error serving the request", e);
+            log.error("Error when committing the response", e);
         }
     }
 

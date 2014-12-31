@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2015 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -21,9 +21,12 @@ package org.wso2.carbon.identity.certificateauthority.endpoint.ocsp;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPReq;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.wso2.carbon.identity.certificateauthority.CAException;
 import org.wso2.carbon.identity.certificateauthority.OCSPHandler;
+import org.wso2.carbon.identity.certificateauthority.endpoint.CAEndpointConstants;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
@@ -33,7 +36,11 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
 
+/**
+ * Handles OCSP requests
+ */
 @Path("/ocsp")
 public class OCSPResponder {
 
@@ -55,11 +62,20 @@ public class OCSPResponder {
             OCSPReq ocspReq = new OCSPReq(IOUtils.toByteArray(request.getInputStream()));
             OCSPHandler ocspHandler = new OCSPHandler();
             OCSPResp ocspResp = ocspHandler.handleOCSPRequest(ocspReq, tenant);
-            return Response.ok().type("application/ocsp-response").entity(ocspResp.getEncoded())
+            return Response.ok().type(CAEndpointConstants.OCSP_RESPONSE_MEDIA_TYPE).entity(ocspResp.getEncoded())
                     .build();
-        } catch (Exception e) {
-            log.error(e);
+        } catch (OCSPException e) {
+            //This exception is thrown by bouncycastle when it fails to generate the OCSP response
+            log.error("Error when building the OCSP response for tenant:" + tenant, e);
+            return Response.serverError().build();
+        } catch (CAException e) {
+            //This can be thrown due to multiple reasons, the reason and context can be found at exception's message
+            log.error("Error when handling the OCSP request for tenant:" + tenant, e);
+            return Response.serverError().build();
+        } catch (IOException e) {
+            //The request is malformed, and the OCSPReq object cannot be built with that
+            log.error("Error with the OCSP request, invalid request body", e);
+            return Response.status(Response.Status.BAD_REQUEST).build();
         }
-        return Response.serverError().build();
     }
 }

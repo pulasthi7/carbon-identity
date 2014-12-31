@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2015 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -41,29 +41,29 @@ public class CAUserService {
     /**
      * Sends a CSR to the CA to be signed
      *
-     * @param csr PEM encoded CSR
-     * @return The serial no of the CSR that was stored at CA
+     * @param encodedCSR PEM encoded CSR
+     * @return The serial number of the CSR that was stored at CA
      * @throws CAException
      */
-    public String addCsr(String csr) throws CAException {
+    public String addCSR(String encodedCSR) throws CAException {
         String username = CarbonContext.getThreadLocalCarbonContext().getUsername();
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         String userStoreDomain = UserCoreUtil.extractDomainFromName(username);
-        return csrDAO.addCsr(csr, username, tenantId, userStoreDomain);
+        return csrDAO.addCsr(encodedCSR, username, tenantId, userStoreDomain);
     }
 
     /**
-     * Gets the CSR specified by the given serial no
+     * Gets the CSR specified by the given serial number
      *
-     * @param serial The serial no
+     * @param serialNo The serial number
      * @return The CSR
      * @throws CAException
      */
-    public CSR getCsr(String serial) throws CAException {
+    public CSR getCSR(String serialNo) throws CAException {
         String username = CarbonContext.getThreadLocalCarbonContext().getUsername();
-        int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         String userStoreDomain = UserCoreUtil.extractDomainFromName(username);
-        return csrDAO.getCSR(serial, userStoreDomain, username, tenantID);
+        return csrDAO.getCSR(serialNo, userStoreDomain, username, tenantId);
     }
 
     /**
@@ -72,7 +72,7 @@ public class CAUserService {
      * @return List of CSRs by the current user
      * @throws CAException
      */
-    public CSR[] getCsrList() throws CAException {
+    public CSR[] listCSRs() throws CAException {
         String username = CarbonContext.getThreadLocalCarbonContext().getUsername();
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         String userStoreDomain = UserCoreUtil.extractDomainFromName(username);
@@ -81,14 +81,14 @@ public class CAUserService {
     }
 
     /**
-     * Gets the certificate given by the serial no
+     * Gets the certificate given by the serial number
      *
-     * @param serialNo The serial no of the certificate
-     * @return The certificate with the given serial no
+     * @param serialNo The serial number of the certificate
+     * @return The certificate with the given serial number
      * @throws CAException
      */
     public Certificate getCertificate(String serialNo) throws CAException {
-        int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        return certificateDAO.getCertificateInfo(serialNo, tenantID);
+        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        return certificateDAO.getCertificateInfo(serialNo, tenantId);
     }
 }

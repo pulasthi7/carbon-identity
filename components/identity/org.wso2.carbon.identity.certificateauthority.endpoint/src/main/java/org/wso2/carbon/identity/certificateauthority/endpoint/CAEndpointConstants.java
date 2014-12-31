@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2015 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -25,6 +25,9 @@ import java.util.Set;
 
 public class CAEndpointConstants {
 
+    /**
+     * Used in SCEP protocol, This represents the capabilities currently supported by the CA
+     */
     public static final Set<Capability> SCEP_CAPABILITIES;
 
     static {
@@ -34,4 +37,14 @@ public class CAEndpointConstants {
         capabilities.add(Capability.SHA_1);
         SCEP_CAPABILITIES = capabilities;
     }
+
+    public static final String X509_USER_CERT_MEDIA_TYPE = "application/x-x509-user-cert";
+    public static final String X509_CA_CERT_MEDIA_TYPE = "application/x-x509-ca-cert";
+    public static final String PKIX_CRL_MEDIA_TYPE = "application/pkix-crl";
+    public static final String OCSP_RESPONSE_MEDIA_TYPE = "application/ocsp-response";
+
+    public static final String CRL_COMMAND = "cmd";
+    public static final String REQUEST_TYPE_CRL = "crl";
+    public static final String REQUEST_TYPE_DELTA_CRL = "deltacrl";
+
 }

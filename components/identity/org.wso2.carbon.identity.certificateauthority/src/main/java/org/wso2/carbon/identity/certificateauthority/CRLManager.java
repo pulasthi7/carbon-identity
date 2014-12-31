@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2015 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -56,16 +56,8 @@ import java.util.List;
  */
 public class CRLManager {
     private static final Log log = LogFactory.getLog(CRLManager.class);
-    private static CRLManager instance = new CRLManager();
 
     private CRLDAO crlDAO = new CRLDAO();
-
-    private CRLManager() {
-    }
-
-    public static CRLManager getInstance() {
-        return instance;
-    }
 
     /**
      * Create and stores a new CRL
@@ -90,8 +82,8 @@ public class CRLManager {
     /**
      * Gets the latest CRL in binary format
      *
-     * @param tenantDomain
-     * @return
+     * @param tenantDomain The tenant domain of the CA
+     * @return The CRL in binary format
      * @throws CAException
      */
     public byte[] getLatestCrl(String tenantDomain)
@@ -111,8 +103,8 @@ public class CRLManager {
     /**
      * Gets the latest delta CRL in binary format
      *
-     * @param tenantDomain
-     * @return
+     * @param tenantDomain The tenant domain of the CA
+     * @return The deltaCRL in binary format
      * @throws CAException
      */
     public byte[] getLatestDeltaCrl(String tenantDomain)
@@ -158,7 +150,7 @@ public class CRLManager {
      * @throws CAException
      */
     public X509CRL getLatestX509Crl(String tenantDomain) throws CAException {
-        int tenantId = 0;
+        int tenantId;
         try {
             tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId
                     (tenantDomain);
@@ -169,7 +161,7 @@ public class CRLManager {
     }
 
     /**
-     * Create CRL
+     * Creates X509 CRL
      *
      * @param caCertificate       The CA Certificate
      * @param caPrivateKey        The CA private key
@@ -178,12 +170,11 @@ public class CRLManager {
      * @param baseCrlNumber       Base CRL number
      * @param isDeltaCrl          Whether the crl is a delta crl or a full CRL
      * @return The X509 CRL
-     * @throws Exception
+     * @throws CAException
      */
     private X509CRL createCRL(X509Certificate caCertificate, PrivateKey caPrivateKey,
-                              List<RevokedCertificate> revokedCertificates, int crlNumber,
-                              int baseCrlNumber, boolean isDeltaCrl) throws CAException {
-
+                              List<RevokedCertificate> revokedCertificates, int crlNumber, int baseCrlNumber,
+                              boolean isDeltaCrl) throws CAException {
         try {
             Date now = new Date();
             X509v2CRLBuilder crlBuilder = new X509v2CRLBuilder(new JcaX509CertificateHolder
@@ -202,7 +193,7 @@ public class CRLManager {
             crlBuilder.addExtension(X509Extension.authorityKeyIdentifier, false,
                     extUtils.createAuthorityKeyIdentifier(caCertificate));
             crlBuilder.addExtension(X509Extension.cRLNumber, false,
-                    new CRLNumber(BigInteger.valueOf(baseCrlNumber)));
+                    new CRLNumber(BigInteger.valueOf(crlNumber)));
             if (isDeltaCrl) {
                 crlBuilder.addExtension(X509Extension.deltaCRLIndicator, true,
                         new CRLNumber(BigInteger.valueOf(baseCrlNumber)));
@@ -231,7 +222,7 @@ public class CRLManager {
      *
      * @param tenantId The tenant Id
      * @return Full CRL of the tenant
-     * @throws Exception
+     * @throws CAException
      */
 
     public X509CRL createFullCrl(int tenantId) throws CAException {
@@ -255,36 +246,34 @@ public class CRLManager {
      *
      * @param tenantId The tenant id of the CA
      * @return The delta CRL of the tenant CA
-     * @throws Exception
+     * @throws CAException
      */
     public X509CRL createDeltaCrl(int tenantId) throws CAException {
         RevocationDAO revocationDAO = new RevocationDAO();
-        CRLDAO crlDAO = new CRLDAO();
         X509CRL latestCrl;
         latestCrl = CAObjectUtils.toX509Crl(crlDAO.getLatestCRL(tenantId,
                 false).getBase64Crl());
         List<RevokedCertificate> revokedCertificates = revocationDAO.getRevokedCertificatesAfter
                 (tenantId, latestCrl.getThisUpdate());
         PrivateKey privateKey = CAConfiguration.getInstance().getConfiguredPrivateKey();
-        X509Certificate certb = CAConfiguration.getInstance().getConfiguredCaCert();
+        X509Certificate caCert = CAConfiguration.getInstance().getConfiguredCaCert();
         int fullCrlNumber = crlDAO.getHighestCrlNumber(tenantId, false);
         int deltaCrlNumber = crlDAO.getHighestCrlNumber(tenantId, true);
         // nextCrlNumber: The highest number of last CRL (full or delta) and increased by 1 (both
         // full CRLs and deltaCRLs share the same series of CRL Number)
         int nextCrlNumber = ((fullCrlNumber > deltaCrlNumber) ? fullCrlNumber : deltaCrlNumber) + 1;
-        return createCRL(certb, privateKey, revokedCertificates, nextCrlNumber, fullCrlNumber,
+        return createCRL(caCert, privateKey, revokedCertificates, nextCrlNumber, fullCrlNumber,
                 false);
     }
 
     /**
      * Creates and store a CRL in db for the given tenant
      *
-     * @param tenantId tenant id
-     * @throws Exception
+     * @param tenantId The tenant id of the CA
+     * @throws CAException
      */
     public void createAndStoreCrl(int tenantId) throws CAException {
         X509CRL crl = createFullCrl(tenantId);
-        CRLDAO crlDAO = new CRLDAO();
         RevocationDAO revocationDAO = new RevocationDAO();
         revocationDAO.removeReactivatedCertificates();
         int fullCrlNumber = crlDAO.getHighestCrlNumber(tenantId, false);
@@ -298,9 +287,9 @@ public class CRLManager {
     }
 
     /**
-     * Create and store a delta crl in database
+     * Create and store a delta CRL in database
      *
-     * @param tenantId id of the tenant
+     * @param tenantId The tenant id of the CA
      * @throws CAException
      */
     public void createAndStoreDeltaCrl(int tenantId) throws CAException {

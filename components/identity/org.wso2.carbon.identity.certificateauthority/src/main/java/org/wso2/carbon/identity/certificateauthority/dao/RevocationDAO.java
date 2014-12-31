@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2015 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -20,10 +20,10 @@ package org.wso2.carbon.identity.certificateauthority.dao;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.bouncycastle.asn1.x509.CRLReason;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.certificateauthority.CAException;
 import org.wso2.carbon.identity.certificateauthority.common.CertificateStatus;
-import org.wso2.carbon.identity.certificateauthority.common.RevokeReason;
 import org.wso2.carbon.identity.certificateauthority.model.RevokedCertificate;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
@@ -49,7 +49,7 @@ public class RevocationDAO {
      * @param tenantId The tenant Id
      * @param reason   The reason code for revoking
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
-     * @see org.wso2.carbon.identity.certificateauthority.common.RevokeReason
+     * @see org.bouncycastle.asn1.x509.CRLReason
      */
     public void addRevokedCertificate(String serialNo, int tenantId,
                                       int reason) throws CAException {
@@ -96,7 +96,7 @@ public class RevocationDAO {
      * @param tenantId The tenant Id
      * @param reason   The new reason code for the revocation
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
-     * @see org.wso2.carbon.identity.certificateauthority.common.RevokeReason
+     * @see org.bouncycastle.asn1.x509.CRLReason
      */
     public void updateRevokedCertificate(String serialNo, int tenantId,
                                          int reason) throws CAException {
@@ -145,7 +145,7 @@ public class RevocationDAO {
     private void updateCertificateStatus(Connection connection, String serialNo, int reason)
             throws SQLException {
         CertificateDAO certificateDAO = new CertificateDAO();
-        if (reason == RevokeReason.REVOCATION_REASON_REMOVEFROMCRL.getCode()) {
+        if (reason == CRLReason.removeFromCRL) {
             //Undo previous revoking
             certificateDAO.updateCertificateStatus(connection, serialNo,
                     CertificateStatus.ACTIVE.toString());
@@ -290,7 +290,7 @@ public class RevocationDAO {
         try {
             connection = IdentityDatabaseUtil.getDBConnection();
             prepStmt = connection.prepareStatement(sql);
-            prepStmt.setInt(1, RevokeReason.REVOCATION_REASON_REMOVEFROMCRL.getCode());
+            prepStmt.setInt(1, CRLReason.removeFromCRL);
             prepStmt.executeUpdate();
             connection.commit();
         } catch (IdentityException e) {

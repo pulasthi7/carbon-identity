@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2015 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -73,11 +73,10 @@ public class OCSPHandler {
      * @param req          The OCSP request
      * @param tenantDomain The tenant domain of the CA for whom the request is made
      * @return The OCSP response
-     * @throws OCSPException
      * @throws CAException
      */
     public OCSPResp handleOCSPRequest(OCSPReq req, String tenantDomain)
-            throws OCSPException, CAException {
+            throws CAException {
         OCSPRespBuilder respGenerator = new OCSPRespBuilder();
         try {
             int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId
@@ -92,11 +91,10 @@ public class OCSPHandler {
             CAConfiguration configurationManager = CAConfiguration.getInstance();
             X509Certificate caCert = configurationManager.getConfiguredCaCert(tenantId);
             PrivateKey privateKey = configurationManager.getConfiguredPrivateKey(tenantId);
-            SubjectPublicKeyInfo keyinfo = SubjectPublicKeyInfo.getInstance(caCert.getPublicKey()
-                    .getEncoded());
+            SubjectPublicKeyInfo keyInfo = SubjectPublicKeyInfo.getInstance(caCert.getPublicKey().getEncoded());
             DigestCalculator digestCalculator = new JcaDigestCalculatorProviderBuilder()
                     .setProvider(CAConstants.BC_PROVIDER).build().get(CertificateID.HASH_SHA1);
-            BasicOCSPRespBuilder basicRespGen = new BasicOCSPRespBuilder(keyinfo, digestCalculator);
+            BasicOCSPRespBuilder basicRespGen = new BasicOCSPRespBuilder(keyInfo, digestCalculator);
             Extension ext = req.getExtension(OCSPObjectIdentifiers.id_pkix_ocsp_nonce);
             if (ext != null) {
                 // Put the nonce back in the response
@@ -109,10 +107,9 @@ public class OCSPHandler {
                 if (certificateInfo == null || tenantId != certificateInfo.getTenantID()) {
                     basicRespGen.addResponse(certID, new UnknownStatus());
                 } else {
-                    org.wso2.carbon.identity.certificateauthority.common.CertificateStatus
-                            certificateStatus = org.wso2
-                            .carbon.identity.certificateauthority.common.CertificateStatus
-                            .valueOf(certificateInfo.getStatus());
+                    org.wso2.carbon.identity.certificateauthority.common.CertificateStatus certificateStatus = org
+                            .wso2.carbon.identity.certificateauthority.common.CertificateStatus.valueOf
+                                    (certificateInfo.getStatus());
                     switch (certificateStatus) {
                         case REVOKED:
                             RevokedCertificate revokedCertificate = revocationDAO
@@ -130,34 +127,28 @@ public class OCSPHandler {
                     }
                 }
             }
+            //Signs the OCSP response
             ContentSigner contentSigner = new JcaContentSignerBuilder(CAConstants.SHA1_WITH_RSA)
                     .setProvider(CAConstants.BC_PROVIDER).build(privateKey);
             BasicOCSPResp basicOCSPResp = basicRespGen.build(contentSigner,
-                    new X509CertificateHolder[]{new X509CertificateHolder(caCert.getEncoded())},
-                    new Date());
+                    new X509CertificateHolder[]{new X509CertificateHolder(caCert.getEncoded())}, new Date());
 
             return respGenerator.build(OCSPRespBuilder.SUCCESSFUL, basicOCSPResp);
 
             //OCSP requests are generated from an unauthenticated endpoint,
             // so the errors are logged at debug level to prevent logs being created unnecessarily
         } catch (OperatorCreationException e) {
-            if (log.isDebugEnabled()) {
-                log.debug("Error when processing request", e);
-            }
+            throw new CAException("Error when signing OCSP response for tenant:" + tenantDomain, e);
         } catch (CertificateEncodingException e) {
-            if (log.isDebugEnabled()) {
-                log.debug("Error in certificate encoding", e);
-            }
+            throw new CAException("Error in certificate encoding for CA Certificate of tenant:" + tenantDomain, e);
         } catch (IOException e) {
-            if (log.isDebugEnabled()) {
-                log.debug("Error in certificate encoding", e);
-            }
-            log.debug("IO Error reading CA certificate", e);
+            throw new CAException("Error when building certificate holder for CA certificate of tenant: " +
+                    tenantDomain, e);
         } catch (UserStoreException e) {
-            if (log.isDebugEnabled()) {
-                log.debug("Error in certificate encoding", e);
-            }
+            throw new CAException("Error with tenant domain, tenant domain " + tenantDomain + " is not valid", e);
+        } catch (OCSPException e) {
+            //building OCSP response fails at BC
+            throw new CAException("Error building the OCSP response", e);
         }
-        return respGenerator.build(OCSPRespBuilder.INTERNAL_ERROR, null);
     }
 }

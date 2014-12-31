@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2015 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -30,16 +30,48 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.List;
 
+/**
+ * The Service class for the administrative operations of CA
+ */
+@SuppressWarnings("UnusedDeclaration")
 public class CAAdminService extends AbstractAdmin {
-
+    /**
+     * DAO for CSR related operations
+     */
     private CSRDAO csrDAO;
+    /**
+     * DAO for Certificate related operations
+     */
     private CertificateDAO certificateDAO;
+    /**
+     * DAO for revocation related operations
+     */
     private RevocationDAO revokeDAO;
 
+    /**
+     * The manager class for certificate related operations
+     */
+    private CertificateManager certificateManager;
+
+    /**
+     * The manager class for the SCEP operations
+     */
+    private SCEPManager scepManager;
+
+    /**
+     * The manager class for the CRL operations
+     */
+    private CRLManager crlManager;
+
+    /**
+     * Initialize the Service class
+     */
     public CAAdminService() {
         csrDAO = new CSRDAO();
         certificateDAO = new CertificateDAO();
         revokeDAO = new RevocationDAO();
+        certificateManager = new CertificateManager();
+        crlManager = new CRLManager();
     }
 
     /**
@@ -47,25 +79,122 @@ public class CAAdminService extends AbstractAdmin {
      *
      * @return list of CSR assigned to the current tenant
      */
-    public CSR[] getCsrList() throws CAException {
+    public CSR[] listCSRs() throws CAException {
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         List<CSR> csrList = csrDAO.listCsrs(tenantId);
         return csrList.toArray(new CSR[csrList.size()]);
     }
 
     /**
-     * Revokes certificate with given serial no, specifying the given revoke reason
+     * Gets the CSRs for the tenant CA having the given status
      *
-     * @param serial The serial no of the certificate to be revoked
-     * @param reason The reason code for the revocation
-     * @throws Exception
-     * @see org.wso2.carbon.identity.certificateauthority.common.RevokeReason
+     * @param status The status filter
+     * @return CSRs of the tenant CA which has the given status
+     * @throws CAException
      */
-    public void revokeCert(String serial, int reason) throws Exception {
+    public CSR[] listCSRsByStatus(String status) throws CAException {
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        CertificateManager.getInstance().revokeCert(tenantId, serial, reason);
-        CRLManager.getInstance().createAndStoreDeltaCrl(tenantId);
+        List<CSR> csrList = csrDAO.listCsrsByStatus(tenantId, status);
+        return csrList.toArray(new CSR[csrList.size()]);
+    }
 
+    /**
+     * Get the CSR specified by the given serial number
+     *
+     * @param serialNo The serial number of the CSR
+     * @return CSR with the given serial number
+     * @throws CAException
+     */
+    public CSR getCSR(String serialNo) throws CAException {
+        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        return csrDAO.getCSR(serialNo, tenantId);
+    }
+
+    /**
+     * Reject CSR without signing
+     *
+     * @param serialNo The serial number of the CSR to be rejected
+     * @throws CAException
+     */
+    public void rejectCSR(String serialNo) throws CAException {
+        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        csrDAO.rejectCSR(serialNo, tenantId);
+    }
+
+    /**
+     * Signs the CSR and stores the resulting certificate
+     *
+     * @param serialNo The serial number of the CSR to be signed
+     * @param validity The number of days that the resulting certificate should be valid before expiration
+     * @throws CAException
+     */
+    public void signCSR(String serialNo, int validity) throws CAException {
+        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        certificateManager.signCSR(tenantId, serialNo, validity);
+    }
+
+    /**
+     * Lists all the certificate issued by the tenant CA
+     *
+     * @return List of all tenant CA issued certificates
+     * @throws CAException
+     */
+    public Certificate[] listCertificates() throws CAException {
+        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        List<Certificate> certificateInfoList = certificateDAO.listCertificates(tenantId);
+        return certificateInfoList.toArray(new Certificate[certificateInfoList.size()]);
+    }
+
+    /**
+     * Lists all the certificates issued by the tenant CA filtered by the given status
+     *
+     * @param status The status filter
+     * @return List of certificates with given status issued by tenant CA
+     * @throws CAException
+     * @see org.wso2.carbon.identity.certificateauthority.common.CertificateStatus
+     */
+    public Certificate[] listCertificatesWithStatus(String status) throws CAException {
+        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        List<Certificate> certificateInfoList = certificateDAO.listCertificates(status,
+                tenantId);
+        return certificateInfoList.toArray(new Certificate[certificateInfoList.size()]);
+    }
+
+    /**
+     * Get the details of the certificate identified by the given serial number
+     *
+     * @param serialNo The serial number of the certificate
+     * @return The certificate
+     * @throws CAException
+     */
+    public Certificate getCertificate(String serialNo) throws CAException {
+        int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        return certificateDAO.getCertificateInfo(serialNo, tenantID);
+    }
+
+    /**
+     * Revokes certificate with given serial number, specifying the given revoke reason
+     *
+     * @param serialNo The serial number of the certificate to be revoked
+     * @param reason   The reason code for the revocation as specified in {@link org.bouncycastle.asn1.x509.CRLReason}
+     * @throws Exception
+     */
+    public void revokeCertificate(String serialNo, int reason) throws Exception {
+        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        certificateManager.revokeCert(tenantId, serialNo, reason);
+        crlManager.createAndStoreDeltaCrl(tenantId);
+
+    }
+
+    /**
+     * Gets the revoke reason of the certificate given by the serial number
+     *
+     * @param serialNo The serial number of the certificate
+     * @return The reason code for the revocation as specified in {@link org.bouncycastle.asn1.x509.CRLReason}
+     * @throws CAException
+     */
+    public int getRevokedReason(String serialNo) throws CAException {
+        return revokeDAO.getRevokedCertificate(serialNo).getReason();
     }
 
     /**
@@ -82,74 +211,12 @@ public class CAAdminService extends AbstractAdmin {
     }
 
     /**
-     * Get the certificate attributes for the certificate with given serial number
-     *
-     * @param serialNo The serial no of the certificate
-     * @return The certificate
-     * @throws CAException
-     */
-    public Certificate getCertificate(String serialNo) throws CAException {
-        int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        return certificateDAO.getCertificateInfo(serialNo, tenantID);
-    }
-
-    /**
-     * Lists all the certificate issued by the tenant CA
-     *
-     * @return
-     * @throws CAException
-     */
-    public Certificate[] getTenantIssuedCertificates() throws CAException {
-        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        List<Certificate> certificateInfoList = certificateDAO.listCertificates(tenantId);
-        return certificateInfoList.toArray(new Certificate[certificateInfoList.size()]);
-    }
-
-    /**
-     * Lists all the certificates issued by the tenant CA filtered by the given status
-     *
-     * @param status The status filter
-     * @return
-     * @throws CAException
-     * @see org.wso2.carbon.identity.certificateauthority.common.CertificateStatus
-     */
-    public Certificate[] listCertificatesWithStatus(String status) throws CAException {
-        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        List<Certificate> certificateInfoList = certificateDAO.listCertificates(status,
-                tenantId);
-        return certificateInfoList.toArray(new Certificate[certificateInfoList.size()]);
-    }
-
-    /**
-     * Reject CSR without signing
-     *
-     * @param serial The serial no of the CSR to be rejected
-     * @throws CAException
-     */
-    public void rejectCSR(String serial) throws CAException {
-        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        csrDAO.rejectCSR(serial, tenantId);
-    }
-
-    /**
-     * Get the CSR specified by the given serial no
-     *
-     * @param serial The serial no of the CSR
-     * @return
-     * @throws CAException
-     */
-    public CSR getCsr(String serial) throws CAException {
-        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        return csrDAO.getCSR(serial, tenantId);
-    }
-
-    /**
      * Update the key that is used for CA operations such as signing certificates,
      * CRLs. <br/>
      * <b>Note:</b> Changing the key will revoke all the certificates issued using the previous key.
      *
-     * @param keyStore
-     * @param alias
+     * @param keyStore The key store containing the new key
+     * @param alias    The alias of the new key
      * @throws CAException
      */
     public void updateSigningKey(String keyStore, String alias) throws CAException {
@@ -158,41 +225,16 @@ public class CAAdminService extends AbstractAdmin {
     }
 
     /**
-     * Gets the revoke reason of the certificate given by the serial no
-     *
-     * @param serial The serial no of the certificate
-     * @return The reason code for the revocation
-     * @throws CAException
-     * @see org.wso2.carbon.identity.certificateauthority.common.RevokeReason
-     */
-    public int getRevokedReason(String serial) throws CAException {
-        return revokeDAO.getRevokedCertificate(serial).getReason();
-    }
-
-    /**
-     * Gets the CSRs for the tenant CA having the given status
-     *
-     * @param status The status filter
-     * @return
-     * @throws CAException
-     */
-    public CSR[] getCsrListWithStatus(String status) throws CAException {
-        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        List<CSR> csrList = csrDAO.listCsrsByStatus(tenantId, status);
-        return csrList.toArray(new CSR[csrList.size()]);
-    }
-
-    /**
      * Generate and store a token for a SCEP enrollment. This token will be used to authorize the
-     * scep enrollment requests that comes to the non-protected scep endpoint
+     * SCEP enrollment requests that comes to the non-protected scep endpoint
      *
-     * @return The generated scep token
+     * @return The generated SCEP token
      * @throws CAException
      */
-    public String generateScepToken() throws CAException {
+    public String generateSCEPToken() throws CAException {
         String username = CarbonContext.getThreadLocalCarbonContext().getUsername();
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         String userStoreDomain = UserCoreUtil.extractDomainFromName(username);
-        return SCEPManager.getInstance().generateScepToken(username, tenantId, userStoreDomain);
+        return scepManager.generateScepToken(username, tenantId, userStoreDomain);
     }
 }

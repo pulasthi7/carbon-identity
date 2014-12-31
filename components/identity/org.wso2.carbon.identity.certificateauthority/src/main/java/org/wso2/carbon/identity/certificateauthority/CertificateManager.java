@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2015 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -33,11 +33,13 @@ import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.asn1.x509.KeyPurposeId;
 import org.bouncycastle.asn1.x509.KeyUsage;
+import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequest;
@@ -53,7 +55,11 @@ import org.wso2.carbon.identity.certificateauthority.model.Certificate;
 import org.wso2.carbon.identity.certificateauthority.utils.CAObjectUtils;
 
 import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Calendar;
 import java.util.Date;
@@ -61,17 +67,9 @@ import java.util.List;
 
 public class CertificateManager {
     private static final Log log = LogFactory.getLog(CertificateManager.class);
-    private static CertificateManager instance = new CertificateManager();
     private CSRDAO csrDAO = new CSRDAO();
     private CertificateDAO certificateDAO = new CertificateDAO();
     private RevocationDAO revocationDAO = new RevocationDAO();
-
-    private CertificateManager() {
-    }
-
-    public static CertificateManager getInstance() {
-        return instance;
-    }
 
     /**
      * Signs the CSR with the given serial no, so that the resulting certificate will have the
@@ -102,17 +100,16 @@ public class CertificateManager {
      * Revoke or update the revoke reason for the given certificate
      *
      * @param tenantId the tenant Id of the CA
-     * @param serial   The serial no of the certificate to be revoked
-     * @param reason   The reason code for the revocation
+     * @param serialNo   The serial no of the certificate to be revoked
+     * @param reason   The reason code for the revocation as specified in {@link org.bouncycastle.asn1.x509.CRLReason}
      * @throws CAException
-     * @see org.wso2.carbon.identity.certificateauthority.common.RevokeReason
      */
-    public void revokeCert(int tenantId, String serial, int reason) throws CAException {
-        int currentRevokeReason = revocationDAO.getRevokeReason(serial);
+    public void revokeCert(int tenantId, String serialNo, int reason) throws CAException {
+        int currentRevokeReason = revocationDAO.getRevokeReason(serialNo);
         if (currentRevokeReason < 0) {
-            revocationDAO.addRevokedCertificate(serial, tenantId, reason);
+            revocationDAO.addRevokedCertificate(serialNo, tenantId, reason);
         } else {
-            revocationDAO.updateRevokedCertificate(serial, tenantId, reason);
+            revocationDAO.updateRevokedCertificate(serialNo, tenantId, reason);
         }
     }
 
@@ -120,9 +117,9 @@ public class CertificateManager {
      * Revokes all certificates issued by a tenant ID
      *
      * @param tenantId     The tenant id of the CA
-     * @param revokeReason The reason code for the revocation
+     * @param revokeReason The reason code for the revocation as specified in
+     * {@link org.bouncycastle.asn1.x509.CRLReason}
      * @throws CAException
-     * @see org.wso2.carbon.identity.certificateauthority.common.RevokeReason
      */
     public void revokeAllIssuedCertificates(int tenantId, int revokeReason) throws CAException {
         CertificateDAO certificateDAO = new CertificateDAO();
@@ -136,24 +133,24 @@ public class CertificateManager {
     /**
      * Get the PEM encoded Certificate for the given serial no
      *
-     * @param serial The serial no of the certificate
+     * @param serialNo The serial no of the certificate
      * @return The certificate as a PEM encoded string
      * @throws CAException
      */
-    public String getPemEncodedCertificate(String serial) throws CAException {
-        X509Certificate x509Certificate = certificateDAO.getCertificate(serial);
+    public String getPemEncodedCertificate(String serialNo) throws CAException {
+        X509Certificate x509Certificate = certificateDAO.getCertificate(serialNo);
         return CAObjectUtils.toPemEncodedCertificate(x509Certificate);
     }
 
     /**
      * Get the certificate in X509 format for the given serial no
      *
-     * @param serial The serial no of the certificate
+     * @param serialNo The serial no of the certificate
      * @return The certificate in X509 format
      * @throws CAException
      */
-    public X509Certificate getX509Certificate(String serial) throws CAException {
-        return certificateDAO.getCertificate(serial);
+    public X509Certificate getX509Certificate(String serialNo) throws CAException {
+        return certificateDAO.getCertificate(serialNo);
     }
 
     /**
@@ -167,57 +164,65 @@ public class CertificateManager {
      * @return Signed x509 certificate
      * @throws CAException
      */
-    private X509Certificate getSignedCertificate(String serialNo, PKCS10CertificationRequest
-            request, int validity, PrivateKey privateKey, X509Certificate caCert) throws
-            CAException {
+    private X509Certificate getSignedCertificate(String serialNo, PKCS10CertificationRequest request, int validity,
+                                                 PrivateKey privateKey, X509Certificate caCert) throws CAException {
         try {
-
             Date issuedDate = new Date();
             Calendar expiryDate = Calendar.getInstance();
             expiryDate.add(Calendar.DAY_OF_YEAR, validity);
-
             JcaPKCS10CertificationRequest jcaRequest = new JcaPKCS10CertificationRequest(request);
             X509v3CertificateBuilder certificateBuilder = new JcaX509v3CertificateBuilder(caCert,
-                    new BigInteger(serialNo), issuedDate, expiryDate.getTime(),
-                    jcaRequest.getSubject(), jcaRequest.getPublicKey());
+                    new BigInteger(serialNo), issuedDate, expiryDate.getTime(), jcaRequest.getSubject(),
+                    jcaRequest.getPublicKey());
             JcaX509ExtensionUtils extUtils = new JcaX509ExtensionUtils();
+
+            //Adds certificate extensions which include authority/subject key identifiers, key usages,
+            // extended key usages
             certificateBuilder.addExtension(Extension.authorityKeyIdentifier, false,
                     extUtils.createAuthorityKeyIdentifier(caCert))
-                    .addExtension(Extension.subjectKeyIdentifier, false,
-                            extUtils.createSubjectKeyIdentifier(jcaRequest
-                                    .getPublicKey())
-                    )
+                    .addExtension(Extension.subjectKeyIdentifier, false, extUtils.createSubjectKeyIdentifier
+                            (jcaRequest.getPublicKey()))
                     .addExtension(Extension.basicConstraints, true, new BasicConstraints(false))
-                    .addExtension(Extension.keyUsage, true,
-                            new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyEncipherment))
+                    .addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature | KeyUsage
+                            .keyEncipherment))
                     .addExtension(Extension.extendedKeyUsage, false,
                             new ExtendedKeyUsage(new KeyPurposeId[]{KeyPurposeId.id_kp_clientAuth,
                                     KeyPurposeId.id_kp_serverAuth, KeyPurposeId.id_kp_emailProtection})
                     );
-            ContentSigner signer =
-                    new JcaContentSignerBuilder(CAConstants.SHA1_WITH_RSA).setProvider
-                            (CAConstants.BC_PROVIDER).build(privateKey);
+            ContentSigner signer = new JcaContentSignerBuilder(CAConstants.SHA1_WITH_RSA).setProvider(CAConstants
+                    .BC_PROVIDER).build(privateKey);
             String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            //Adds CRL and OCSP endpoints
             DistributionPointName crlEp =
-                    new DistributionPointName(new GeneralNames(new GeneralName(GeneralName
-                            .uniformResourceIdentifier,
+                    new DistributionPointName(new GeneralNames(new GeneralName(GeneralName.uniformResourceIdentifier,
                             CAConstants.HTTP_SERVER_URL + CAConstants.CRL_ENDPOINT + tenantDomain
                     )));
             DistributionPoint disPoint = new DistributionPoint(crlEp, null, null);
             certificateBuilder.addExtension(Extension.cRLDistributionPoints, false,
                     new CRLDistPoint(new DistributionPoint[]{disPoint}));
             AccessDescription ocsp = new AccessDescription(AccessDescription.id_ad_ocsp,
-                    new GeneralName(GeneralName.uniformResourceIdentifier,
-                            CAConstants.HTTP_SERVER_URL + CAConstants.OCSP_ENDPOINT + tenantDomain)
+                    new GeneralName(GeneralName.uniformResourceIdentifier, CAConstants.HTTP_SERVER_URL + CAConstants
+                            .OCSP_ENDPOINT + tenantDomain)
             );
             ASN1EncodableVector authInfoAccessASN = new ASN1EncodableVector();
             authInfoAccessASN.add(ocsp);
-            certificateBuilder.addExtension(Extension.authorityInfoAccess, false,
-                    new DERSequence(authInfoAccessASN));
-            return new JcaX509CertificateConverter().setProvider(CAConstants.BC_PROVIDER)
-                    .getCertificate(certificateBuilder.build(signer));
-        } catch (Exception e) {
-            throw new CAException("Error in signing the certificate", e);
+            certificateBuilder.addExtension(Extension.authorityInfoAccess, false, new DERSequence(authInfoAccessASN));
+            return new JcaX509CertificateConverter().setProvider(CAConstants.BC_PROVIDER).getCertificate
+                    (certificateBuilder.build(signer));
+        } catch (OperatorCreationException e) {
+            throw new CAException("Error creating certificate signer", e);
+        } catch (CertIOException e) {
+            throw new CAException("Error adding extensions to the certificate", e);
+        } catch (NoSuchAlgorithmException e) {
+            //very unlikely to occur
+            throw new CAException("Error with JCA algorithm", e);
+        } catch (CertificateEncodingException e) {
+            throw new CAException(
+                    "Error with CA certificate encoding of " + caCert.getSubjectX500Principal().getName());
+        } catch (CertificateException e) {
+            throw new CAException("Error when signing the certificate", e);
+        } catch (InvalidKeyException e) {
+            throw new CAException("Invalid public key in CSR", e);
         }
     }
 }

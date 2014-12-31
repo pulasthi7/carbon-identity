@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2015 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -20,37 +20,40 @@ package org.wso2.carbon.identity.certificateauthority.endpoint.cert;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.certificateauthority.CAException;
 import org.wso2.carbon.identity.certificateauthority.CertificateManager;
 import org.wso2.carbon.identity.certificateauthority.config.CAConfiguration;
+import org.wso2.carbon.identity.certificateauthority.endpoint.CAEndpointConstants;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+/**
+ * Class to handle certificate downloads
+ */
 @Path("/certificate")
 public class CertificateRetriever {
     private static final Log log = LogFactory.getLog(CertificateRetriever.class);
 
     /**
-     * Responds with the certificate with the given serial no
+     * Responds with the certificate with the given serial number
      *
-     * @param serial The serial no of the certificate to be downloaded
+     * @param serialNo The serial number of the certificate to be downloaded
      * @return The PEM encoded certificate as a "application/x-x509-user-cert"
      */
     @GET
-    @Path("/{serial}.crt")
+    @Path("/{serialNo}.crt")
     @Produces("application/x-x509-user-cert")
-    public Response getCertificate(@PathParam("serial") String serial) {
+    public Response getCertificate(@PathParam("serialNo") String serialNo) {
         try {
-            String certificate = CertificateManager.getInstance().getPemEncodedCertificate(serial);
-
-            //the actual mime type for certificate is "application/x-x509-user-cert",
-            // but that will cause browsers issuing warnings and not allowing the download.
-            return Response.ok().type("application/x-x509-user-cert").entity(certificate).build();
-        } catch (Exception e) {
-            log.error("Error occurred retrieving certificate", e);
+            String certificate = CertificateManager.getInstance().getPemEncodedCertificate(serialNo);
+            return Response.ok().type(CAEndpointConstants.X509_USER_CERT_MEDIA_TYPE).entity(certificate).build();
+        } catch (CAException e) {
+            log.error("Error occurred retrieving certificate with serialNo no:" + serialNo, e);
             return Response.serverError().build();
         }
     }
@@ -66,11 +69,10 @@ public class CertificateRetriever {
     @Produces("application/x-x509-ca-cert")
     public Response getCaCertificate(@PathParam("tenantDomain") String tenantDomain) {
         try {
-            String certificate = CAConfiguration.getInstance().getPemEncodedCaCert
-                    (tenantDomain);
-            return Response.ok().type("application/x-x509-ca-cert").entity(certificate).build();
+            String certificate = CAConfiguration.getInstance().getPemEncodedCaCert(tenantDomain);
+            return Response.ok().type(CAEndpointConstants.X509_CA_CERT_MEDIA_TYPE).entity(certificate).build();
         } catch (Exception e) {
-            log.error("Error occurred retrieving certificate", e);
+            log.error("Error occurred while retrieving CA certificate for tenant domain:" + tenantDomain, e);
             return Response.serverError().build();
         }
     }
@@ -80,18 +82,18 @@ public class CertificateRetriever {
      * type is "application/octet-string" for make it possible to download the certificate
      * without warnings or blocking at the browser
      *
-     * @param serial The serial no of the certificate to be downloaded
+     * @param serialNo The serial no of the certificate to be downloaded
      * @return The PEM encoded certificate as a "application/octet-string"
      */
     @GET
-    @Path("/download/{serial}.crt")
+    @Path("/download/{serialNo}.crt")
     @Produces("application/octet-string")
-    public Response downloadCertificate(@PathParam("serial") String serial) {
+    public Response downloadCertificate(@PathParam("serialNo") String serialNo) {
         try {
-            String certificate = CertificateManager.getInstance().getPemEncodedCertificate(serial);
-            return Response.ok().type("application/octet-string").entity(certificate).build();
+            String certificate = CertificateManager.getInstance().getPemEncodedCertificate(serialNo);
+            return Response.ok().type(MediaType.APPLICATION_OCTET_STREAM_TYPE).entity(certificate).build();
         } catch (Exception e) {
-            log.error("Error occurred retrieving certificate", e);
+            log.error("Error occurred retrieving certificate with serialNo no:" + serialNo, e);
             return Response.serverError().build();
         }
     }
@@ -109,11 +111,10 @@ public class CertificateRetriever {
     @Produces("application/octet-string")
     public Response downloadCaCertificate(@PathParam("tenantDomain") String tenantDomain) {
         try {
-            String certificate = CAConfiguration.getInstance().getPemEncodedCaCert
-                    (tenantDomain);
-            return Response.ok().type("application/octet-string").entity(certificate).build();
+            String certificate = CAConfiguration.getInstance().getPemEncodedCaCert(tenantDomain);
+            return Response.ok().type(MediaType.APPLICATION_OCTET_STREAM_TYPE).entity(certificate).build();
         } catch (Exception e) {
-            log.error("Error occurred retrieving certificate", e);
+            log.error("Error occurred retrieving CA certificate for tenant domain" + tenantDomain, e);
             return Response.serverError().build();
         }
     }
