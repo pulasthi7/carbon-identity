@@ -56,14 +56,18 @@ public class CRLResponder {
                 byte[] crl = crlManager.getLatestCrl(tenantDomain);
                 return Response.ok().type(CAEndpointConstants.PKIX_CRL_MEDIA_TYPE).entity(crl).build();
             } catch (CAException e) {
-                log.error("Error while retrieving CRL for the tenant :" + tenantDomain, e);
+                if (log.isDebugEnabled()) {
+                    log.debug("Error while retrieving CRL for the tenant :" + tenantDomain, e);
+                }
             }
         } else if (CAEndpointConstants.REQUEST_TYPE_DELTA_CRL.equals(command)) {
             try {
                 byte[] deltaCRL = crlManager.getLatestDeltaCrl(tenantDomain);
                 return Response.ok().type(CAEndpointConstants.PKIX_CRL_MEDIA_TYPE).entity(deltaCRL).build();
             } catch (CAException e) {
-                log.error("error while while retrieving delta CRL for the tenant :" + tenantDomain, e);
+                if (log.isDebugEnabled()) {
+                    log.debug("error while while retrieving delta CRL for the tenant :" + tenantDomain, e);
+                }
             }
         }
         //Any other parameter for command is not valid, so every other cases are considered as bad requests and

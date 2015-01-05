@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.certificateauthority.utils;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.PEMWriter;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
@@ -43,7 +41,6 @@ import java.security.cert.X509Certificate;
  * Contains the Util methods to encode/decode the certificates, CSRs, CRLs,..
  */
 public class CAObjectUtils {
-    private static final Log log = LogFactory.getLog(CAObjectUtils.class);
 
     private CAObjectUtils() {
     }
@@ -58,19 +55,14 @@ public class CAObjectUtils {
     public static X509CRL toX509Crl(String encodedCrl) throws CAException {
         try {
             byte[] b64DecodeBytes = Base64.decode(encodedCrl.getBytes(CAConstants.UTF_8_CHARSET));
-            CertificateFactory certificateFactory =
-                    CertificateFactory.getInstance(CAConstants.X509);
-            return (X509CRL) certificateFactory
-                    .generateCRL(new ByteArrayInputStream(b64DecodeBytes));
+            CertificateFactory certificateFactory = CertificateFactory.getInstance(CAConstants.X509);
+            return (X509CRL) certificateFactory.generateCRL(new ByteArrayInputStream(b64DecodeBytes));
         } catch (CRLException e) {
-            log.error("Can't decode CRL.", e);
-            throw new CAException("Unable to decode given CRL", e);
+            throw new CAException("Can't decode CRL.", e);
         } catch (CertificateException e) {
-            log.error("Couldn't create certificate factory", e);
-            throw new CAException("Error creating X509CRL", e);
+            throw new CAException("Couldn't create certificate factory", e);
         } catch (UnsupportedEncodingException e) {
-            log.error("Error with the charset used", e);
-            throw new CAException("Error creating X509CRL", e);
+            throw new CAException("Error with the charset used", e);
         }
     }
 

@@ -25,7 +25,6 @@ import org.bouncycastle.asn1.x509.CRLReason;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.base.ServerConfigurationException;
 import org.wso2.carbon.context.CarbonContext;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.certificateauthority.CAConstants;
 import org.wso2.carbon.identity.certificateauthority.CAException;
@@ -74,7 +73,7 @@ public class CAConfiguration {
      * Private constructor that initialize the configs from identity.xml
      */
     private CAConfiguration() {
-//        buildCaConfiguration();
+        buildCaConfiguration();
     }
 
     /**
@@ -100,9 +99,8 @@ public class CAConfiguration {
                         "using the default configuration");
                 return;
             }
-            OMElement scepElement = caRootElem.getFirstChildWithName(new QName
-                    (IdentityConfigParser.IDENTITY_DEFAULT_NAMESPACE,
-                            SCEP_CONF_ELEMENT));
+            OMElement scepElement = caRootElem.getFirstChildWithName(new QName(IdentityConfigParser
+                    .IDENTITY_DEFAULT_NAMESPACE, SCEP_CONF_ELEMENT));
             if (scepElement != null) {
                 OMElement tokenLengthElem = scepElement.getFirstChildWithName(new QName
                         (IdentityConfigParser.IDENTITY_DEFAULT_NAMESPACE, SCEP_TOKEN_LENGTH_ELEM));
@@ -121,17 +119,15 @@ public class CAConfiguration {
                 }
 
                 OMElement certificateValidityElem = scepElement.getFirstChildWithName(new QName
-                        (IdentityConfigParser.IDENTITY_DEFAULT_NAMESPACE,
-                                SCEP_CERTIFICATE_VALIDITY_ELEM));
+                        (IdentityConfigParser.IDENTITY_DEFAULT_NAMESPACE, SCEP_CERTIFICATE_VALIDITY_ELEM));
                 if (certificateValidityElem != null) {
-                    scepCertificateValidity = Integer.parseInt(certificateValidityElem.getText()
-                            .trim());
+                    scepCertificateValidity = Integer.parseInt(certificateValidityElem.getText().trim());
                 } else {
                     scepCertificateValidity = CAConstants.DEFAULT_SCEP_CERTIFICATE_VALIDITY;
                 }
             }
         } catch (ServerConfigurationException e) {
-            log.error("Error loading CA related configurations.", e);
+            log.error("Error loading identity configurations.", e);
         }
     }
 
@@ -142,9 +138,9 @@ public class CAConfiguration {
      * @return The CA certificate of the current tenant
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
-    public X509Certificate getConfiguredCaCert() throws CAException {
-        int tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
-        return getConfiguredCaCert(tenantId);
+    public X509Certificate getConfiguredCACert() throws CAException {
+        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        return getConfiguredCACert(tenantId);
     }
 
     /**
@@ -155,10 +151,9 @@ public class CAConfiguration {
      * @return The CA certificate of the given tenant
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
-    public X509Certificate getConfiguredCaCert(int tenantId) throws CAException {
+    public X509Certificate getConfiguredCACert(int tenantId) throws CAException {
         KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
-        String tenantDomain =
-                PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         ConfigurationDAO configurationDAO = new ConfigurationDAO();
         String keyPath = configurationDAO.getConfiguredKey(tenantId);
         try {
@@ -169,15 +164,15 @@ public class CAConfiguration {
                 } else {
                     String ksName = tenantDomain.trim().replace(".", "-");
                     String jksName = ksName + ".jks";
-                    return (X509Certificate) keyStoreManager.getKeyStore(jksName)
-                            .getCertificate(tenantDomain);
+                    return (X509Certificate) keyStoreManager.getKeyStore(jksName).getCertificate(tenantDomain);
                 }
             }
+            //Any not null keypath will have the format <KeyStoreName>/<Alias>
             String[] storeAndAlias = keyPath.split("/");
-            return (X509Certificate) keyStoreManager.getKeyStore(storeAndAlias[0]).getCertificate
-                    (storeAndAlias[1]);
+            return (X509Certificate) keyStoreManager.getKeyStore(storeAndAlias[0]).getCertificate(storeAndAlias[1]);
         } catch (Exception e) {
-            throw new CAException("Error retrieving CA Certificate", e);
+            //KeystoreManager throws "Exception"
+            throw new CAException("Error retrieving CA Certificate from " + keyPath, e);
         }
     }
 
@@ -189,13 +184,12 @@ public class CAConfiguration {
      * @return The CA certificate as a PEM encoded string
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
-    public String getPemEncodedCaCert(String tenantDomain) throws CAException {
+    public String getPemEncodedCACert(String tenantDomain) throws CAException {
         try {
-            int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId
-                    (tenantDomain);
-            return CAObjectUtils.toPemEncodedCertificate(getConfiguredCaCert(tenantId));
+            int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
+            return CAObjectUtils.toPemEncodedCertificate(getConfiguredCACert(tenantId));
         } catch (UserStoreException e) {
-            throw new CAException("Invalid tenant domain", e);
+            throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         }
     }
 
@@ -207,7 +201,7 @@ public class CAConfiguration {
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
     public PrivateKey getConfiguredPrivateKey() throws CAException {
-        int tenantID = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
+        int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         return getConfiguredPrivateKey(tenantID);
     }
 
@@ -220,8 +214,7 @@ public class CAConfiguration {
      */
     public PrivateKey getConfiguredPrivateKey(int tenantId) throws CAException {
         KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
-        String tenantDomain =
-                PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
 
         ConfigurationDAO configurationDAO = new ConfigurationDAO();
         String keyPath = configurationDAO.getConfiguredKey(tenantId);
@@ -240,7 +233,7 @@ public class CAConfiguration {
             Key privateKey = keyStoreManager.getPrivateKey(storeAndAlias[0], storeAndAlias[1]);
             return (PrivateKey) privateKey;
         } catch (Exception e) {
-            throw new CAException("Error retrieving CA's private key", e);
+            throw new CAException("Error retrieving CA's private key for tenant:" + tenantDomain, e);
         }
     }
 
@@ -255,9 +248,8 @@ public class CAConfiguration {
     public List<String> listAllKeys(Registry registry) throws CAException {
         List<String> keyList = new ArrayList<String>();
 
-
+        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         try {
-            int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
             ConfigurationDAO configurationDAO = new ConfigurationDAO();
             String keyPath = configurationDAO.getConfiguredKey(tenantId);
 
@@ -266,10 +258,9 @@ public class CAConfiguration {
                 keyList.add(keyPath);
             }
 
-            KeyStoreAdmin admin = new KeyStoreAdmin(tenantId, registry);
+            KeyStoreAdmin keyStoreAdmin = new KeyStoreAdmin(tenantId, registry);
             KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
-            KeyStoreData[] keyStores =
-                    admin.getKeyStores(tenantId == MultitenantConstants.SUPER_TENANT_ID);
+            KeyStoreData[] keyStores = keyStoreAdmin.getKeyStores(tenantId == MultitenantConstants.SUPER_TENANT_ID);
             for (KeyStoreData keyStore : keyStores) {
                 if (keyStore != null) {
                     String keyStoreName = keyStore.getKeyStoreName();
@@ -284,8 +275,7 @@ public class CAConfiguration {
                 }
             }
         } catch (Exception e) {
-            log.error("Error listing the keys", e);
-            throw new CAException("Error listing the keys", e);
+            throw new CAException("Error listing the keys for tenant:" + tenantId, e);
         }
         return keyList;
     }
@@ -307,7 +297,7 @@ public class CAConfiguration {
         String newKeyPath = keyStore + "/" + alias;
         if (currentKeyPath != null && !currentKeyPath.equals(newKeyPath)) {
             //revoke the ca certificate itself
-            X509Certificate caCert = getConfiguredCaCert();
+            X509Certificate caCert = getConfiguredCACert();
 
             List<Certificate> certificates =
                     certificateDAO.listCertificates(CertificateStatus.ACTIVE.toString(), tenantId);
@@ -316,18 +306,17 @@ public class CAConfiguration {
             //Revoke each issued certificates
             for (Certificate certificate : certificates) {
                 try {
-                    CertificateManager.getInstance().revokeCert(tenantId,
-                            certificate.getSerialNo(), CRLReason.cACompromise);
+                    CertificateManager certificateManager = new CertificateManager();
+                    certificateManager.revokeCert(tenantId, certificate.getSerialNo(), CRLReason.cACompromise);
                 } catch (CAException e) {
                     //If any certificate revocation fails it should not affect the rest of the
                     // certificate revocations. So the error is not propagated to the callee
-                    log.error(e);
+                    log.error("Revocation failed for certificate with serial number:" + certificate.getSerialNo(), e);
                 }
             }
             CRLManager crlManager = new CRLManager();
             crlManager.createAndStoreDeltaCrl(tenantId);
         }
-
     }
 
     /**

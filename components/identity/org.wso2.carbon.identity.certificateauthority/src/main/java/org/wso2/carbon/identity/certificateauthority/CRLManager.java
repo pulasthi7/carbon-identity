@@ -200,20 +200,15 @@ public class CRLManager {
             }
             return new JcaX509CRLConverter().getCRL(crlBuilder.build(signer));
         } catch (CertificateEncodingException e) {
-            log.error("Error when creating CRL. Error in certificate encoding.", e);
-            throw new CAException("Error when creating CRL", e);
+            throw new CAException("Error when creating CRL. Error in certificate encoding.", e);
         } catch (OperatorCreationException e) {
-            log.error("Error with security provider when creating CRL.", e);
-            throw new CAException("Error when creating CRL", e);
+            throw new CAException("Error with security provider when creating CRL.", e);
         } catch (CertIOException e) {
-            log.error("Error adding extensions to CRL.", e);
-            throw new CAException("Error when creating CRL", e);
+            throw new CAException("Error adding extensions to CRL.", e);
         } catch (NoSuchAlgorithmException e) {
-            log.error("Error with signature algorithm when creating CRL", e);
-            throw new CAException("Error when creating CRL", e);
+            throw new CAException("Error with signature algorithm when creating CRL", e);
         } catch (CRLException e) {
-            log.error("Error when creating CRL.", e);
-            throw new CAException("Error when creating CRL", e);
+            throw new CAException("Error when creating CRL.", e);
         }
     }
 
@@ -231,7 +226,7 @@ public class CRLManager {
         List<RevokedCertificate> revokedCertificates = revocationDAO.listRevokedCertificates
                 (tenantId);
         PrivateKey caKey = CAConfiguration.getInstance().getConfiguredPrivateKey();
-        X509Certificate caCert = CAConfiguration.getInstance().getConfiguredCaCert();
+        X509Certificate caCert = CAConfiguration.getInstance().getConfiguredCACert();
         int fullCrlNumber = crlDAO.getHighestCrlNumber(tenantId, false);
         int deltaCrlNumber = crlDAO.getHighestCrlNumber(tenantId, true);
         // nextCrlNumber: The highest number of last CRL (full or delta) and increased by 1 (both
@@ -256,7 +251,7 @@ public class CRLManager {
         List<RevokedCertificate> revokedCertificates = revocationDAO.getRevokedCertificatesAfter
                 (tenantId, latestCrl.getThisUpdate());
         PrivateKey privateKey = CAConfiguration.getInstance().getConfiguredPrivateKey();
-        X509Certificate caCert = CAConfiguration.getInstance().getConfiguredCaCert();
+        X509Certificate caCert = CAConfiguration.getInstance().getConfiguredCACert();
         int fullCrlNumber = crlDAO.getHighestCrlNumber(tenantId, false);
         int deltaCrlNumber = crlDAO.getHighestCrlNumber(tenantId, true);
         // nextCrlNumber: The highest number of last CRL (full or delta) and increased by 1 (both

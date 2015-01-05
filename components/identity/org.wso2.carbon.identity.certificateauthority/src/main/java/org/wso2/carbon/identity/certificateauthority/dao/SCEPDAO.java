@@ -60,7 +60,6 @@ public class SCEPDAO {
                                 String userStoreDomain, int tenantId) throws CAException {
         Connection connection = null;
         PreparedStatement prepStmt = null;
-        ResultSet resultSet;
         String sql = SQLConstants.ADD_SCEP_TOKEN;
         try {
             connection = JDBCPersistenceManager.getInstance().getDBConnection();
@@ -74,12 +73,9 @@ public class SCEPDAO {
             connection.commit();
             return true;
         } catch (IdentityException e) {
-            String errorMsg = "Error when getting an Identity Persistence Store instance.";
-            log.error(errorMsg, e);
-            throw new CAException(errorMsg, e);
+            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            log.error("Error when executing the SQL : " + sql, e);
-            throw new CAException("Error when adding the token", e);
+            throw new CAException("Error when executing the SQL : " + sql, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
@@ -124,7 +120,7 @@ public class SCEPDAO {
 
                 //Adds to the CSR table
                 CSRDAO csrDAO = new CSRDAO();
-                serialNo = csrDAO.addCsr(certReq, userName, tenantId, userStoreDomain);
+                serialNo = csrDAO.addCSR(certReq, userName, tenantId, userStoreDomain);
                 sql = SQLConstants.UPDATE_SCEP_TOKEN;
                 prepStmt = connection.prepareStatement(sql);
                 prepStmt.setString(1, serialNo);
@@ -137,12 +133,9 @@ public class SCEPDAO {
                 throw new CAException("Invalid token given");
             }
         } catch (IdentityException e) {
-            String errorMsg = "Error when getting an Identity Persistence Store instance.";
-            log.error(errorMsg, e);
-            throw new CAException(errorMsg, e);
+            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            log.error("Error when executing the SQL : " + sql, e);
-            throw new CAException("Error when adding the request", e);
+            throw new CAException("Error when executing the SQL : " + sql, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
         }
@@ -178,15 +171,11 @@ public class SCEPDAO {
                 }
             }
         } catch (IdentityException e) {
-            String errorMsg = "Error when getting an Identity Persistence Store instance.";
-            log.error(errorMsg, e);
-            throw new CAException(errorMsg, e);
+            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            log.error("Error when executing the SQL : " + sql, e);
-            throw new CAException("Error when retrieving certificate", e);
+            throw new CAException("Error when executing the SQL : " + sql, e);
         } catch (CertificateException e) {
-            log.error("Error occured with certificate factory", e);
-            throw new CAException("Error when retrieving certificate", e);
+            throw new CAException("Error with certificate factory", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }

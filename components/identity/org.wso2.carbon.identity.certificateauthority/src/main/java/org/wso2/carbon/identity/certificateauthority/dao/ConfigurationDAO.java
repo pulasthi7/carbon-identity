@@ -63,12 +63,9 @@ public class ConfigurationDAO {
                 return keyStore + "/" + alias;
             }
         } catch (IdentityException e) {
-            String errorMsg = "Error when getting an Identity Persistence Store instance.";
-            log.error(errorMsg, e);
-            throw new CAException(errorMsg, e);
+            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            log.error("Error when executing the SQL : " + sql, e);
-            throw new CAException("Error getting CA's Configuration", e);
+            throw new CAException("Error when executing the SQL : " + sql, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
         }
@@ -115,21 +112,19 @@ public class ConfigurationDAO {
             }
             if (oldCertificate != null) {
                 RevocationDAO revocationDAO = new RevocationDAO();
-                revocationDAO.addRevokedCertificate(oldCertificate.getSerialNumber().toString(),
-                        tenantId, CRLReason.keyCompromise);
+                revocationDAO.addRevokedCertificate(oldCertificate.getSerialNumber().toString(), tenantId,
+                        CRLReason.keyCompromise);
             }
             connection.commit();
         } catch (IdentityException e) {
-            log.error("Error when getting an Identity Persistence Store instance.", e);
-            throw new CAException("Error updating certificate signing key", e);
+            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
             try {
                 connection.rollback();
             } catch (SQLException e1) {
                 log.error("Error when rolling back the update of signing key", e1);
             }
-            log.error("Error when executing the SQL : " + sql, e);
-            throw new CAException("Error updating certificate signing key", e);
+            throw new CAException("Error when executing the SQL : " + sql, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }

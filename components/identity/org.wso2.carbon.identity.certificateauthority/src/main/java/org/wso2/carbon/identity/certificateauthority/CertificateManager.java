@@ -90,7 +90,7 @@ public class CertificateManager {
         X509Certificate signedCert = getSignedCertificate(serialNo,
                 csrDAO.getPKCS10CertificationRequest
                         (serialNo), validity, configurationManager.getConfiguredPrivateKey(),
-                configurationManager.getConfiguredCaCert()
+                configurationManager.getConfiguredCACert()
         );
         certificateDAO.addCertificate(serialNo, signedCert, tenantId,
                 csr.getUserName(), csr.getUserStoreDomain());
@@ -100,7 +100,7 @@ public class CertificateManager {
      * Revoke or update the revoke reason for the given certificate
      *
      * @param tenantId the tenant Id of the CA
-     * @param serialNo   The serial no of the certificate to be revoked
+     * @param serialNo The serial no of the certificate to be revoked
      * @param reason   The reason code for the revocation as specified in {@link org.bouncycastle.asn1.x509.CRLReason}
      * @throws CAException
      */
@@ -118,7 +118,7 @@ public class CertificateManager {
      *
      * @param tenantId     The tenant id of the CA
      * @param revokeReason The reason code for the revocation as specified in
-     * {@link org.bouncycastle.asn1.x509.CRLReason}
+     *                     {@link org.bouncycastle.asn1.x509.CRLReason}
      * @throws CAException
      */
     public void revokeAllIssuedCertificates(int tenantId, int revokeReason) throws CAException {

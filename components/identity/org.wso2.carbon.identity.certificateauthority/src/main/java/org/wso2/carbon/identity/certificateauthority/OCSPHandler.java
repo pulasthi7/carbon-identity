@@ -89,7 +89,7 @@ public class OCSPHandler {
             CertificateID certID;
             Certificate certificateInfo;
             CAConfiguration configurationManager = CAConfiguration.getInstance();
-            X509Certificate caCert = configurationManager.getConfiguredCaCert(tenantId);
+            X509Certificate caCert = configurationManager.getConfiguredCACert(tenantId);
             PrivateKey privateKey = configurationManager.getConfiguredPrivateKey(tenantId);
             SubjectPublicKeyInfo keyInfo = SubjectPublicKeyInfo.getInstance(caCert.getPublicKey().getEncoded());
             DigestCalculator digestCalculator = new JcaDigestCalculatorProviderBuilder()

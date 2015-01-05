@@ -66,7 +66,7 @@ public class CSRDAO {
             throws CAException {
         PKCS10CertificationRequest request = CAObjectUtils.toPkcs10CertificationRequest
                 (csrContent);
-        return addCsr(request, userName, tenantID, userStoreDomain);
+        return addCSR(request, userName, tenantID, userStoreDomain);
     }
 
     /**
@@ -78,7 +78,7 @@ public class CSRDAO {
      * @param userStoreDomain The user store where the user is
      * @return
      */
-    public String addCsr(PKCS10CertificationRequest request, String userName, int tenantID,
+    public String addCSR(PKCS10CertificationRequest request, String userName, int tenantID,
                          String userStoreDomain) throws CAException {
         String csrSerialNo = new BigInteger(32, new SecureRandom()).toString();
         Connection connection = null;
@@ -114,15 +114,11 @@ public class CSRDAO {
             prepStmt.executeUpdate();
             connection.commit();
         } catch (IdentityException e) {
-            String errorMsg = "Error when getting an Identity Persistence Store instance.";
-            log.error(errorMsg, e);
-            throw new CAException(errorMsg, e);
+            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            log.error("Error when executing the SQL : " + sql, e);
-            throw new CAException("Error storing CSR to the database", e);
+            throw new CAException("Error when executing the SQL : " + sql, e);
         } catch (IOException e) {
-            log.error("Error when reading CSR to byte stream", e);
-            throw new CAException("Error with the CSR provided", e);
+            throw new CAException("Error when reading CSR to byte stream", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
@@ -150,20 +146,16 @@ public class CSRDAO {
             prepStmt.setInt(3, tenantId);
             prepStmt.setString(4, userStoreDomain);
             resultSet = prepStmt.executeQuery();
-            List<CSR> csrInfoList = getCsrListFromResultSet(resultSet);
+            List<CSR> csrInfoList = getCSRListFromResultSet(resultSet);
             if (!csrInfoList.isEmpty()) {
                 return csrInfoList.get(0);
             }
         } catch (IdentityException e) {
-            String errorMsg = "Error when getting an Identity Persistence Store instance.";
-            log.error(errorMsg, e);
-            throw new CAException(errorMsg, e);
+            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            log.error("Error when executing the SQL : " + sql, e);
-            throw new CAException("Error when retrieving the CSR details", e);
+            throw new CAException("Error when executing the SQL : " + sql, e);
         } catch (IOException e) {
-            log.error("Error decoding CSR", e);
-            throw new CAException("Error when decoding the CSR", e);
+            throw new CAException("Error decoding CSR", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
         }
@@ -189,15 +181,13 @@ public class CSRDAO {
             updateStatus(connection, serialNo, CSRStatus.REJECTED, tenantId);
             connection.commit();
         } catch (IdentityException e) {
-            log.error("Error when getting an Identity Persistence Store instance.", e);
-            throw new CAException("Error rejecting certificate", e);
+            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
             try {
                 connection.rollback();
             } catch (SQLException e1) {
                 log.error("Error when rolling back rejection of CSR", e1);
             }
-            log.error("Error rejecting certificate", e);
             throw new CAException("Error rejecting certificate", e);
         } finally {
             IdentityDatabaseUtil.closeConnection(connection);
@@ -228,15 +218,11 @@ public class CSRDAO {
                 return new PKCS10CertificationRequest(csrBlob.getBytes(1, (int) csrBlob.length()));
             }
         } catch (IdentityException e) {
-            String errorMsg = "Error when getting an Identity Persistence Store instance.";
-            log.error(errorMsg, e);
-            throw new CAException(errorMsg, e);
+            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            log.error("Error when executing the SQL : " + sql, e);
-            throw new CAException("Error when retrieving the CSR", e);
+            throw new CAException("Error when executing the SQL : " + sql, e);
         } catch (IOException e) {
-            log.error("Error decoding CSR", e);
-            throw new CAException("Error when decoding the CSR", e);
+            throw new CAException("Error decoding CSR", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
         }
@@ -265,20 +251,16 @@ public class CSRDAO {
             prepStmt.setString(1, serialNo);
             prepStmt.setInt(2, tenantId);
             resultSet = prepStmt.executeQuery();
-            List<CSR> csrInfoList = getCsrListFromResultSet(resultSet);
+            List<CSR> csrInfoList = getCSRListFromResultSet(resultSet);
             if (!csrInfoList.isEmpty()) {
                 return csrInfoList.get(0);
             }
         } catch (IdentityException e) {
-            String errorMsg = "Error when getting an Identity Persistence Store instance.";
-            log.error(errorMsg, e);
-            throw new CAException(errorMsg, e);
+            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            log.error("Error when executing the SQL : " + sql, e);
-            throw new CAException("Error when retrieving the CSR details", e);
+            throw new CAException("Error when executing the SQL : " + sql, e);
         } catch (IOException e) {
-            log.error("Error decoding CSR", e);
-            throw new CAException("Error when decoding the CSR", e);
+            throw new CAException("Error decoding CSR", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
         }
@@ -296,7 +278,7 @@ public class CSRDAO {
      * @return The list of CSRs for the tenant
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
-    public List<CSR> listCsrs(int tenantID) throws CAException {
+    public List<CSR> listCSRs(int tenantID) throws CAException {
         Connection connection = null;
         PreparedStatement prepStmt = null;
         ResultSet resultSet = null;
@@ -306,16 +288,12 @@ public class CSRDAO {
             prepStmt = connection.prepareStatement(sql);
             prepStmt.setInt(1, tenantID);
             resultSet = prepStmt.executeQuery();
-            return getCsrListFromResultSet(resultSet);
+            return getCSRListFromResultSet(resultSet);
         } catch (IdentityException e) {
-            String errorMsg = "Error when getting an Identity Persistence Store instance.";
-            log.error(errorMsg, e);
-            throw new CAException(errorMsg, e);
+            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            log.error("Error when executing the SQL : " + sql, e);
-            throw new CAException("Error listing CSRs", e);
+            throw new CAException("Error when executing the SQL : " + sql, e);
         } catch (IOException e) {
-            log.error("Error when decoding the CSR", e);
             throw new CAException("Error when decoding the CSR", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
@@ -331,7 +309,7 @@ public class CSRDAO {
      * @return List of CSRs from the user
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
-    public List<CSR> listCsrs(String username, String userStoreDomain, int tenantID)
+    public List<CSR> listCSRs(String username, String userStoreDomain, int tenantID)
             throws CAException {
         Connection connection = null;
         PreparedStatement prepStmt = null;
@@ -341,21 +319,16 @@ public class CSRDAO {
         try {
             connection = IdentityDatabaseUtil.getDBConnection();
             prepStmt = connection.prepareStatement(sql);
-
             prepStmt.setString(1, username);
             prepStmt.setInt(2, tenantID);
             prepStmt.setString(3, userStoreDomain);
             resultSet = prepStmt.executeQuery();
-            return getCsrListFromResultSet(resultSet);
+            return getCSRListFromResultSet(resultSet);
         } catch (IdentityException e) {
-            String errorMsg = "Error when getting an Identity Persistence Store instance.";
-            log.error(errorMsg, e);
-            throw new CAException(errorMsg, e);
+            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            log.error("Error when executing the SQL : " + sql, e);
-            throw new CAException("Error listing CSRs", e);
+            throw new CAException("Error when executing the SQL : " + sql, e);
         } catch (IOException e) {
-            log.error("Error when decoding the CSR", e);
             throw new CAException("Error when decoding the CSR", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
@@ -370,28 +343,23 @@ public class CSRDAO {
      * @return List of CSRs with the given status
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
-    public List<CSR> listCsrsByStatus(int tenantID, String status) throws CAException {
+    public List<CSR> listCSRsByStatus(int tenantID, String status) throws CAException {
         Connection connection = null;
         PreparedStatement prepStmt = null;
         ResultSet resultSet = null;
         String sql = SQLConstants.LIST_CSR_BY_STATUS_QUERY;
         try {
             connection = IdentityDatabaseUtil.getDBConnection();
-            sql = "SELECT * FROM CA_CSR_STORE WHERE TENANT_ID = ? AND STATUS = ?";
             prepStmt = connection.prepareStatement(sql);
             prepStmt.setInt(1, tenantID);
             prepStmt.setString(2, status);
             resultSet = prepStmt.executeQuery();
-            return getCsrListFromResultSet(resultSet);
+            return getCSRListFromResultSet(resultSet);
         } catch (IdentityException e) {
-            String errorMsg = "Error when getting an Identity Persistence Store instance.";
-            log.error(errorMsg, e);
-            throw new CAException(errorMsg, e);
+            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            log.error("Error when executing the SQL : " + sql, e);
-            throw new CAException("Error listing CSRs", e);
+            throw new CAException("Error when executing the SQL : " + sql, e);
         } catch (IOException e) {
-            log.error("Error when decoding the CSR", e);
             throw new CAException("Error when decoding the CSR", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
@@ -406,7 +374,7 @@ public class CSRDAO {
      * @throws SQLException
      * @throws IOException
      */
-    private List<CSR> getCsrListFromResultSet(ResultSet resultSet)
+    private List<CSR> getCSRListFromResultSet(ResultSet resultSet)
             throws SQLException, IOException {
         ArrayList<CSR> csrList = new ArrayList<CSR>();
         while (resultSet.next()) {
@@ -482,8 +450,7 @@ public class CSRDAO {
             prepStmt.setString(1, serialNo);
             prepStmt.setInt(2, tenantId);
         } catch (SQLException e) {
-            log.error("Error when executing the SQL : " + sql, e);
-            throw new CAException("Error when deleting the CSR", e);
+            throw new CAException("Error when executing the SQL : " + sql, e);
         } finally {
             IdentityDatabaseUtil.closeStatement(prepStmt);
         }

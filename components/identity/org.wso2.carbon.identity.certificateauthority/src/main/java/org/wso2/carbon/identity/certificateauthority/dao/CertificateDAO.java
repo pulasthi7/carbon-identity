@@ -80,19 +80,16 @@ public class CertificateDAO {
             csrDAO.updateStatus(connection, serialNo, CSRStatus.SIGNED, tenantId);
             connection.commit();
         } catch (IdentityException e) {
-            log.error("Error when getting an Identity Persistence Store instance.", e);
-            throw new CAException("Error Signing certificate", e);
+            throw new CAException("Error when getting an Identity Persistence Store instance", e);
         } catch (SQLException e) {
             try {
                 connection.rollback();
             } catch (SQLException e1) {
                 log.error("Error when rolling back the transaction to sign CSR", e1);
             }
-            log.error("Error when executing the SQL : " + sql, e);
-            throw new CAException("Error while adding the certificate", e);
+            throw new CAException("Error when executing the SQL : " + sql, e);
         } catch (CertificateEncodingException e) {
-            log.error("Error while encoding certificate", e);
-            throw new CAException("Error while adding the certificate", e);
+            throw new CAException("Error while encoding certificate, serial no:" + serialNo, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStatement);
         }
@@ -152,15 +149,11 @@ public class CertificateDAO {
                 }
             }
         } catch (IdentityException e) {
-            String errorMsg = "Error when getting an Identity Persistence Store instance.";
-            log.error(errorMsg, e);
-            throw new CAException(errorMsg, e);
+            throw new CAException("Error when getting an Identity Persistence Store instance", e);
         } catch (SQLException e) {
-            log.error("Error when executing the SQL : " + sql, e);
-            throw new CAException("Error when retrieving certificate", e);
+            throw new CAException("Error when executing the SQL : " + sql, e);
         } catch (CertificateException e) {
-            log.error("Error generating certificate from blob for serial no: " + serialNo, e);
-            throw new CAException("Error when retrieving certificate", e);
+            throw new CAException("Error generating certificate from blob for serial no: " + serialNo, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
@@ -201,12 +194,9 @@ public class CertificateDAO {
                         expiryDate, status, username, tenantID, userStoreDomain);
             }
         } catch (IdentityException e) {
-            String errorMsg = "Error when getting an Identity Persistence Store instance.";
-            log.error(errorMsg, e);
-            throw new CAException(errorMsg, e);
+            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            log.error("Error when executing the SQL : " + sql, e);
-            throw new CAException("Error when retrieving certificate information", e);
+            throw new CAException("Error when executing the SQL : " + sql, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
@@ -235,14 +225,11 @@ public class CertificateDAO {
 
             prepStmt.setInt(1, tenantId);
             resultSet = prepStmt.executeQuery();
-            return getCertificateInfoFromResultSet(resultSet, tenantId);
+            return getCertificatesFromResultSet(resultSet, tenantId);
         } catch (IdentityException e) {
-            String errorMsg = "Error when getting an Identity Persistence Store instance.";
-            log.error(errorMsg, e);
-            throw new CAException(errorMsg, e);
+            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            log.error("Error when executing the SQL : " + sql, e);
-            throw new CAException("Error when retrieving certificate information", e);
+            throw new CAException("Error when executing the SQL : " + sql, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
@@ -267,14 +254,11 @@ public class CertificateDAO {
             prepStmt.setString(1, CertificateStatus.valueOf(status).toString());
             prepStmt.setInt(2, tenantId);
             resultSet = prepStmt.executeQuery();
-            return getCertificateInfoFromResultSet(resultSet, tenantId);
+            return getCertificatesFromResultSet(resultSet, tenantId);
         } catch (IdentityException e) {
-            String errorMsg = "Error when getting an Identity Persistence Store instance.";
-            log.error(errorMsg, e);
-            throw new CAException(errorMsg, e);
+            throw new CAException("Error when getting an Identity Persistence Store instance", e);
         } catch (SQLException e) {
-            log.error("Error when executing the SQL : " + sql, e);
-            throw new CAException("Error when retrieving certificate information", e);
+            throw new CAException("Error when executing the SQL : " + sql, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
@@ -288,23 +272,19 @@ public class CertificateDAO {
      * @return Set of certificates from the result set
      * @throws SQLException
      */
-    private List<Certificate> getCertificateInfoFromResultSet(ResultSet resultSet,
-                                                              int tenantId)
-            throws SQLException {
-        List<Certificate> certificateInfoList = new ArrayList<Certificate>();
+    private List<Certificate> getCertificatesFromResultSet(ResultSet resultSet, int tenantId) throws SQLException {
+        List<Certificate> certificateList = new ArrayList<Certificate>();
         while (resultSet.next()) {
             String serialNo = resultSet.getString(SQLConstants.SERIAL_NO_COLUMN);
             String status = resultSet.getString(SQLConstants.STATUS_COLUMN);
-            Date expiryDate = resultSet.getTimestamp(SQLConstants
-                    .CERTIFICATE_EXPIRY_DATE_COLUMN);
-            Date issuedDate = resultSet.getTimestamp(SQLConstants
-                    .CERTIFICATE_ISSUED_DATE_COLUMN);
+            Date expiryDate = resultSet.getTimestamp(SQLConstants.CERTIFICATE_EXPIRY_DATE_COLUMN);
+            Date issuedDate = resultSet.getTimestamp(SQLConstants.CERTIFICATE_ISSUED_DATE_COLUMN);
             String username = resultSet.getString(SQLConstants.USERNAME_COLUMN);
             String userStoreDomain = resultSet.getString(SQLConstants.USERSTORE_DOMAIN_COLUMN);
-            certificateInfoList.add(new Certificate(serialNo, issuedDate, expiryDate,
-                    status, username, tenantId, userStoreDomain));
+            certificateList.add(new Certificate(serialNo, issuedDate, expiryDate, status, username, tenantId,
+                    userStoreDomain));
         }
-        return certificateInfoList;
+        return certificateList;
     }
 
 }

@@ -72,8 +72,7 @@ public class RevocationDAO {
             updateCertificateStatus(connection, serialNo, reason);
             connection.commit();
         } catch (IdentityException e) {
-            log.error("Error when executing the SQL : " + sql, e);
-            throw new CAException("Error when revoking the certificate", e);
+            throw new CAException("Error when executing the SQL : " + sql, e);
         } catch (SQLException e) {
             try {
                 connection.rollback();
@@ -81,9 +80,8 @@ public class RevocationDAO {
                 log.error("Error when rolling back the revocation of certificate. Serial " +
                         "no:" + serialNo, e1);
             }
-            log.error("Error when revoking certificate. Serial No:" + serialNo + ", " +
+            throw new CAException("Error when revoking certificate. Serial No:" + serialNo + ", " +
                     "given reason code:" + reason, e);
-            throw new CAException("Error revoking certificate", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
@@ -119,16 +117,14 @@ public class RevocationDAO {
             updateCertificateStatus(connection, serialNo, reason);
             connection.commit();
         } catch (IdentityException e) {
-            log.error("Error when executing the SQL : " + sql, e);
-            throw new CAException("Error when updating the revoke reason", e);
+            throw new CAException("Error when executing the SQL : " + sql, e);
         } catch (SQLException e) {
             try {
                 connection.rollback();
             } catch (SQLException e1) {
                 log.error("Error when rolling back the update of revoke reason", e1);
             }
-            log.error("Error updating revoke reason for certificate. Serial No:" + serialNo, e);
-            throw new CAException("Error updating revoke reason", e);
+            throw new CAException("Error updating revoke reason for certificate. Serial No:" + serialNo, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
@@ -179,12 +175,9 @@ public class RevocationDAO {
                 return -1;
             }
         } catch (SQLException e) {
-            log.error("Error when executing the SQL : " + sql, e);
-            throw new CAException("Error when getting revoke reason of the certificate", e);
+            throw new CAException("Error when executing the SQL : " + sql, e);
         } catch (IdentityException e) {
-            String errorMsg = "Error when getting an Identity Persistence Store instance.";
-            log.error(errorMsg, e);
-            throw new CAException(errorMsg, e);
+            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
         }
@@ -215,12 +208,9 @@ public class RevocationDAO {
                 return revokedCertificatesList.get(0);
             }
         } catch (IdentityException e) {
-            String errorMsg = "Error when getting an Identity Persistence Store instance.";
-            log.error(errorMsg, e);
-            throw new CAException(errorMsg, e);
+            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            log.error("Error when executing the SQL : " + sql, e);
-            throw new CAException("Error when retrieving revoked certificates", e);
+            throw new CAException("Error when executing the SQL : " + sql, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
         }
@@ -266,12 +256,9 @@ public class RevocationDAO {
             resultSet = prepStmt.executeQuery();
             return getRevokedCertificatesList(resultSet);
         } catch (IdentityException e) {
-            String errorMsg = "Error when getting an Identity Persistence Store instance.";
-            log.error(errorMsg, e);
-            throw new CAException(errorMsg, e);
+            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            log.error("Error when executing the SQL : " + sql, e);
-            throw new CAException("Error when retrieving revoked certificates", e);
+            throw new CAException("Error when executing the SQL : " + sql, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
         }
@@ -294,12 +281,9 @@ public class RevocationDAO {
             prepStmt.executeUpdate();
             connection.commit();
         } catch (IdentityException e) {
-            String errorMsg = "Error when getting an Identity Persistence Store instance.";
-            log.error(errorMsg, e);
-            throw new CAException(errorMsg, e);
+            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            log.error("Error when executing the SQL : " + sql, e);
-            throw new CAException("Error when removing reactivated certificates", e);
+            throw new CAException("Error when executing the SQL : " + sql, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
@@ -330,12 +314,9 @@ public class RevocationDAO {
             resultSet = prepStmt.executeQuery();
             return getRevokedCertificatesList(resultSet);
         } catch (IdentityException e) {
-            String errorMsg = "Error when getting an Identity Persistence Store instance.";
-            log.error(errorMsg, e);
-            throw new CAException(errorMsg, e);
+            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            log.error("Error when executing the SQL : " + sql, e);
-            throw new CAException("Error when retrieving revoked certificates", e);
+            throw new CAException("Error when executing the SQL : " + sql, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
         }

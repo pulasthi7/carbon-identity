@@ -54,9 +54,13 @@ public class SCEPEndpoint {
                 response.flushBuffer();
             }
         } catch (ServletException e) {
-            log.error("Error when serving the request", e);
+            if (log.isDebugEnabled()) {
+                log.debug("Error when serving the request", e);
+            }
         } catch (IOException e) {
-            log.error("Error when committing the response", e);
+            if (log.isDebugEnabled()) {
+                log.debug("Error when committing the response", e);
+            }
         }
     }
 

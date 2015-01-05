@@ -72,18 +72,13 @@ public class CRLDAO {
             prepStmt.execute();
             connection.commit();
         } catch (IdentityException e) {
-            String errorMsg = "Error when getting an Identity Persistence Store instance.";
-            log.error(errorMsg, e);
-            throw new CAException(errorMsg, e);
+            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            log.error("Error when executing the SQL : " + sql, e);
-            throw new CAException("Error adding CRL", e);
+            throw new CAException("Error when executing the SQL : " + sql, e);
         } catch (CRLException e) {
-            log.error("Error when CRL encoding", e);
-            throw new CAException("Error adding CRL", e);
+            throw new CAException("Error when CRL encoding", e);
         } catch (UnsupportedEncodingException e) {
-            log.error("Error with charset used", e);
-            throw new CAException("Error adding CRL", e);
+            throw new CAException("Error with charset used", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
@@ -128,12 +123,9 @@ public class CRLDAO {
                 return crlData;
             }
         } catch (IdentityException e) {
-            String errorMsg = "Error when getting an Identity Persistence Store instance.";
-            log.error(errorMsg, e);
-            throw new CAException(errorMsg, e);
+            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            log.error("Error when executing the SQL : " + sql, e);
-            throw new CAException("Error when retrieving CRL", e);
+            throw new CAException("Error when executing the SQL : " + sql, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
@@ -169,12 +161,9 @@ public class CRLDAO {
                 return resultSet.getInt(SQLConstants.CRL_COLUMN);
             }
         } catch (IdentityException e) {
-            String errorMsg = "Error when getting an Identity Persistence Store instance.";
-            log.error(errorMsg, e);
-            throw new CAException(errorMsg, e);
+            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            log.error("Error when executing the SQL : " + sql, e);
-            throw new CAException("Error when retrieving highest CRL number");
+            throw new CAException("Error when executing the SQL : " + sql, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }

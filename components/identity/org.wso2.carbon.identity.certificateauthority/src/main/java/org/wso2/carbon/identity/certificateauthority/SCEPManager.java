@@ -109,7 +109,7 @@ public class SCEPManager {
     public X509Certificate getCaCert(String tenantDomain) throws CAException {
         try {
             int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
-            return CAConfiguration.getInstance().getConfiguredCaCert(tenantId);
+            return CAConfiguration.getInstance().getConfiguredCACert(tenantId);
         } catch (UserStoreException e) {
             throw new CAException("Invalid tenant domain :" + tenantDomain);
         }
@@ -155,9 +155,8 @@ public class SCEPManager {
             added = scepDAO.addScepToken(token, username, userStoreDomain, tenantId);
             retries++;
             if (retries >= CAConstants.MAX_SCEP_TOKEN_RETRIES) {
-                log.error("Token creation failed, All tried keys exists in db. Try updating token" +
+                throw new CAException("Token creation failed, All tried keys exists in db. Try updating token" +
                         "length.");
-                throw new CAException("Could not create SCEP token. Failed all retry attempts.");
             }
         }
         return token;

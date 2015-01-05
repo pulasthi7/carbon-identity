@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.certificateauthority.endpoint.ocsp;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPReq;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.wso2.carbon.identity.certificateauthority.CAException;
@@ -64,17 +63,17 @@ public class OCSPResponder {
             OCSPResp ocspResp = ocspHandler.handleOCSPRequest(ocspReq, tenant);
             return Response.ok().type(CAEndpointConstants.OCSP_RESPONSE_MEDIA_TYPE).entity(ocspResp.getEncoded())
                     .build();
-        } catch (OCSPException e) {
-            //This exception is thrown by bouncycastle when it fails to generate the OCSP response
-            log.error("Error when building the OCSP response for tenant:" + tenant, e);
-            return Response.serverError().build();
         } catch (CAException e) {
             //This can be thrown due to multiple reasons, the reason and context can be found at exception's message
-            log.error("Error when handling the OCSP request for tenant:" + tenant, e);
+            if (log.isDebugEnabled()) {
+                log.debug("Error when handling the OCSP request for tenant:" + tenant, e);
+            }
             return Response.serverError().build();
         } catch (IOException e) {
             //The request is malformed, and the OCSPReq object cannot be built with that
-            log.error("Error with the OCSP request, invalid request body", e);
+            if (log.isDebugEnabled()) {
+                log.debug("Error with the OCSP request, invalid request body", e);
+            }
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
     }

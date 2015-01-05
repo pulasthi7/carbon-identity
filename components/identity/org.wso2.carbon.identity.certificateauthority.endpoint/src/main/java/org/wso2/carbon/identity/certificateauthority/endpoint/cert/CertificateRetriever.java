@@ -50,10 +50,13 @@ public class CertificateRetriever {
     @Produces("application/x-x509-user-cert")
     public Response getCertificate(@PathParam("serialNo") String serialNo) {
         try {
-            String certificate = CertificateManager.getInstance().getPemEncodedCertificate(serialNo);
+            CertificateManager certificateManager = new CertificateManager();
+            String certificate = certificateManager.getPemEncodedCertificate(serialNo);
             return Response.ok().type(CAEndpointConstants.X509_USER_CERT_MEDIA_TYPE).entity(certificate).build();
         } catch (CAException e) {
-            log.error("Error occurred retrieving certificate with serialNo no:" + serialNo, e);
+            if (log.isDebugEnabled()) {
+                log.debug("Error occurred retrieving certificate with serialNo no:" + serialNo, e);
+            }
             return Response.serverError().build();
         }
     }
@@ -69,10 +72,12 @@ public class CertificateRetriever {
     @Produces("application/x-x509-ca-cert")
     public Response getCaCertificate(@PathParam("tenantDomain") String tenantDomain) {
         try {
-            String certificate = CAConfiguration.getInstance().getPemEncodedCaCert(tenantDomain);
+            String certificate = CAConfiguration.getInstance().getPemEncodedCACert(tenantDomain);
             return Response.ok().type(CAEndpointConstants.X509_CA_CERT_MEDIA_TYPE).entity(certificate).build();
         } catch (Exception e) {
-            log.error("Error occurred while retrieving CA certificate for tenant domain:" + tenantDomain, e);
+            if (log.isDebugEnabled()) {
+                log.debug("Error occurred while retrieving CA certificate for tenant domain:" + tenantDomain, e);
+            }
             return Response.serverError().build();
         }
     }
@@ -90,10 +95,13 @@ public class CertificateRetriever {
     @Produces("application/octet-string")
     public Response downloadCertificate(@PathParam("serialNo") String serialNo) {
         try {
-            String certificate = CertificateManager.getInstance().getPemEncodedCertificate(serialNo);
+            CertificateManager certificateManager = new CertificateManager();
+            String certificate = certificateManager.getPemEncodedCertificate(serialNo);
             return Response.ok().type(MediaType.APPLICATION_OCTET_STREAM_TYPE).entity(certificate).build();
         } catch (Exception e) {
-            log.error("Error occurred retrieving certificate with serialNo no:" + serialNo, e);
+            if (log.isDebugEnabled()) {
+                log.debug("Error occurred retrieving certificate with serialNo no:" + serialNo, e);
+            }
             return Response.serverError().build();
         }
     }
@@ -111,10 +119,12 @@ public class CertificateRetriever {
     @Produces("application/octet-string")
     public Response downloadCaCertificate(@PathParam("tenantDomain") String tenantDomain) {
         try {
-            String certificate = CAConfiguration.getInstance().getPemEncodedCaCert(tenantDomain);
+            String certificate = CAConfiguration.getInstance().getPemEncodedCACert(tenantDomain);
             return Response.ok().type(MediaType.APPLICATION_OCTET_STREAM_TYPE).entity(certificate).build();
         } catch (Exception e) {
-            log.error("Error occurred retrieving CA certificate for tenant domain" + tenantDomain, e);
+            if (log.isDebugEnabled()) {
+                log.debug("Error occurred retrieving CA certificate for tenant domain" + tenantDomain, e);
+            }
             return Response.serverError().build();
         }
     }

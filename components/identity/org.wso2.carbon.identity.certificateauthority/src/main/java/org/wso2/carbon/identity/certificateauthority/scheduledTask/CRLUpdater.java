@@ -61,8 +61,7 @@ public class CRLUpdater implements Runnable {
                 PrivilegedCarbonContext.endTenantFlow();
             }
         } catch (UserStoreException e) {
-            log.error("Error getting tenant list", e);
-            throw new CAException("CRL list was not build, Error when accessing tenants", e);
+            log.error("Error getting tenant list when building the CRL", e);
         }
     }
 
