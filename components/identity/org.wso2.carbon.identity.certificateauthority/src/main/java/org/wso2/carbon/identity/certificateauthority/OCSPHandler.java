@@ -44,10 +44,8 @@ import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
 import org.wso2.carbon.identity.certificateauthority.config.CAConfiguration;
 import org.wso2.carbon.identity.certificateauthority.dao.CertificateDAO;
 import org.wso2.carbon.identity.certificateauthority.dao.RevocationDAO;
-import org.wso2.carbon.identity.certificateauthority.internal.CAServiceComponent;
 import org.wso2.carbon.identity.certificateauthority.model.Certificate;
 import org.wso2.carbon.identity.certificateauthority.model.RevokedCertificate;
-import org.wso2.carbon.user.api.UserStoreException;
 
 import java.io.IOException;
 import java.security.PrivateKey;
@@ -79,8 +77,6 @@ public class OCSPHandler {
             throws CAException {
         OCSPRespBuilder respGenerator = new OCSPRespBuilder();
         try {
-            int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId
-                    (tenantDomain);
             if (req == null || req.getRequestList().length <= 0) {
                 return respGenerator.build(OCSPRespBuilder.MALFORMED_REQUEST, null);
             }
@@ -89,8 +85,8 @@ public class OCSPHandler {
             CertificateID certID;
             Certificate certificateInfo;
             CAConfiguration configurationManager = CAConfiguration.getInstance();
-            X509Certificate caCert = configurationManager.getConfiguredCACert(tenantId);
-            PrivateKey privateKey = configurationManager.getConfiguredPrivateKey(tenantId);
+            X509Certificate caCert = configurationManager.getConfiguredCACert(tenantDomain);
+            PrivateKey privateKey = configurationManager.getConfiguredPrivateKey(tenantDomain);
             SubjectPublicKeyInfo keyInfo = SubjectPublicKeyInfo.getInstance(caCert.getPublicKey().getEncoded());
             DigestCalculator digestCalculator = new JcaDigestCalculatorProviderBuilder()
                     .setProvider(CAConstants.BC_PROVIDER).build().get(CertificateID.HASH_SHA1);
@@ -102,9 +98,8 @@ public class OCSPHandler {
             }
             for (Req request : requests) {
                 certID = request.getCertID();
-                certificateInfo = certificateDAO.getCertificateInfo(certID.getSerialNumber()
-                        .toString(), tenantId);
-                if (certificateInfo == null || tenantId != certificateInfo.getTenantID()) {
+                certificateInfo = certificateDAO.getCertificateInfo(certID.getSerialNumber().toString(), tenantDomain);
+                if (certificateInfo == null || tenantDomain.equals(certificateInfo.getTenantDomain())) {
                     basicRespGen.addResponse(certID, new UnknownStatus());
                 } else {
                     org.wso2.carbon.identity.certificateauthority.common.CertificateStatus certificateStatus = org
@@ -144,8 +139,6 @@ public class OCSPHandler {
         } catch (IOException e) {
             throw new CAException("Error when building certificate holder for CA certificate of tenant: " +
                     tenantDomain, e);
-        } catch (UserStoreException e) {
-            throw new CAException("Error with tenant domain, tenant domain " + tenantDomain + " is not valid", e);
         } catch (OCSPException e) {
             //building OCSP response fails at BC
             throw new CAException("Error building the OCSP response", e);

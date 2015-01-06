@@ -46,7 +46,7 @@ public class SCEPServletImpl extends ScepServlet {
 
     private static Log log = LogFactory.getLog(SCEPServletImpl.class);
     private CRLManager crlManager = new CRLManager();
-    private SCEPManager scepManager = SCEPManager.getInstance();
+    private SCEPManager scepManager = new SCEPManager();
     private String tenantDomain;
 
     /**
@@ -81,8 +81,8 @@ public class SCEPServletImpl extends ScepServlet {
     protected List<X509Certificate> doGetCert(X500Name x500Name, BigInteger bigInteger)
             throws Exception {
         List<X509Certificate> certificateList = new ArrayList<X509Certificate>();
-        X509Certificate x509Certificate =
-                CertificateManager.getInstance().getX509Certificate(bigInteger.toString());
+        CertificateManager certificateManager = new CertificateManager();
+        X509Certificate x509Certificate = certificateManager.getX509Certificate(bigInteger.toString());
         X500Name issuerX500Name = new X500Name(x509Certificate.getIssuerX500Principal().getName());
         if (issuerX500Name.equals(x500Name)) {
             certificateList.add(x509Certificate);

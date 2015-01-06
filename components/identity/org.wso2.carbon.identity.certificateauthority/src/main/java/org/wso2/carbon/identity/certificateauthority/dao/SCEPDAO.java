@@ -25,8 +25,10 @@ import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.certificateauthority.CAConstants;
 import org.wso2.carbon.identity.certificateauthority.CAException;
 import org.wso2.carbon.identity.certificateauthority.config.CAConfiguration;
+import org.wso2.carbon.identity.certificateauthority.internal.CAServiceComponent;
 import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.user.api.UserStoreException;
 
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -52,16 +54,17 @@ public class SCEPDAO {
      * @param token           The token to be stored
      * @param userName        The user for whom the token in generated
      * @param userStoreDomain The user store of the domain
-     * @param tenantId        The user's tenant id
+     * @param tenantDomain    The user's tenant domain
      * @return <code>true</code> if token is added successfully, <code>false</code> otherwise
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
-    public boolean addScepToken(String token, String userName,
-                                String userStoreDomain, int tenantId) throws CAException {
+    public boolean addSCEPToken(String token, String userName, String userStoreDomain,
+                                String tenantDomain) throws CAException {
         Connection connection = null;
         PreparedStatement prepStmt = null;
         String sql = SQLConstants.ADD_SCEP_TOKEN;
         try {
+            int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
             connection = JDBCPersistenceManager.getInstance().getDBConnection();
             prepStmt = connection.prepareStatement(sql);
             prepStmt.setString(1, token);
@@ -72,6 +75,8 @@ public class SCEPDAO {
             prepStmt.executeUpdate();
             connection.commit();
             return true;
+        } catch (UserStoreException e) {
+            throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } catch (IdentityException e) {
             throw new CAException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
@@ -84,20 +89,21 @@ public class SCEPDAO {
     /**
      * Adds a CSR from SCEP PKI operation to the DB
      *
-     * @param certReq  The CSR to be added
-     * @param transId  The transaction ID which can be used to identify the CSR
-     * @param token    The token associated with the operation
-     * @param tenantId The tenant id of CA
+     * @param certReq      The CSR to be added
+     * @param transId      The transaction ID which can be used to identify the CSR
+     * @param token        The token associated with the operation
+     * @param tenantDomain The tenant domain of CA
      * @return The serial no of the CSR that was added.
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
-    public String addScepCsr(PKCS10CertificationRequest certReq, String transId,
-                             String token, int tenantId) throws CAException {
+    public String addScepCsr(PKCS10CertificationRequest certReq, String transId, String token,
+                             String tenantDomain) throws CAException {
         Connection connection = null;
         PreparedStatement prepStmt = null;
         ResultSet resultSet = null;
         String sql = SQLConstants.GET_SCEP_TOKEN;
         try {
+            int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
             connection = IdentityDatabaseUtil.getDBConnection();
             prepStmt = connection.prepareStatement(sql);
             prepStmt.setString(1, token);
@@ -111,8 +117,7 @@ public class SCEPDAO {
                     throw new CAException("The token is already used");
                 }
                 Date date = resultSet.getTimestamp(SQLConstants.CREATED_TIME_COLUMN);
-                if (date.getTime() + caConfiguration.getTokenValidity() < new java.util
-                        .Date().getTime()) {
+                if (date.getTime() + caConfiguration.getTokenValidity() < new java.util.Date().getTime()) {
                     throw new CAException("The token is expired, create a new token");
                 }
                 String userName = resultSet.getString(SQLConstants.USERNAME_COLUMN);
@@ -120,7 +125,7 @@ public class SCEPDAO {
 
                 //Adds to the CSR table
                 CSRDAO csrDAO = new CSRDAO();
-                serialNo = csrDAO.addCSR(certReq, userName, tenantId, userStoreDomain);
+                serialNo = csrDAO.addCSR(certReq, userName, tenantDomain, userStoreDomain);
                 sql = SQLConstants.UPDATE_SCEP_TOKEN;
                 prepStmt = connection.prepareStatement(sql);
                 prepStmt.setString(1, serialNo);
@@ -132,6 +137,8 @@ public class SCEPDAO {
             } else {
                 throw new CAException("Invalid token given");
             }
+        } catch (UserStoreException e) {
+            throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } catch (IdentityException e) {
             throw new CAException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
@@ -145,16 +152,17 @@ public class SCEPDAO {
      * Gets the certificate that was enrolled for the given transaction id
      *
      * @param transactionId The id that is used to identify the PKI operation
-     * @param tenantId      The tenant id of CA
+     * @param tenantDomain  The tenant domain of CA
      * @return The certificate that was enrolled from the PKI operation
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
-    public X509Certificate getCertificate(String transactionId, int tenantId) throws CAException {
+    public X509Certificate getCertificate(String transactionId, String tenantDomain) throws CAException {
         Connection connection = null;
         PreparedStatement prepStmt = null;
         ResultSet resultSet;
         String sql = SQLConstants.GET_ENROLLED_CERTIFICATE_QUERY;
         try {
+            int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
             connection = IdentityDatabaseUtil.getDBConnection();
             prepStmt = connection.prepareStatement(sql);
             prepStmt.setString(1, transactionId);
@@ -162,14 +170,15 @@ public class SCEPDAO {
             resultSet = prepStmt.executeQuery();
             if (resultSet.next()) {
                 Blob certificateBlob = resultSet.getBlob(SQLConstants.CERTIFICATE_COLUMN);
-                CertificateFactory certificateFactory = CertificateFactory.getInstance
-                        (CAConstants.X509);
-                X509Certificate certificate = (X509Certificate) certificateFactory
-                        .generateCertificate(certificateBlob.getBinaryStream());
+                CertificateFactory certificateFactory = CertificateFactory.getInstance(CAConstants.X509);
+                X509Certificate certificate = (X509Certificate) certificateFactory.generateCertificate(
+                        certificateBlob.getBinaryStream());
                 if (certificate != null) {
                     return certificate;
                 }
             }
+        } catch (UserStoreException e) {
+            throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } catch (IdentityException e) {
             throw new CAException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
@@ -181,8 +190,7 @@ public class SCEPDAO {
         }
         //Reaches below when certificate does not exist
         if (log.isDebugEnabled()) {
-            log.debug("Transaction id : " + transactionId + " is valid, " +
-                    "but the certificate is not found in database for its serial no");
+            log.debug("The certificate is not found for transaction Id:" + transactionId);
         }
         throw new CAException("Requested certificate is not available");
     }

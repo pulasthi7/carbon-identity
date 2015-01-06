@@ -29,7 +29,7 @@ public class Certificate {
     private Date expiryDate;
     private String status;
     private String username;
-    private int tenantID;
+    private String tenantDomain;
     private String userStoreDomain;
 
     /**
@@ -40,18 +40,18 @@ public class Certificate {
      * @param expiryDate      The expiry date of the certificate
      * @param status          The status of the certificate
      * @param username        The username of the user for whom the certificate is issued
-     * @param tenantID        The tenant id of the user
+     * @param tenantDomain    The tenant domain of the user
      * @param userStoreDomain The user store of the user
      * @see org.wso2.carbon.identity.certificateauthority.common.CertificateStatus
      */
     public Certificate(String serialNo, Date issuedDate, Date expiryDate, String status,
-                       String username, int tenantID, String userStoreDomain) {
+                       String username, String tenantDomain, String userStoreDomain) {
         this.serialNo = serialNo;
         this.issuedDate = (Date) issuedDate.clone();
         this.expiryDate = (Date) expiryDate.clone();
         this.status = status;
         this.username = username;
-        this.tenantID = tenantID;
+        this.tenantDomain = tenantDomain;
         this.userStoreDomain = userStoreDomain;
     }
 
@@ -105,8 +105,8 @@ public class Certificate {
      *
      * @return
      */
-    public int getTenantID() {
-        return tenantID;
+    public String getTenantDomain() {
+        return tenantDomain;
     }
 
     /**

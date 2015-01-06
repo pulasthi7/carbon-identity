@@ -24,6 +24,7 @@ import java.util.Date;
  * Represents a CRL
  */
 public class CRLData {
+
     private Date thisUpdate;
     private Date nextUpdate;
     private String base64Crl;

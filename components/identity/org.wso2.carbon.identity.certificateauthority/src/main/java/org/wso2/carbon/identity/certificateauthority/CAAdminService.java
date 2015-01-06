@@ -86,8 +86,8 @@ public class CAAdminService extends AbstractAdmin {
      */
     public CSR[] listCSRs() throws AxisFault {
         try {
-            int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-            List<CSR> csrList = csrDAO.listCSRs(tenantId);
+            String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            List<CSR> csrList = csrDAO.listCSRs(tenantDomain);
             return csrList.toArray(new CSR[csrList.size()]);
         } catch (CAException e) {
             log.error("Error listing the CSRs", e);
@@ -104,8 +104,8 @@ public class CAAdminService extends AbstractAdmin {
      */
     public CSR[] listCSRsByStatus(String status) throws AxisFault {
         try {
-            int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-            List<CSR> csrList = csrDAO.listCSRsByStatus(tenantId, status);
+            String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            List<CSR> csrList = csrDAO.listCSRsByStatus(tenantDomain, status);
             return csrList.toArray(new CSR[csrList.size()]);
         } catch (CAException e) {
             log.error("Error when listing CSRs with status " + status, e);
@@ -122,8 +122,8 @@ public class CAAdminService extends AbstractAdmin {
      */
     public CSR getCSR(String serialNo) throws AxisFault {
         try {
-            int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-            return csrDAO.getCSR(serialNo, tenantId);
+            String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            return csrDAO.getCSR(serialNo, tenantDomain);
         } catch (CAException e) {
             log.error("Error retrieving the CSR with serial no:" + serialNo, e);
             throw new AxisFault("Error when retrieving the CSR");
@@ -138,8 +138,8 @@ public class CAAdminService extends AbstractAdmin {
      */
     public void rejectCSR(String serialNo) throws AxisFault {
         try {
-            int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-            csrDAO.rejectCSR(serialNo, tenantId);
+            String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            csrDAO.rejectCSR(serialNo, tenantDomain);
         } catch (CAException e) {
             log.error("Error when rejecting the CSR with serial no:" + serialNo, e);
             throw new AxisFault("Error when rejecting the CSR");
@@ -155,8 +155,8 @@ public class CAAdminService extends AbstractAdmin {
      */
     public void signCSR(String serialNo, int validity) throws AxisFault {
         try {
-            int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-            certificateManager.signCSR(tenantId, serialNo, validity);
+            String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            certificateManager.signCSR(tenantDomain, serialNo, validity);
         } catch (CAException e) {
             log.error("Error signing the CSR with serial no:" + serialNo + " , for " + validity + " days", e);
             throw new AxisFault("Certificate could not be signed");
@@ -170,12 +170,12 @@ public class CAAdminService extends AbstractAdmin {
      * @throws AxisFault
      */
     public Certificate[] listCertificates() throws AxisFault {
-        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         try {
-            List<Certificate> certificateInfoList = certificateDAO.listCertificates(tenantId);
+            List<Certificate> certificateInfoList = certificateDAO.listCertificates(tenantDomain);
             return certificateInfoList.toArray(new Certificate[certificateInfoList.size()]);
         } catch (CAException e) {
-            log.error("Error listing certificates for tenant:" + tenantId, e);
+            log.error("Error listing certificates for tenant:" + tenantDomain, e);
             throw new AxisFault("Error listing the certificates");
         }
     }
@@ -189,12 +189,12 @@ public class CAAdminService extends AbstractAdmin {
      * @see org.wso2.carbon.identity.certificateauthority.common.CertificateStatus
      */
     public Certificate[] listCertificatesWithStatus(String status) throws AxisFault {
-        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         try {
-            List<Certificate> certificateInfoList = certificateDAO.listCertificates(status, tenantId);
+            List<Certificate> certificateInfoList = certificateDAO.listCertificates(status, tenantDomain);
             return certificateInfoList.toArray(new Certificate[certificateInfoList.size()]);
         } catch (CAException e) {
-            log.error("Error listing certificates with status " + status + " for tenant:" + tenantId, e);
+            log.error("Error listing certificates with status " + status + " for tenant:" + tenantDomain, e);
             throw new AxisFault("Error listing \"" + status + "\" certificates");
         }
     }
@@ -207,11 +207,12 @@ public class CAAdminService extends AbstractAdmin {
      * @throws AxisFault
      */
     public Certificate getCertificate(String serialNo) throws AxisFault {
-        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         try {
-            return certificateDAO.getCertificateInfo(serialNo, tenantId);
+            return certificateDAO.getCertificateInfo(serialNo, tenantDomain);
         } catch (CAException e) {
-            log.error("Error retrieving the certificate with serial no:" + serialNo + " from tenant:" + tenantId, e);
+            log.error("Error retrieving the certificate with serial no:" + serialNo + " from tenant:" + tenantDomain,
+                    e);
             throw new AxisFault("Error when retrieving the certificate");
         }
     }
@@ -224,10 +225,10 @@ public class CAAdminService extends AbstractAdmin {
      * @throws AxisFault
      */
     public void revokeCertificate(String serialNo, int reason) throws AxisFault {
-        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         try {
-            certificateManager.revokeCert(tenantId, serialNo, reason);
-            crlManager.createAndStoreDeltaCrl(tenantId);
+            certificateManager.revokeCert(tenantDomain, serialNo, reason);
+            crlManager.createAndStoreDeltaCrl(tenantDomain);
         } catch (CAException e) {
             log.error("Error revoking the certificate, serial no:" + serialNo + ", revoke reason code" + reason, e);
             throw new AxisFault("Certificate could not be revoked");
@@ -260,12 +261,11 @@ public class CAAdminService extends AbstractAdmin {
      */
     public String[] listKeyAliases() throws AxisFault {
         try {
-            List<String> keyList = CAConfiguration.getInstance().listAllKeys
-                    (getGovernanceSystemRegistry());
+            List<String> keyList = CAConfiguration.getInstance().listAllKeys(getGovernanceSystemRegistry());
             return keyList.toArray(new String[keyList.size()]);
         } catch (CAException e) {
-            int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-            log.error("Error when listing the keys for tenant:" + tenantId, e);
+            String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            log.error("Error when listing the keys for tenant:" + tenantDomain, e);
             throw new AxisFault("Could not list the keys");
         }
     }
@@ -280,11 +280,11 @@ public class CAAdminService extends AbstractAdmin {
      * @throws AxisFault
      */
     public void updateSigningKey(String keyStore, String alias) throws AxisFault {
-        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         try {
-            CAConfiguration.getInstance().updateKey(tenantId, keyStore, alias);
+            CAConfiguration.getInstance().updateKey(tenantDomain, keyStore, alias);
         } catch (CAException e) {
-            log.error("Error when updating the key of tenant:" + tenantId + " to " + keyStore + "/" + alias, e);
+            log.error("Error when updating the key of tenant:" + tenantDomain + " to " + keyStore + "/" + alias, e);
             throw new AxisFault("Error when updating the key");
         }
     }
@@ -298,12 +298,13 @@ public class CAAdminService extends AbstractAdmin {
      */
     public String generateSCEPToken() throws AxisFault {
         String username = CarbonContext.getThreadLocalCarbonContext().getUsername();
-        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         String userStoreDomain = UserCoreUtil.extractDomainFromName(username);
         try {
-            return scepManager.generateScepToken(username, tenantId, userStoreDomain);
+            return scepManager.generateScepToken(username, tenantDomain, userStoreDomain);
         } catch (CAException e) {
-            log.error("Error when generating SCEP token for " + userStoreDomain + "\\" + username + "@" + tenantId, e);
+            log.error("Error when generating SCEP token for " + userStoreDomain + "\\" + username + "@" +
+                    tenantDomain, e);
             throw new AxisFault("Could not generate a new token");
         }
     }

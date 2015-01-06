@@ -30,15 +30,13 @@ import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.certificateauthority.config.CAConfiguration;
 import org.wso2.carbon.identity.certificateauthority.dao.CRLDAO;
 import org.wso2.carbon.identity.certificateauthority.dao.RevocationDAO;
-import org.wso2.carbon.identity.certificateauthority.internal.CAServiceComponent;
 import org.wso2.carbon.identity.certificateauthority.model.RevokedCertificate;
 import org.wso2.carbon.identity.certificateauthority.scheduledTask.CRLUpdater;
 import org.wso2.carbon.identity.certificateauthority.utils.CAObjectUtils;
-import org.wso2.carbon.user.api.UserStoreException;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
@@ -65,8 +63,8 @@ public class CRLManager {
      * @throws Exception
      */
     public void addCRL() throws Exception {
-        int tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
-        createAndStoreCrl(tenantId);
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        createAndStoreCrl(tenantDomain);
     }
 
     /**
@@ -75,8 +73,8 @@ public class CRLManager {
      * @throws Exception
      */
     public void addDeltaCrl() throws Exception {
-        int tenantID = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
-        createAndStoreDeltaCrl(tenantID);
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        createAndStoreDeltaCrl(tenantDomain);
     }
 
     /**
@@ -89,14 +87,10 @@ public class CRLManager {
     public byte[] getLatestCrl(String tenantDomain)
             throws CAException {
         try {
-            int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId
-                    (tenantDomain);
-            return crlDAO.getLatestCRL(tenantId, false).getBase64Crl().getBytes(
+            return crlDAO.getLatestCRL(tenantDomain, false).getBase64Crl().getBytes(
                     CAConstants.UTF_8_CHARSET);
         } catch (UnsupportedEncodingException e) {
             throw new CAException("Unsupported encoding used", e);
-        } catch (UserStoreException e) {
-            throw new CAException("Invalid tenant domain", e);
         }
     }
 
@@ -110,14 +104,10 @@ public class CRLManager {
     public byte[] getLatestDeltaCrl(String tenantDomain)
             throws CAException {
         try {
-            int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId
-                    (tenantDomain);
-            return crlDAO.getLatestCRL(tenantId, true).getBase64Crl()
+            return crlDAO.getLatestCRL(tenantDomain, true).getBase64Crl()
                     .getBytes(CAConstants.UTF_8_CHARSET);
         } catch (UnsupportedEncodingException e) {
             throw new CAException("Unsupported encoding used", e);
-        } catch (UserStoreException e) {
-            throw new CAException("Invalid tenant domain", e);
         }
     }
 
@@ -134,30 +124,12 @@ public class CRLManager {
     /**
      * Get the latest CRL for the tenant CA
      *
-     * @param tenantId The tenant id of the CA
-     * @return CRL of CA in X509 format
-     * @throws CAException
-     */
-    public X509CRL getLatestX509Crl(int tenantId) throws CAException {
-        return CAObjectUtils.toX509Crl(crlDAO.getLatestCRL(tenantId, false).getBase64Crl());
-    }
-
-    /**
-     * Same as {@link #getLatestX509Crl(int)} Takes the tenant domain as parameter
-     *
      * @param tenantDomain The tenant domain of the CA
      * @return CRL of CA in X509 format
      * @throws CAException
      */
     public X509CRL getLatestX509Crl(String tenantDomain) throws CAException {
-        int tenantId;
-        try {
-            tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId
-                    (tenantDomain);
-            return getLatestX509Crl(tenantId);
-        } catch (UserStoreException e) {
-            throw new CAException("Invalid tenant domain", e);
-        }
+        return CAObjectUtils.toX509Crl(crlDAO.getLatestCRL(tenantDomain, false).getBase64Crl());
     }
 
     /**
@@ -215,20 +187,19 @@ public class CRLManager {
     /**
      * Create full CRL for the given tenant
      *
-     * @param tenantId The tenant Id
+     * @param tenantDomain The tenant domain
      * @return Full CRL of the tenant
      * @throws CAException
      */
 
-    public X509CRL createFullCrl(int tenantId) throws CAException {
+    public X509CRL createFullCrl(String tenantDomain) throws CAException {
         RevocationDAO revocationDAO = new RevocationDAO();
         CRLDAO crlDAO = new CRLDAO();
-        List<RevokedCertificate> revokedCertificates = revocationDAO.listRevokedCertificates
-                (tenantId);
+        List<RevokedCertificate> revokedCertificates = revocationDAO.listRevokedCertificates(tenantDomain);
         PrivateKey caKey = CAConfiguration.getInstance().getConfiguredPrivateKey();
         X509Certificate caCert = CAConfiguration.getInstance().getConfiguredCACert();
-        int fullCrlNumber = crlDAO.getHighestCrlNumber(tenantId, false);
-        int deltaCrlNumber = crlDAO.getHighestCrlNumber(tenantId, true);
+        int fullCrlNumber = crlDAO.getHighestCrlNumber(tenantDomain, false);
+        int deltaCrlNumber = crlDAO.getHighestCrlNumber(tenantDomain, true);
         // nextCrlNumber: The highest number of last CRL (full or delta) and increased by 1 (both
         // full CRLs and deltaCRLs share the same series of CRL Number)
         int nextCrlNumber = ((fullCrlNumber > deltaCrlNumber) ? fullCrlNumber : deltaCrlNumber) + 1;
@@ -239,21 +210,20 @@ public class CRLManager {
     /**
      * Create delta CRL for the given tenant
      *
-     * @param tenantId The tenant id of the CA
+     * @param tenantDomain The tenant domain of the CA
      * @return The delta CRL of the tenant CA
      * @throws CAException
      */
-    public X509CRL createDeltaCrl(int tenantId) throws CAException {
+    public X509CRL createDeltaCrl(String tenantDomain) throws CAException {
         RevocationDAO revocationDAO = new RevocationDAO();
         X509CRL latestCrl;
-        latestCrl = CAObjectUtils.toX509Crl(crlDAO.getLatestCRL(tenantId,
-                false).getBase64Crl());
+        latestCrl = CAObjectUtils.toX509Crl(crlDAO.getLatestCRL(tenantDomain, false).getBase64Crl());
         List<RevokedCertificate> revokedCertificates = revocationDAO.getRevokedCertificatesAfter
-                (tenantId, latestCrl.getThisUpdate());
+                (tenantDomain, latestCrl.getThisUpdate());
         PrivateKey privateKey = CAConfiguration.getInstance().getConfiguredPrivateKey();
         X509Certificate caCert = CAConfiguration.getInstance().getConfiguredCACert();
-        int fullCrlNumber = crlDAO.getHighestCrlNumber(tenantId, false);
-        int deltaCrlNumber = crlDAO.getHighestCrlNumber(tenantId, true);
+        int fullCrlNumber = crlDAO.getHighestCrlNumber(tenantDomain, false);
+        int deltaCrlNumber = crlDAO.getHighestCrlNumber(tenantDomain, true);
         // nextCrlNumber: The highest number of last CRL (full or delta) and increased by 1 (both
         // full CRLs and deltaCRLs share the same series of CRL Number)
         int nextCrlNumber = ((fullCrlNumber > deltaCrlNumber) ? fullCrlNumber : deltaCrlNumber) + 1;
@@ -264,40 +234,39 @@ public class CRLManager {
     /**
      * Creates and store a CRL in db for the given tenant
      *
-     * @param tenantId The tenant id of the CA
+     * @param tenantDomain The tenant domain of the CA
      * @throws CAException
      */
-    public void createAndStoreCrl(int tenantId) throws CAException {
-        X509CRL crl = createFullCrl(tenantId);
+    public void createAndStoreCrl(String tenantDomain) throws CAException {
+        X509CRL crl = createFullCrl(tenantDomain);
         RevocationDAO revocationDAO = new RevocationDAO();
         revocationDAO.removeReactivatedCertificates();
-        int fullCrlNumber = crlDAO.getHighestCrlNumber(tenantId, false);
-        int deltaCrlNumber = crlDAO.getHighestCrlNumber(tenantId, true);
+        int fullCrlNumber = crlDAO.getHighestCrlNumber(tenantDomain, false);
+        int deltaCrlNumber = crlDAO.getHighestCrlNumber(tenantDomain, true);
         // nextCrlNumber: The highest number of last CRL (full or delta) and increased by 1 (both
         // full CRLs and deltaCRLs share the same series of CRL Number)
         int nextCrlNumber = ((fullCrlNumber > deltaCrlNumber) ? fullCrlNumber : deltaCrlNumber) + 1;
 
-        crlDAO.addCRL(crl, tenantId, crl.getThisUpdate(), crl.getNextUpdate(), nextCrlNumber, -1);
+        crlDAO.addCRL(crl, tenantDomain, crl.getThisUpdate(), crl.getNextUpdate(), nextCrlNumber, -1);
 
     }
 
     /**
      * Create and store a delta CRL in database
      *
-     * @param tenantId The tenant id of the CA
+     * @param tenantDomain The tenant id of the CA
      * @throws CAException
      */
-    public void createAndStoreDeltaCrl(int tenantId) throws CAException {
-        X509CRL crl = createDeltaCrl(tenantId);
+    public void createAndStoreDeltaCrl(String tenantDomain) throws CAException {
+        X509CRL crl = createDeltaCrl(tenantDomain);
         if (crl != null) {
             CRLDAO crlDAO = new CRLDAO();
-            int fullCrlNumber = crlDAO.getHighestCrlNumber(tenantId, false);
-            int deltaNumber = crlDAO.getHighestCrlNumber(tenantId, true);
+            int fullCrlNumber = crlDAO.getHighestCrlNumber(tenantDomain, false);
+            int deltaNumber = crlDAO.getHighestCrlNumber(tenantDomain, true);
             // nextCrlNumber: The highest number of last CRL (full or delta) and increased by 1
             // (both full CRLs and deltaCRLs share the same series of CRL Number)
             int nextCrlNumber = ((fullCrlNumber > deltaNumber) ? fullCrlNumber : deltaNumber) + 1;
-            crlDAO.addCRL(crl, tenantId, crl.getThisUpdate(), crl.getNextUpdate(), nextCrlNumber,
-                    1);
+            crlDAO.addCRL(crl, tenantDomain, crl.getThisUpdate(), crl.getNextUpdate(), nextCrlNumber, 1);
         }
     }
 }

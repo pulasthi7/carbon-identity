@@ -48,7 +48,7 @@ public class CRLUpdater implements Runnable {
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain
                 (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         CRLManager crlManager = new CRLManager();
-        crlManager.createAndStoreCrl(MultitenantConstants.SUPER_TENANT_ID);
+        crlManager.createAndStoreCrl(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         PrivilegedCarbonContext.endTenantFlow();
 
         try {
@@ -57,7 +57,7 @@ public class CRLUpdater implements Runnable {
                 PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenant.getId());
                 PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain
                         (tenant.getDomain());
-                crlManager.createAndStoreCrl(tenant.getId());
+                crlManager.createAndStoreCrl(tenant.getDomain());
                 PrivilegedCarbonContext.endTenantFlow();
             }
         } catch (UserStoreException e) {

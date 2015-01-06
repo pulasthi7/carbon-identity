@@ -79,54 +79,50 @@ public class CertificateManager {
      * @param validity The validity of the resulting certificate in days
      * @throws CAException If signing or storing the certificate fails
      */
-    public void signCSR(int tenantId, String serialNo, int validity) throws CAException {
+    public void signCSR(String tenantDomain, String serialNo, int validity) throws CAException {
 
-        CSR csr = csrDAO.getCSR(serialNo, tenantId);
+        CSR csr = csrDAO.getCSR(serialNo, tenantDomain);
 
         if (!CSRStatus.PENDING.toString().equals(csr.getStatus())) {
             throw new CAException("Certificate already signed, rejected or revoked");
         }
         CAConfiguration configurationManager = CAConfiguration.getInstance();
-        X509Certificate signedCert = getSignedCertificate(serialNo,
-                csrDAO.getPKCS10CertificationRequest
-                        (serialNo), validity, configurationManager.getConfiguredPrivateKey(),
-                configurationManager.getConfiguredCACert()
-        );
-        certificateDAO.addCertificate(serialNo, signedCert, tenantId,
-                csr.getUserName(), csr.getUserStoreDomain());
+        X509Certificate signedCert = getSignedCertificate(serialNo, csrDAO.getPKCS10CertificationRequest(serialNo),
+                validity, configurationManager.getConfiguredPrivateKey(), configurationManager.getConfiguredCACert());
+        certificateDAO.addCertificate(serialNo, signedCert, tenantDomain, csr.getUserName(), csr.getUserStoreDomain());
     }
 
     /**
      * Revoke or update the revoke reason for the given certificate
      *
-     * @param tenantId the tenant Id of the CA
+     * @param tenantDomain the tenant domain of the CA
      * @param serialNo The serial no of the certificate to be revoked
      * @param reason   The reason code for the revocation as specified in {@link org.bouncycastle.asn1.x509.CRLReason}
      * @throws CAException
      */
-    public void revokeCert(int tenantId, String serialNo, int reason) throws CAException {
+    public void revokeCert(String tenantDomain, String serialNo, int reason) throws CAException {
         int currentRevokeReason = revocationDAO.getRevokeReason(serialNo);
         if (currentRevokeReason < 0) {
-            revocationDAO.addRevokedCertificate(serialNo, tenantId, reason);
+            revocationDAO.addRevokedCertificate(serialNo, tenantDomain, reason);
         } else {
-            revocationDAO.updateRevokedCertificate(serialNo, tenantId, reason);
+            revocationDAO.updateRevokedCertificate(serialNo, tenantDomain, reason);
         }
     }
 
     /**
      * Revokes all certificates issued by a tenant ID
      *
-     * @param tenantId     The tenant id of the CA
+     * @param tenantDomain The tenant id of the CA
      * @param revokeReason The reason code for the revocation as specified in
      *                     {@link org.bouncycastle.asn1.x509.CRLReason}
      * @throws CAException
      */
-    public void revokeAllIssuedCertificates(int tenantId, int revokeReason) throws CAException {
+    public void revokeAllIssuedCertificates(String tenantDomain, int revokeReason) throws CAException {
         CertificateDAO certificateDAO = new CertificateDAO();
         List<Certificate> certificates =
-                certificateDAO.listCertificates(CertificateStatus.ACTIVE.toString(), tenantId);
+                certificateDAO.listCertificates(CertificateStatus.ACTIVE.toString(), tenantDomain);
         for (Certificate certificate : certificates) {
-            revokeCert(tenantId, certificate.getSerialNo(), revokeReason);
+            revokeCert(tenantDomain, certificate.getSerialNo(), revokeReason);
         }
     }
 

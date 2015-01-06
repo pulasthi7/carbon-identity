@@ -37,11 +37,11 @@ public class CSR {
 
     private String userName;
     private String userStoreDomain;
-    private int tenantID;
+    private String tenantDomain;
 
     public CSR(String serialNo, Date requestedDate, String status, String commonName,
                String organization, String department, String city, String country,
-               String state, String userName, String userStoreDomain, int tenantID) {
+               String state, String userName, String userStoreDomain, String tenantDomain) {
         this.serialNo = serialNo;
         this.requestedDate = (Date) requestedDate.clone();
         this.status = status;
@@ -53,37 +53,77 @@ public class CSR {
         this.state = state;
         this.userName = userName;
         this.userStoreDomain = userStoreDomain;
-        this.tenantID = tenantID;
+        this.tenantDomain = tenantDomain;
     }
 
+    /**
+     * Get the serial number of the CSR
+     *
+     * @return
+     */
     public String getSerialNo() {
         return serialNo;
     }
 
+    /**
+     * Get the CSR's requested date
+     *
+     * @return
+     */
     public Date getRequestedDate() {
         return (Date) requestedDate.clone();
     }
 
+    /**
+     * Get the CSR's current status as in {@link org.wso2.carbon.identity.certificateauthority.common.CSRStatus}
+     *
+     * @return
+     */
     public String getStatus() {
         return status;
     }
 
+    /**
+     * Get the value of CN field of CSR
+     *
+     * @return
+     */
     public String getCommonName() {
         return commonName;
     }
 
+    /**
+     * Get the value of O field in CSR
+     *
+     * @return
+     */
     public String getOrganization() {
         return organization;
     }
 
+    /**
+     * Get the value of OU in CSR
+     *
+     * @return
+     */
     public String getDepartment() {
         return department;
     }
 
+    /**
+     * Get the value of L in CSR
+     *
+     * @return
+     */
     public String getCity() {
         return city;
     }
 
+    /**
+     * Get value of C in CSR
+     *
+     * @return
+     */
     public String getCountry() {
         return country;
     }
@@ -92,15 +132,30 @@ public class CSR {
         return state;
     }
 
+    /**
+     * Get the user's name who requested CSR
+     *
+     * @return
+     */
     public String getUserName() {
         return userName;
     }
 
+    /**
+     * Get the user store domain of the user
+     *
+     * @return
+     */
     public String getUserStoreDomain() {
         return userStoreDomain;
     }
 
-    public int getTenantID() {
-        return tenantID;
+    /**
+     * Get the tenant domain of the user
+     *
+     * @return
+     */
+    public String getTenantDomain() {
+        return tenantDomain;
     }
 }

@@ -25,9 +25,11 @@ import org.wso2.carbon.identity.certificateauthority.CAConstants;
 import org.wso2.carbon.identity.certificateauthority.CAException;
 import org.wso2.carbon.identity.certificateauthority.common.CSRStatus;
 import org.wso2.carbon.identity.certificateauthority.common.CertificateStatus;
+import org.wso2.carbon.identity.certificateauthority.internal.CAServiceComponent;
 import org.wso2.carbon.identity.certificateauthority.model.Certificate;
 import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.user.api.UserStoreException;
 
 import java.io.ByteArrayInputStream;
 import java.security.cert.CertificateEncodingException;
@@ -54,16 +56,17 @@ public class CertificateDAO {
      * Stores certificate in the database, and update the relevant CSR status
      *
      * @param serialNo The serial number of the certificate
-     * @param tenantId ID of the tenant tenant who issued the certificate
+     * @param tenantDomain tenant domain tenant who issued the certificate
      * @return
      */
-    public void addCertificate(String serialNo, X509Certificate certificate, int tenantId,
+    public void addCertificate(String serialNo, X509Certificate certificate, String tenantDomain,
                                String username, String userStoreDomain) throws CAException {
         Connection connection = null;
         Date requestDate = new Date();
         String sql = SQLConstants.ADD_CERTIFICATE_QUERY;
         PreparedStatement prepStatement = null;
         try {
+            int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
             connection = IdentityDatabaseUtil.getDBConnection();
             Date expiryDate = certificate.getNotAfter();
             prepStatement = connection.prepareStatement(sql);
@@ -90,6 +93,8 @@ public class CertificateDAO {
             throw new CAException("Error when executing the SQL : " + sql, e);
         } catch (CertificateEncodingException e) {
             throw new CAException("Error while encoding certificate, serial no:" + serialNo, e);
+        } catch (UserStoreException e) {
+            throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStatement);
         }
@@ -171,16 +176,17 @@ public class CertificateDAO {
      * @param serialNo serial number of the certificate
      * @return Information about the certificate
      */
-    public Certificate getCertificateInfo(String serialNo, int tenantID) throws CAException {
+    public Certificate getCertificateInfo(String serialNo, String tenantDomain) throws CAException {
         Connection connection = null;
         PreparedStatement prepStmt = null;
         ResultSet resultSet;
         String sql = SQLConstants.GET_CERTIFICATE_INFO_FOR_ADMIN_QUERY;
         try {
+            int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
             connection = JDBCPersistenceManager.getInstance().getDBConnection();
             prepStmt = connection.prepareStatement(sql);
             prepStmt.setString(1, serialNo);
-            prepStmt.setInt(2, tenantID);
+            prepStmt.setInt(2, tenantId);
             resultSet = prepStmt.executeQuery();
             if (resultSet.next()) {
                 String status = resultSet.getString(SQLConstants.STATUS_COLUMN);
@@ -191,12 +197,14 @@ public class CertificateDAO {
                 String username = resultSet.getString(SQLConstants.USERNAME_COLUMN);
                 String userStoreDomain = resultSet.getString(SQLConstants.USERSTORE_DOMAIN_COLUMN);
                 return new Certificate(serialNo, issuedDate,
-                        expiryDate, status, username, tenantID, userStoreDomain);
+                        expiryDate, status, username, tenantDomain, userStoreDomain);
             }
         } catch (IdentityException e) {
             throw new CAException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
             throw new CAException("Error when executing the SQL : " + sql, e);
+        } catch (UserStoreException e) {
+            throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
@@ -210,26 +218,28 @@ public class CertificateDAO {
     /**
      * Lists all certificates issued by a tenant's CA
      *
-     * @param tenantId Id of the tenant
+     * @param tenantDomain domain of the tenant
      * @return Set of all the certificates issued by the tenant's CA
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
-    public List<Certificate> listCertificates(int tenantId) throws CAException {
+    public List<Certificate> listCertificates(String tenantDomain) throws CAException {
         Connection connection = null;
         PreparedStatement prepStmt = null;
         ResultSet resultSet;
         String sql = SQLConstants.LIST_CERTIFICATES_QUERY;
         try {
+            int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
             connection = JDBCPersistenceManager.getInstance().getDBConnection();
             prepStmt = connection.prepareStatement(sql);
-
             prepStmt.setInt(1, tenantId);
             resultSet = prepStmt.executeQuery();
-            return getCertificatesFromResultSet(resultSet, tenantId);
+            return getCertificatesFromResultSet(resultSet, tenantDomain);
         } catch (IdentityException e) {
             throw new CAException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
             throw new CAException("Error when executing the SQL : " + sql, e);
+        } catch (UserStoreException e) {
+            throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
@@ -239,26 +249,29 @@ public class CertificateDAO {
      * Lists all certificates issued by a tenant's CA with given status
      *
      * @param status   Status filter for the certificates
-     * @param tenantId Tenant Id
+     * @param tenantDomain domain of the tenant
      * @return Set of certificates with given status issued by the given CA
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
-    public List<Certificate> listCertificates(String status, int tenantId) throws CAException {
+    public List<Certificate> listCertificates(String status, String tenantDomain) throws CAException {
         Connection connection = null;
         PreparedStatement prepStmt = null;
         ResultSet resultSet;
         String sql = SQLConstants.LIST_CERTIFICATES_BY_STATUS_QUERY;
         try {
+            int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
             connection = JDBCPersistenceManager.getInstance().getDBConnection();
             prepStmt = connection.prepareStatement(sql);
             prepStmt.setString(1, CertificateStatus.valueOf(status).toString());
             prepStmt.setInt(2, tenantId);
             resultSet = prepStmt.executeQuery();
-            return getCertificatesFromResultSet(resultSet, tenantId);
+            return getCertificatesFromResultSet(resultSet, tenantDomain);
         } catch (IdentityException e) {
             throw new CAException("Error when getting an Identity Persistence Store instance", e);
         } catch (SQLException e) {
             throw new CAException("Error when executing the SQL : " + sql, e);
+        } catch (UserStoreException e) {
+            throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
@@ -268,11 +281,12 @@ public class CertificateDAO {
      * Retrieve Certificate model from ResultSet
      *
      * @param resultSet The result set from which the certificates are retrieved
-     * @param tenantId  The id of the tenant CA relevant to the query
+     * @param tenantDomain  The id of the tenant CA relevant to the query
      * @return Set of certificates from the result set
      * @throws SQLException
      */
-    private List<Certificate> getCertificatesFromResultSet(ResultSet resultSet, int tenantId) throws SQLException {
+    private List<Certificate> getCertificatesFromResultSet(ResultSet resultSet,
+                                                           String tenantDomain) throws SQLException {
         List<Certificate> certificateList = new ArrayList<Certificate>();
         while (resultSet.next()) {
             String serialNo = resultSet.getString(SQLConstants.SERIAL_NO_COLUMN);
@@ -281,7 +295,7 @@ public class CertificateDAO {
             Date issuedDate = resultSet.getTimestamp(SQLConstants.CERTIFICATE_ISSUED_DATE_COLUMN);
             String username = resultSet.getString(SQLConstants.USERNAME_COLUMN);
             String userStoreDomain = resultSet.getString(SQLConstants.USERSTORE_DOMAIN_COLUMN);
-            certificateList.add(new Certificate(serialNo, issuedDate, expiryDate, status, username, tenantId,
+            certificateList.add(new Certificate(serialNo, issuedDate, expiryDate, status, username, tenantDomain,
                     userStoreDomain));
         }
         return certificateList;

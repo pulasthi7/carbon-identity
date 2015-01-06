@@ -23,7 +23,9 @@ import org.apache.commons.logging.LogFactory;
 import org.bouncycastle.asn1.x509.CRLReason;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.certificateauthority.CAException;
+import org.wso2.carbon.identity.certificateauthority.internal.CAServiceComponent;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.user.api.UserStoreException;
 
 import java.security.cert.X509Certificate;
 import java.sql.Connection;
@@ -40,18 +42,19 @@ public class ConfigurationDAO {
     /**
      * Retrieve the key that is configured to use for the CA operations for the given tenant.
      *
-     * @param tenantId The id of the tenant whose key need to be retrieved
+     * @param tenantDomain The domain of the tenant whose key need to be retrieved
      * @return The key path for the configured key in the format of "{keyStoreName}/{keyAlias}",
      * <code>null</code> if no configured key exists(The default key is used in that case)
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
-    public String getConfiguredKey(int tenantId) throws CAException {
+    public String getConfiguredKey(String tenantDomain) throws CAException {
         Connection connection = null;
         PreparedStatement prepStmt = null;
         ResultSet resultSet = null;
         String sql = SQLConstants.GET_CA_CONFIGURATION_QUERY;
 
         try {
+            int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
             connection = IdentityDatabaseUtil.getDBConnection();
             prepStmt = connection.prepareStatement(sql);
 
@@ -62,6 +65,8 @@ public class ConfigurationDAO {
                 String alias = resultSet.getString(SQLConstants.ALIAS_COLUMN);
                 return keyStore + "/" + alias;
             }
+        } catch (UserStoreException e) {
+            throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } catch (IdentityException e) {
             throw new CAException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
@@ -75,14 +80,14 @@ public class ConfigurationDAO {
     /**
      * Update the key of the tenant CA
      *
-     * @param tenantId       The id of the tenant whose key need to be updated
+     * @param tenantDomain   The domain of the tenant whose key need to be updated
      * @param keyStore       The new key store where the key is
      * @param alias          The alias that identify the key
      * @param oldCertificate The previously used certificate of the CA,
      *                       which will be revoked with the update
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
-    public void updateCaConfiguration(int tenantId, String keyStore, String alias,
+    public void updateCaConfiguration(String tenantDomain, String keyStore, String alias,
                                       X509Certificate oldCertificate) throws CAException {
         Connection connection = null;
         PreparedStatement prepStmt = null;
@@ -90,6 +95,7 @@ public class ConfigurationDAO {
         String sql = SQLConstants.GET_CA_CONFIGURATION_QUERY;
 
         try {
+            int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
             connection = IdentityDatabaseUtil.getDBConnection();
             prepStmt = connection.prepareStatement(sql);
 
@@ -112,10 +118,12 @@ public class ConfigurationDAO {
             }
             if (oldCertificate != null) {
                 RevocationDAO revocationDAO = new RevocationDAO();
-                revocationDAO.addRevokedCertificate(oldCertificate.getSerialNumber().toString(), tenantId,
+                revocationDAO.addRevokedCertificate(oldCertificate.getSerialNumber().toString(), tenantDomain,
                         CRLReason.keyCompromise);
             }
             connection.commit();
+        } catch (UserStoreException e) {
+            throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } catch (IdentityException e) {
             throw new CAException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {

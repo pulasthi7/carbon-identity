@@ -27,9 +27,11 @@ import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.certificateauthority.CAException;
 import org.wso2.carbon.identity.certificateauthority.common.CSRStatus;
+import org.wso2.carbon.identity.certificateauthority.internal.CAServiceComponent;
 import org.wso2.carbon.identity.certificateauthority.model.CSR;
 import org.wso2.carbon.identity.certificateauthority.utils.CAObjectUtils;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.user.api.UserStoreException;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -57,16 +59,16 @@ public class CSRDAO {
      *
      * @param csrContent      The CSR as an encoded string
      * @param userName        The user who requested the CSR to sign
-     * @param tenantID        The id of the tenant where the user belongs
+     * @param tenantDomain    The domain of the tenant where the user belongs
      * @param userStoreDomain The user store where the user is
      * @return The serial no of the newly added CSR, which can be used in later queries
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
-    public String addCsr(String csrContent, String userName, int tenantID, String userStoreDomain)
+    public String addCsr(String csrContent, String userName, String tenantDomain, String userStoreDomain)
             throws CAException {
         PKCS10CertificationRequest request = CAObjectUtils.toPkcs10CertificationRequest
                 (csrContent);
-        return addCSR(request, userName, tenantID, userStoreDomain);
+        return addCSR(request, userName, tenantDomain, userStoreDomain);
     }
 
     /**
@@ -74,11 +76,11 @@ public class CSRDAO {
      *
      * @param request         PKCS10CertificationRequest form of the request
      * @param userName        The user who requested the CSR to sign
-     * @param tenantID        The id of the tenant where the user belongs
+     * @param tenantDomain    The domain of the tenant where the user belongs
      * @param userStoreDomain The user store where the user is
      * @return
      */
-    public String addCSR(PKCS10CertificationRequest request, String userName, int tenantID,
+    public String addCSR(PKCS10CertificationRequest request, String userName, String tenantDomain,
                          String userStoreDomain) throws CAException {
         String csrSerialNo = new BigInteger(32, new SecureRandom()).toString();
         Connection connection = null;
@@ -100,6 +102,7 @@ public class CSRDAO {
             commonName = cnRdNs[0].getFirst().getValue().toString();
         }
         try {
+            int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
             connection = IdentityDatabaseUtil.getDBConnection();
             prepStmt = connection.prepareStatement(sql);
             prepStmt.setBlob(1, new ByteArrayInputStream(request.getEncoded()));
@@ -107,7 +110,7 @@ public class CSRDAO {
             prepStmt.setString(3, userName);
             prepStmt.setTimestamp(4, new Timestamp(requestDate.getTime()));
             prepStmt.setString(5, csrSerialNo);
-            prepStmt.setInt(6, tenantID);
+            prepStmt.setInt(6, tenantId);
             prepStmt.setString(7, commonName);
             prepStmt.setString(8, organization);
             prepStmt.setString(9, userStoreDomain);
@@ -119,6 +122,8 @@ public class CSRDAO {
             throw new CAException("Error when executing the SQL : " + sql, e);
         } catch (IOException e) {
             throw new CAException("Error when reading CSR to byte stream", e);
+        } catch (UserStoreException e) {
+            throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
@@ -132,12 +137,13 @@ public class CSRDAO {
      * @return Details about the CSR
      */
     public CSR getCSR(String serialNo, String userStoreDomain, String userName,
-                      int tenantId) throws CAException {
+                      String tenantDomain) throws CAException {
         Connection connection = null;
         PreparedStatement prepStmt = null;
         ResultSet resultSet = null;
         String sql = SQLConstants.GET_CSR_FOR_USER_QUERY;
         try {
+            int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
             connection = IdentityDatabaseUtil.getDBConnection();
             prepStmt = connection.prepareStatement(sql);
 
@@ -146,7 +152,7 @@ public class CSRDAO {
             prepStmt.setInt(3, tenantId);
             prepStmt.setString(4, userStoreDomain);
             resultSet = prepStmt.executeQuery();
-            List<CSR> csrInfoList = getCSRListFromResultSet(resultSet);
+            List<CSR> csrInfoList = getCSRListFromResultSet(resultSet, tenantDomain);
             if (!csrInfoList.isEmpty()) {
                 return csrInfoList.get(0);
             }
@@ -156,13 +162,14 @@ public class CSRDAO {
             throw new CAException("Error when executing the SQL : " + sql, e);
         } catch (IOException e) {
             throw new CAException("Error decoding CSR", e);
+        } catch (UserStoreException e) {
+            throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
         }
         if (log.isDebugEnabled()) {
             log.debug("CSR with serial no " + serialNo + " not found, " +
-                    "or not accessible by " + userStoreDomain + "\\" + userName + " of tenant id " +
-                    tenantId);
+                    "or not accessible by " + userStoreDomain + "\\" + userName + " of tenant " + tenantDomain);
         }
         throw new CAException("CSR for given serial not found");
     }
@@ -170,16 +177,19 @@ public class CSRDAO {
     /**
      * Mark the CSR as a rejected one
      *
-     * @param serialNo The serial no of the CSR to be marked as rejected
-     * @param tenantId The id of the tenant CA
+     * @param serialNo     The serial no of the CSR to be marked as rejected
+     * @param tenantDomain The domain of the tenant CA
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
-    public void rejectCSR(String serialNo, int tenantId) throws CAException {
+    public void rejectCSR(String serialNo, String tenantDomain) throws CAException {
         Connection connection = null;
         try {
+            int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
             connection = IdentityDatabaseUtil.getDBConnection();
             updateStatus(connection, serialNo, CSRStatus.REJECTED, tenantId);
             connection.commit();
+        } catch (UserStoreException e) {
+            throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } catch (IdentityException e) {
             throw new CAException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
@@ -235,23 +245,24 @@ public class CSRDAO {
     /**
      * Retrieve the CSR details for the given serial no
      *
-     * @param serialNo The serial no of the CSR to be retrieved
-     * @param tenantId The id of the tenant CA
+     * @param serialNo     The serial no of the CSR to be retrieved
+     * @param tenantDomain The id of the tenant CA
      * @return The CSR details
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
-    public CSR getCSR(String serialNo, int tenantId) throws CAException {
+    public CSR getCSR(String serialNo, String tenantDomain) throws CAException {
         Connection connection = null;
         PreparedStatement prepStmt = null;
         ResultSet resultSet = null;
         String sql = SQLConstants.GET_CSR_FOR_ADMIN_QUERY;
         try {
+            int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
             connection = IdentityDatabaseUtil.getDBConnection();
             prepStmt = connection.prepareStatement(sql);
             prepStmt.setString(1, serialNo);
             prepStmt.setInt(2, tenantId);
             resultSet = prepStmt.executeQuery();
-            List<CSR> csrInfoList = getCSRListFromResultSet(resultSet);
+            List<CSR> csrInfoList = getCSRListFromResultSet(resultSet, tenantDomain);
             if (!csrInfoList.isEmpty()) {
                 return csrInfoList.get(0);
             }
@@ -261,12 +272,14 @@ public class CSRDAO {
             throw new CAException("Error when executing the SQL : " + sql, e);
         } catch (IOException e) {
             throw new CAException("Error decoding CSR", e);
+        } catch (UserStoreException e) {
+            throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
         }
         if (log.isDebugEnabled()) {
             log.debug("CSR with serial no " + serialNo + " not found, " +
-                    "or not accessible by tenant id " + tenantId);
+                    "or not accessible by tenant " + tenantDomain);
         }
         throw new CAException("CSR for given serial not found");
     }
@@ -274,27 +287,30 @@ public class CSRDAO {
     /**
      * Lists CSRs that are for the specified tenant
      *
-     * @param tenantID The id of the tenant whose CSRs need to be listed
+     * @param tenantDomain The domain of the tenant whose CSRs need to be listed
      * @return The list of CSRs for the tenant
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
-    public List<CSR> listCSRs(int tenantID) throws CAException {
+    public List<CSR> listCSRs(String tenantDomain) throws CAException {
         Connection connection = null;
         PreparedStatement prepStmt = null;
         ResultSet resultSet = null;
         String sql = SQLConstants.LIST_CSR_FOR_ADMIN_QUERY;
         try {
+            int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
             connection = IdentityDatabaseUtil.getDBConnection();
             prepStmt = connection.prepareStatement(sql);
-            prepStmt.setInt(1, tenantID);
+            prepStmt.setInt(1, tenantId);
             resultSet = prepStmt.executeQuery();
-            return getCSRListFromResultSet(resultSet);
+            return getCSRListFromResultSet(resultSet, tenantDomain);
         } catch (IdentityException e) {
             throw new CAException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
             throw new CAException("Error when executing the SQL : " + sql, e);
         } catch (IOException e) {
             throw new CAException("Error when decoding the CSR", e);
+        } catch (UserStoreException e) {
+            throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
         }
@@ -305,31 +321,33 @@ public class CSRDAO {
      *
      * @param username        The username of the user whose CSRs need to be listed
      * @param userStoreDomain The user store where the user is
-     * @param tenantID        The id of the tenant where the user belongs
+     * @param tenantDomain    The domain of the tenant where the user belongs
      * @return List of CSRs from the user
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
-    public List<CSR> listCSRs(String username, String userStoreDomain, int tenantID)
-            throws CAException {
+    public List<CSR> listCSRs(String username, String userStoreDomain, String tenantDomain) throws CAException {
         Connection connection = null;
         PreparedStatement prepStmt = null;
         ResultSet resultSet = null;
         String sql = SQLConstants.LIST_CSR_FOR_NON_ADMIN_QUERY;
 
         try {
+            int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
             connection = IdentityDatabaseUtil.getDBConnection();
             prepStmt = connection.prepareStatement(sql);
             prepStmt.setString(1, username);
-            prepStmt.setInt(2, tenantID);
+            prepStmt.setInt(2, tenantId);
             prepStmt.setString(3, userStoreDomain);
             resultSet = prepStmt.executeQuery();
-            return getCSRListFromResultSet(resultSet);
+            return getCSRListFromResultSet(resultSet, tenantDomain);
         } catch (IdentityException e) {
             throw new CAException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
             throw new CAException("Error when executing the SQL : " + sql, e);
         } catch (IOException e) {
             throw new CAException("Error when decoding the CSR", e);
+        } catch (UserStoreException e) {
+            throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
         }
@@ -338,29 +356,32 @@ public class CSRDAO {
     /**
      * Lists CSRs by status for a given tenant CA
      *
-     * @param tenantID The id of the tenant whose CSRs need to be listed
-     * @param status   The filter for the status
+     * @param tenantDomain The domain of the tenant whose CSRs need to be listed
+     * @param status       The filter for the status
      * @return List of CSRs with the given status
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
-    public List<CSR> listCSRsByStatus(int tenantID, String status) throws CAException {
+    public List<CSR> listCSRsByStatus(String tenantDomain, String status) throws CAException {
         Connection connection = null;
         PreparedStatement prepStmt = null;
         ResultSet resultSet = null;
         String sql = SQLConstants.LIST_CSR_BY_STATUS_QUERY;
         try {
+            int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
             connection = IdentityDatabaseUtil.getDBConnection();
             prepStmt = connection.prepareStatement(sql);
-            prepStmt.setInt(1, tenantID);
+            prepStmt.setInt(1, tenantId);
             prepStmt.setString(2, status);
             resultSet = prepStmt.executeQuery();
-            return getCSRListFromResultSet(resultSet);
+            return getCSRListFromResultSet(resultSet, tenantDomain);
         } catch (IdentityException e) {
             throw new CAException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
             throw new CAException("Error when executing the SQL : " + sql, e);
         } catch (IOException e) {
             throw new CAException("Error when decoding the CSR", e);
+        } catch (UserStoreException e) {
+            throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
         }
@@ -374,7 +395,7 @@ public class CSRDAO {
      * @throws SQLException
      * @throws IOException
      */
-    private List<CSR> getCSRListFromResultSet(ResultSet resultSet)
+    private List<CSR> getCSRListFromResultSet(ResultSet resultSet, String tenantDomain)
             throws SQLException, IOException {
         ArrayList<CSR> csrList = new ArrayList<CSR>();
         while (resultSet.next()) {
@@ -389,11 +410,10 @@ public class CSRDAO {
             Blob csrBlob = resultSet.getBlob(SQLConstants.CSR_CONTENT_COLUMN);
             Date requestedDate = resultSet.getTimestamp(SQLConstants.REQUESTED_DATE_COLUMN);
             String username = resultSet.getString(SQLConstants.USERNAME_COLUMN);
-            int tenantID = resultSet.getInt(SQLConstants.TENANT_ID_COLUMN);
             String userStoreDomain = resultSet.getString(SQLConstants.USERSTORE_DOMAIN_COLUMN);
-            PKCS10CertificationRequest csr =
+            PKCS10CertificationRequest certificationRequest =
                     new PKCS10CertificationRequest(csrBlob.getBytes(1, (int) csrBlob.length()));
-            RDN[] rdns = csr.getSubject().getRDNs();
+            RDN[] rdns = certificationRequest.getSubject().getRDNs();
             for (RDN rdn : rdns) {
                 AttributeTypeAndValue typeAndValue = rdn.getFirst();
                 if (BCStyle.C.equals(typeAndValue.getType())) {
@@ -407,9 +427,9 @@ public class CSRDAO {
                 }
             }
 
-            CSR csrInfo = new CSR(serialNo, requestedDate, status, commonName, organization,
-                    department, city, country, state, username, userStoreDomain, tenantID);
-            csrList.add(csrInfo);
+            CSR csr = new CSR(serialNo, requestedDate, status, commonName, organization,
+                    department, city, country, state, username, userStoreDomain, tenantDomain);
+            csrList.add(csr);
         }
         return csrList;
     }
@@ -422,14 +442,14 @@ public class CSRDAO {
      * @see org.wso2.carbon.identity.certificateauthority.common.CSRStatus
      */
     public void updateStatus(Connection connection, String serialNo, CSRStatus status,
-                             int tenantID) throws SQLException {
+                             int tenantId) throws SQLException {
         PreparedStatement prepStmt = null;
         String sql = SQLConstants.UPDATE_CSR_STATUS_QUERY;
         try {
             prepStmt = connection.prepareStatement(sql);
             prepStmt.setString(1, status.toString());
             prepStmt.setString(2, serialNo);
-            prepStmt.setInt(3, tenantID);
+            prepStmt.setInt(3, tenantId);
             prepStmt.executeUpdate();
         } finally {
             //Keeps the database connection unclosed, because the callee of this method is responsible for closing it.

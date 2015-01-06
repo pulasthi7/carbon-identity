@@ -24,8 +24,10 @@ import org.bouncycastle.asn1.x509.CRLReason;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.certificateauthority.CAException;
 import org.wso2.carbon.identity.certificateauthority.common.CertificateStatus;
+import org.wso2.carbon.identity.certificateauthority.internal.CAServiceComponent;
 import org.wso2.carbon.identity.certificateauthority.model.RevokedCertificate;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.user.api.UserStoreException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -45,14 +47,13 @@ public class RevocationDAO {
     /**
      * Add a revoked certificate to the database
      *
-     * @param serialNo SerialNo of the revoked certificate
-     * @param tenantId The tenant Id
-     * @param reason   The reason code for revoking
+     * @param serialNo     SerialNo of the revoked certificate
+     * @param tenantDomain The tenant domain
+     * @param reason       The reason code for revoking
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      * @see org.bouncycastle.asn1.x509.CRLReason
      */
-    public void addRevokedCertificate(String serialNo, int tenantId,
-                                      int reason) throws CAException {
+    public void addRevokedCertificate(String serialNo, String tenantDomain, int reason) throws CAException {
         Connection connection = null;
         String sql = null;
         PreparedStatement prepStmt = null;
@@ -61,6 +62,7 @@ public class RevocationDAO {
             if (log.isDebugEnabled()) {
                 log.debug("Adding revoked reason as " + reason + " of certificate " + serialNo);
             }
+            int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
             connection = IdentityDatabaseUtil.getDBConnection();
             sql = SQLConstants.ADD_REVOKED_CERTIFICATE_QUERY;
             prepStmt = connection.prepareStatement(sql);
@@ -71,6 +73,8 @@ public class RevocationDAO {
             prepStmt.execute();
             updateCertificateStatus(connection, serialNo, reason);
             connection.commit();
+        } catch (UserStoreException e) {
+            throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } catch (IdentityException e) {
             throw new CAException("Error when executing the SQL : " + sql, e);
         } catch (SQLException e) {
@@ -90,14 +94,13 @@ public class RevocationDAO {
     /**
      * Update the revoke reason of the given certificate
      *
-     * @param serialNo The SerialNo of the revoked certificate
-     * @param tenantId The tenant Id
-     * @param reason   The new reason code for the revocation
+     * @param serialNo     The SerialNo of the revoked certificate
+     * @param tenantDomain The tenant domain
+     * @param reason       The new reason code for the revocation
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      * @see org.bouncycastle.asn1.x509.CRLReason
      */
-    public void updateRevokedCertificate(String serialNo, int tenantId,
-                                         int reason) throws CAException {
+    public void updateRevokedCertificate(String serialNo, String tenantDomain, int reason) throws CAException {
         Connection connection = null;
         String sql = null;
         PreparedStatement prepStmt = null;
@@ -106,6 +109,7 @@ public class RevocationDAO {
             if (log.isDebugEnabled()) {
                 log.debug("updating revoked reason to " + reason + " of certificate " + serialNo);
             }
+            int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
             connection = IdentityDatabaseUtil.getDBConnection();
             sql = SQLConstants.UPDATE_REVOKE_REASON_QUERY;
             prepStmt = connection.prepareStatement(sql);
@@ -116,6 +120,8 @@ public class RevocationDAO {
             prepStmt.execute();
             updateCertificateStatus(connection, serialNo, reason);
             connection.commit();
+        } catch (UserStoreException e) {
+            throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } catch (IdentityException e) {
             throw new CAException("Error when executing the SQL : " + sql, e);
         } catch (SQLException e) {
@@ -138,8 +144,7 @@ public class RevocationDAO {
      * @param reason     The reason code for revoking
      * @throws SQLException
      */
-    private void updateCertificateStatus(Connection connection, String serialNo, int reason)
-            throws SQLException {
+    private void updateCertificateStatus(Connection connection, String serialNo, int reason) throws SQLException {
         CertificateDAO certificateDAO = new CertificateDAO();
         if (reason == CRLReason.removeFromCRL) {
             //Undo previous revoking
@@ -240,16 +245,17 @@ public class RevocationDAO {
     /**
      * Gets revoked certificates by a tenant
      *
-     * @param tenantId The tenant Id
+     * @param tenantDomain The tenant domain
      * @return List of Revoked certificates by the tenant
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
-    public List<RevokedCertificate> listRevokedCertificates(int tenantId) throws CAException {
+    public List<RevokedCertificate> listRevokedCertificates(String tenantDomain) throws CAException {
         Connection connection = null;
         PreparedStatement prepStmt = null;
         ResultSet resultSet = null;
         String sql = SQLConstants.LIST_REVOKED_CERTIFICATES_QUERY;
         try {
+            int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
             connection = IdentityDatabaseUtil.getDBConnection();
             prepStmt = connection.prepareStatement(sql);
             prepStmt.setInt(1, tenantId);
@@ -259,6 +265,8 @@ public class RevocationDAO {
             throw new CAException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
             throw new CAException("Error when executing the SQL : " + sql, e);
+        } catch (UserStoreException e) {
+            throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
         }
@@ -292,18 +300,18 @@ public class RevocationDAO {
     /**
      * Gets revoked certificates after the given timestamp
      *
-     * @param tenantId The tenant Id
-     * @param date     The timestamp from when the revoked certificates are listed
+     * @param tenantDomain The tenant domain
+     * @param date         The timestamp from when the revoked certificates are listed
      * @return The list of revoked certificates which are revoked after the given timestamp
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
-    public List<RevokedCertificate> getRevokedCertificatesAfter(int tenantId,
-                                                                Date date) throws CAException {
+    public List<RevokedCertificate> getRevokedCertificatesAfter(String tenantDomain, Date date) throws CAException {
         Connection connection = null;
         PreparedStatement prepStmt = null;
         ResultSet resultSet = null;
         String sql = SQLConstants.LIST_REVOKED_CERTIFICATES_AFTER_QUERY;
         try {
+            int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
             if (log.isDebugEnabled()) {
                 log.debug("retrieving revoked certs after date:" + date + " for tenant :" + tenantId);
             }
@@ -313,6 +321,8 @@ public class RevocationDAO {
             prepStmt.setTimestamp(2, new Timestamp(date.getTime()));
             resultSet = prepStmt.executeQuery();
             return getRevokedCertificatesList(resultSet);
+        } catch (UserStoreException e) {
+            throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } catch (IdentityException e) {
             throw new CAException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {

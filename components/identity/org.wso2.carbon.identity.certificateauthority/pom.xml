@@ -101,6 +101,7 @@
                             javax.servlet.http,
                             javax.security.auth.*,
                             javax.xml.namespace,
+                            org.apache.axis2,
                             org.apache.axiom.om,
                             org.apache.commons.lang,
                             org.apache.commons.io;version="2.0.0",

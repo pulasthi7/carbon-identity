@@ -37,7 +37,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class CAServiceComponent {
 
-
     private static RealmService realmService;
     private static Log log = LogFactory.getLog(CAServiceComponent.class);
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);

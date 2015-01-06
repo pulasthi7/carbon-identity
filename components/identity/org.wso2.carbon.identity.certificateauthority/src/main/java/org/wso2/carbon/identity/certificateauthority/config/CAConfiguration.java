@@ -139,27 +139,27 @@ public class CAConfiguration {
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
     public X509Certificate getConfiguredCACert() throws CAException {
-        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        return getConfiguredCACert(tenantId);
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        return getConfiguredCACert(tenantDomain);
     }
 
     /**
      * Gives the CA certificate of the tenant given by the tenantId. Returns the default certificate
      * if certificate is not configured
      *
-     * @param tenantId The tenant id of the tenant whose certificate should be returned
+     * @param tenantDomain The tenant domain of the tenant whose certificate should be returned
      * @return The CA certificate of the given tenant
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
-    public X509Certificate getConfiguredCACert(int tenantId) throws CAException {
-        KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
-        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+    public X509Certificate getConfiguredCACert(String tenantDomain) throws CAException {
         ConfigurationDAO configurationDAO = new ConfigurationDAO();
-        String keyPath = configurationDAO.getConfiguredKey(tenantId);
+        String keyPath = configurationDAO.getConfiguredKey(tenantDomain);
         try {
+            int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
+            KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
             if (keyPath == null) {
                 //Using the default key
-                if (tenantId == MultitenantConstants.SUPER_TENANT_ID) {
+                if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
                     return keyStoreManager.getDefaultPrimaryCertificate();
                 } else {
                     String ksName = tenantDomain.trim().replace(".", "-");
@@ -187,7 +187,7 @@ public class CAConfiguration {
     public String getPemEncodedCACert(String tenantDomain) throws CAException {
         try {
             int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
-            return CAObjectUtils.toPemEncodedCertificate(getConfiguredCACert(tenantId));
+            return CAObjectUtils.toPemEncodedCertificate(getConfiguredCACert(tenantDomain));
         } catch (UserStoreException e) {
             throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         }
@@ -201,8 +201,8 @@ public class CAConfiguration {
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
     public PrivateKey getConfiguredPrivateKey() throws CAException {
-        int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        return getConfiguredPrivateKey(tenantID);
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        return getConfiguredPrivateKey(tenantDomain);
     }
 
     /**
@@ -212,14 +212,13 @@ public class CAConfiguration {
      * @return The private key of the given tenant
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
-    public PrivateKey getConfiguredPrivateKey(int tenantId) throws CAException {
-        KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
-        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-
+    public PrivateKey getConfiguredPrivateKey(String tenantDomain) throws CAException {
         ConfigurationDAO configurationDAO = new ConfigurationDAO();
-        String keyPath = configurationDAO.getConfiguredKey(tenantId);
+        String keyPath = configurationDAO.getConfiguredKey(tenantDomain);
 
         try {
+            int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
+            KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
             if (keyPath == null) {
                 if (tenantId == MultitenantConstants.SUPER_TENANT_ID) {
                     return keyStoreManager.getDefaultPrivateKey();
@@ -232,7 +231,10 @@ public class CAConfiguration {
             String[] storeAndAlias = keyPath.split("/");
             Key privateKey = keyStoreManager.getPrivateKey(storeAndAlias[0], storeAndAlias[1]);
             return (PrivateKey) privateKey;
+        } catch (UserStoreException e) {
+            throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } catch (Exception e) {
+            // thrown from keyStoreManager.getDefaultPrivateKey()
             throw new CAException("Error retrieving CA's private key for tenant:" + tenantDomain, e);
         }
     }
@@ -248,10 +250,12 @@ public class CAConfiguration {
     public List<String> listAllKeys(Registry registry) throws CAException {
         List<String> keyList = new ArrayList<String>();
 
+        //tenantId is required for KeyStoreAdmin
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         try {
             ConfigurationDAO configurationDAO = new ConfigurationDAO();
-            String keyPath = configurationDAO.getConfiguredKey(tenantId);
+            String keyPath = configurationDAO.getConfiguredKey(tenantDomain);
 
             if (keyPath != null) {
                 //The current configuration will be the first of the list
@@ -275,7 +279,7 @@ public class CAConfiguration {
                 }
             }
         } catch (Exception e) {
-            throw new CAException("Error listing the keys for tenant:" + tenantId, e);
+            throw new CAException("Error listing the keys for tenant:" + tenantDomain, e);
         }
         return keyList;
     }
@@ -285,29 +289,29 @@ public class CAConfiguration {
      * <b>Note: </b> Updating the key will revoke all the certificates that were signed using the
      * key
      *
-     * @param tenantId The tenant id of the tenant whose key should be updated
-     * @param keyStore The new keystore where the key is
-     * @param alias    The alias for the key
+     * @param tenantDomain The tenant domain of the tenant whose key should be updated
+     * @param keyStore     The new keystore where the key is
+     * @param alias        The alias for the key
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
-    public void updateKey(int tenantId, String keyStore, String alias) throws CAException {
+    public void updateKey(String tenantDomain, String keyStore, String alias) throws CAException {
         ConfigurationDAO configurationDAO = new ConfigurationDAO();
         CertificateDAO certificateDAO = new CertificateDAO();
-        String currentKeyPath = configurationDAO.getConfiguredKey(tenantId);
+        String currentKeyPath = configurationDAO.getConfiguredKey(tenantDomain);
         String newKeyPath = keyStore + "/" + alias;
         if (currentKeyPath != null && !currentKeyPath.equals(newKeyPath)) {
             //revoke the ca certificate itself
             X509Certificate caCert = getConfiguredCACert();
 
             List<Certificate> certificates =
-                    certificateDAO.listCertificates(CertificateStatus.ACTIVE.toString(), tenantId);
-            configurationDAO.updateCaConfiguration(tenantId, keyStore, alias, caCert);
+                    certificateDAO.listCertificates(CertificateStatus.ACTIVE.toString(), tenantDomain);
+            configurationDAO.updateCaConfiguration(tenantDomain, keyStore, alias, caCert);
 
             //Revoke each issued certificates
             for (Certificate certificate : certificates) {
                 try {
                     CertificateManager certificateManager = new CertificateManager();
-                    certificateManager.revokeCert(tenantId, certificate.getSerialNo(), CRLReason.cACompromise);
+                    certificateManager.revokeCert(tenantDomain, certificate.getSerialNo(), CRLReason.cACompromise);
                 } catch (CAException e) {
                     //If any certificate revocation fails it should not affect the rest of the
                     // certificate revocations. So the error is not propagated to the callee
@@ -315,7 +319,7 @@ public class CAConfiguration {
                 }
             }
             CRLManager crlManager = new CRLManager();
-            crlManager.createAndStoreDeltaCrl(tenantId);
+            crlManager.createAndStoreDeltaCrl(tenantDomain);
         }
     }
 
