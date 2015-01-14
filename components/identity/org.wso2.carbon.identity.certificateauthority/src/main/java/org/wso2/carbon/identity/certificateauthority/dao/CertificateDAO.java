@@ -55,7 +55,7 @@ public class CertificateDAO {
     /**
      * Stores certificate in the database, and update the relevant CSR status
      *
-     * @param serialNo The serial number of the certificate
+     * @param serialNo     The serial number of the certificate
      * @param tenantDomain tenant domain tenant who issued the certificate
      * @return
      */
@@ -176,7 +176,7 @@ public class CertificateDAO {
      * @param serialNo serial number of the certificate
      * @return Information about the certificate
      */
-    public Certificate getCertificateInfo(String serialNo, String tenantDomain) throws CAException {
+    public Certificate getCertificate(String serialNo, String tenantDomain) throws CAException {
         Connection connection = null;
         PreparedStatement prepStmt = null;
         ResultSet resultSet;
@@ -248,7 +248,7 @@ public class CertificateDAO {
     /**
      * Lists all certificates issued by a tenant's CA with given status
      *
-     * @param status   Status filter for the certificates
+     * @param status       Status filter for the certificates
      * @param tenantDomain domain of the tenant
      * @return Set of certificates with given status issued by the given CA
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
@@ -280,8 +280,8 @@ public class CertificateDAO {
     /**
      * Retrieve Certificate model from ResultSet
      *
-     * @param resultSet The result set from which the certificates are retrieved
-     * @param tenantDomain  The id of the tenant CA relevant to the query
+     * @param resultSet    The result set from which the certificates are retrieved
+     * @param tenantDomain The id of the tenant CA relevant to the query
      * @return Set of certificates from the result set
      * @throws SQLException
      */

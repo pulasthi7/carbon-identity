@@ -135,6 +135,7 @@
                             org.slf4j,
                             org.wso2.carbon.core.*,
                             org.wso2.carbon.registry.core.*,
+                            org.wso2.carbon.security,
                             org.wso2.carbon.security.keystore,
                             org.wso2.carbon.security.keystore.service,
                             org.wso2.carbon.context.*,

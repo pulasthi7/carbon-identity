@@ -18,14 +18,13 @@
 
 package org.wso2.carbon.identity.certificateauthority;
 
-import org.apache.axis2.AxisFault;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
-import org.wso2.carbon.identity.certificateauthority.dao.CSRDAO;
-import org.wso2.carbon.identity.certificateauthority.dao.CertificateDAO;
 import org.wso2.carbon.identity.certificateauthority.model.CSR;
 import org.wso2.carbon.identity.certificateauthority.model.Certificate;
+import org.wso2.carbon.identity.certificateauthority.services.CSRService;
+import org.wso2.carbon.identity.certificateauthority.services.CertificateService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.List;
@@ -35,27 +34,27 @@ import java.util.List;
  */
 @SuppressWarnings("UnusedDeclaration")
 public class CAUserService {
-    private static final Log log = LogFactory.getLog(CAUserService.class);
 
-    private CSRDAO csrDAO = new CSRDAO();
-    private CertificateDAO certificateDAO = new CertificateDAO();
+    private static final Log log = LogFactory.getLog(CAUserService.class);
+    private CSRService csrService = new CSRService();
+    private CertificateService certificateService = new CertificateService();
 
     /**
      * Sends a CSR to the CA to be signed
      *
      * @param encodedCSR PEM encoded CSR
      * @return The serial number of the CSR that was stored at CA
-     * @throws AxisFault
+     * @throws CAException
      */
-    public String addCSR(String encodedCSR) throws AxisFault {
+    public String addCSR(String encodedCSR) throws CAException {
         String username = CarbonContext.getThreadLocalCarbonContext().getUsername();
         String userStoreDomain = UserCoreUtil.extractDomainFromName(username);
         String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         try {
-            return csrDAO.addCsr(encodedCSR, username, tenantDomain, userStoreDomain);
+            return csrService.addCSR(encodedCSR, username, tenantDomain, userStoreDomain);
         } catch (CAException e) {
             log.error("Could not add CSR for user " + userStoreDomain + "\\" + username + "@" + tenantDomain, e);
-            throw new AxisFault("Could not store the CSR");
+            throw new CAException("Could not store the CSR");
         }
     }
 
@@ -64,18 +63,18 @@ public class CAUserService {
      *
      * @param serialNo The serial number
      * @return The CSR
-     * @throws AxisFault
+     * @throws CAException
      */
-    public CSR getCSR(String serialNo) throws AxisFault {
+    public CSR getCSR(String serialNo) throws CAException {
         String username = CarbonContext.getThreadLocalCarbonContext().getUsername();
         String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         String userStoreDomain = UserCoreUtil.extractDomainFromName(username);
         try {
-            return csrDAO.getCSR(serialNo, userStoreDomain, username, tenantDomain);
+            return csrService.getCSR(serialNo, userStoreDomain, username, tenantDomain);
         } catch (CAException e) {
             log.error("Error when retrieving the CSR, serial no:" + serialNo + ", user:" + userStoreDomain + "\\" +
                     username + "@" + tenantDomain, e);
-            throw new AxisFault("Could not retrieve the CSR");
+            throw new CAException("Could not retrieve the CSR");
         }
     }
 
@@ -83,19 +82,19 @@ public class CAUserService {
      * Gets the CSR list requested by the current user
      *
      * @return List of CSRs by the current user
-     * @throws AxisFault
+     * @throws CAException
      */
-    public CSR[] listCSRs() throws AxisFault {
+    public CSR[] listCSRs() throws CAException {
         String username = CarbonContext.getThreadLocalCarbonContext().getUsername();
         String userStoreDomain = UserCoreUtil.extractDomainFromName(username);
         String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         try {
-            List<CSR> csrList = csrDAO.listCSRs(username, userStoreDomain, tenantDomain);
+            List<CSR> csrList = csrService.listCSRs(username, userStoreDomain, tenantDomain);
             return csrList.toArray(new CSR[csrList.size()]);
         } catch (CAException e) {
             log.error("Error when retrieving the CSR list for user:" + userStoreDomain + "\\" + username + "@" +
                     tenantDomain, e);
-            throw new AxisFault("Error when listing CSRs");
+            throw new CAException("Error when listing CSRs");
         }
     }
 
@@ -104,15 +103,15 @@ public class CAUserService {
      *
      * @param serialNo The serial number of the certificate
      * @return The certificate with the given serial number
-     * @throws AxisFault
+     * @throws CAException
      */
-    public Certificate getCertificate(String serialNo) throws AxisFault {
+    public Certificate getCertificate(String serialNo) throws CAException {
         String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         try {
-            return certificateDAO.getCertificateInfo(serialNo, tenantDomain);
+            return certificateService.getCertificate(serialNo, tenantDomain);
         } catch (CAException e) {
             log.error("Error when retrieving the certificate. Serial no:" + serialNo + ", tenant:" + tenantDomain, e);
-            throw new AxisFault("Error when retrieving the certificate");
+            throw new CAException("Error when retrieving the certificate");
         }
     }
 }

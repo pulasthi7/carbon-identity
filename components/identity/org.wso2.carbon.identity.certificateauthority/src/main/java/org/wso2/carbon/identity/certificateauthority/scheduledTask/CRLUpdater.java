@@ -23,8 +23,8 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.certificateauthority.CAException;
-import org.wso2.carbon.identity.certificateauthority.CRLManager;
 import org.wso2.carbon.identity.certificateauthority.internal.CAServiceComponent;
+import org.wso2.carbon.identity.certificateauthority.services.CRLService;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserRealmService;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -47,8 +47,8 @@ public class CRLUpdater implements Runnable {
                 .SUPER_TENANT_ID);
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain
                 (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-        CRLManager crlManager = new CRLManager();
-        crlManager.createAndStoreCrl(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        CRLService crlService = new CRLService();
+        crlService.createAndStoreCrl(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         PrivilegedCarbonContext.endTenantFlow();
 
         try {
@@ -57,7 +57,7 @@ public class CRLUpdater implements Runnable {
                 PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenant.getId());
                 PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain
                         (tenant.getDomain());
-                crlManager.createAndStoreCrl(tenant.getDomain());
+                crlService.createAndStoreCrl(tenant.getDomain());
                 PrivilegedCarbonContext.endTenantFlow();
             }
         } catch (UserStoreException e) {

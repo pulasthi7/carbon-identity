@@ -26,11 +26,12 @@ import org.wso2.carbon.base.ServerConfiguration;
 public class CAConstants {
 
     static {
-        HTTP_SERVER_URL = "http://" +
-                ServerConfiguration.getInstance().getFirstProperty("HostName") + ":" +
+        String PORT_OFFSET = "Ports.Offset";
+        String HOST_NAME = "HostName";
+        int DEFAULT_HTTP_PORT = 9763;
+        HTTP_SERVER_URL = "http://" + ServerConfiguration.getInstance().getFirstProperty(HOST_NAME) + ":" +
                 //adds the offset defined in the server configs to the default 9763 port
-                (Integer.parseInt(ServerConfiguration.getInstance().getFirstProperty("Ports" +
-                        ".Offset")) + 9763);
+                (Integer.parseInt(ServerConfiguration.getInstance().getFirstProperty(PORT_OFFSET)) + DEFAULT_HTTP_PORT);
     }
 
     /**
@@ -38,9 +39,12 @@ public class CAConstants {
      */
     public static final String HTTP_SERVER_URL;
 
-    //Constants for CRL updater scheduled task
+    //Constants for CRL
     public static final int CRL_UPDATER_INITIAL_DELAY = 60 * 10;    //10 minutes
     public static final int CRL_UPDATE_INTERVAL = 60 * 60 * 24;     //once a day
+    public static final int CRL_NUMBER_INCREMENT = 1;
+    public static final int DELTA_CRL_INDICATOR = 1;
+    public static final int CRL_INDICATOR = -1;
 
     //Constants for SCEP operations
     public static final int DEFAULT_SCEP_TOKEN_LENGTH = 10;

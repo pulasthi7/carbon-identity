@@ -21,9 +21,9 @@ package org.wso2.carbon.identity.certificateauthority.endpoint.cert;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.certificateauthority.CAException;
-import org.wso2.carbon.identity.certificateauthority.CertificateManager;
-import org.wso2.carbon.identity.certificateauthority.config.CAConfiguration;
 import org.wso2.carbon.identity.certificateauthority.endpoint.CAEndpointConstants;
+import org.wso2.carbon.identity.certificateauthority.services.CAConfigurationService;
+import org.wso2.carbon.identity.certificateauthority.services.CertificateService;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -39,6 +39,8 @@ import javax.ws.rs.core.Response;
 public class CertificateRetriever {
     private static final Log log = LogFactory.getLog(CertificateRetriever.class);
 
+    private CAConfigurationService configurationService = new CAConfigurationService();
+
     /**
      * Responds with the certificate with the given serial number
      *
@@ -50,8 +52,8 @@ public class CertificateRetriever {
     @Produces("application/x-x509-user-cert")
     public Response getCertificate(@PathParam("serialNo") String serialNo) {
         try {
-            CertificateManager certificateManager = new CertificateManager();
-            String certificate = certificateManager.getPemEncodedCertificate(serialNo);
+            CertificateService certificateService = new CertificateService();
+            String certificate = certificateService.getPemEncodedCertificate(serialNo);
             return Response.ok().type(CAEndpointConstants.X509_USER_CERT_MEDIA_TYPE).entity(certificate).build();
         } catch (CAException e) {
             if (log.isDebugEnabled()) {
@@ -72,9 +74,9 @@ public class CertificateRetriever {
     @Produces("application/x-x509-ca-cert")
     public Response getCaCertificate(@PathParam("tenantDomain") String tenantDomain) {
         try {
-            String certificate = CAConfiguration.getInstance().getPemEncodedCACert(tenantDomain);
+            String certificate = configurationService.getPemEncodedCACert(tenantDomain);
             return Response.ok().type(CAEndpointConstants.X509_CA_CERT_MEDIA_TYPE).entity(certificate).build();
-        } catch (Exception e) {
+        } catch (CAException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Error occurred while retrieving CA certificate for tenant domain:" + tenantDomain, e);
             }
@@ -95,8 +97,8 @@ public class CertificateRetriever {
     @Produces("application/octet-string")
     public Response downloadCertificate(@PathParam("serialNo") String serialNo) {
         try {
-            CertificateManager certificateManager = new CertificateManager();
-            String certificate = certificateManager.getPemEncodedCertificate(serialNo);
+            CertificateService certificateService = new CertificateService();
+            String certificate = certificateService.getPemEncodedCertificate(serialNo);
             return Response.ok().type(MediaType.APPLICATION_OCTET_STREAM_TYPE).entity(certificate).build();
         } catch (Exception e) {
             if (log.isDebugEnabled()) {
@@ -119,7 +121,7 @@ public class CertificateRetriever {
     @Produces("application/octet-string")
     public Response downloadCaCertificate(@PathParam("tenantDomain") String tenantDomain) {
         try {
-            String certificate = CAConfiguration.getInstance().getPemEncodedCACert(tenantDomain);
+            String certificate = configurationService.getPemEncodedCACert(tenantDomain);
             return Response.ok().type(MediaType.APPLICATION_OCTET_STREAM_TYPE).entity(certificate).build();
         } catch (Exception e) {
             if (log.isDebugEnabled()) {

@@ -24,7 +24,6 @@ import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.certificateauthority.CAConstants;
 import org.wso2.carbon.identity.certificateauthority.CAException;
-import org.wso2.carbon.identity.certificateauthority.config.CAConfiguration;
 import org.wso2.carbon.identity.certificateauthority.internal.CAServiceComponent;
 import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
@@ -97,7 +96,7 @@ public class SCEPDAO {
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
     public String addScepCsr(PKCS10CertificationRequest certReq, String transId, String token,
-                             String tenantDomain) throws CAException {
+                             String tenantDomain, int tokenValidity) throws CAException {
         Connection connection = null;
         PreparedStatement prepStmt = null;
         ResultSet resultSet = null;
@@ -111,13 +110,12 @@ public class SCEPDAO {
             resultSet = prepStmt.executeQuery();
             if (resultSet.next()) {
                 //token exists
-                CAConfiguration caConfiguration = CAConfiguration.getInstance();
                 String serialNo = resultSet.getString(SQLConstants.SERIAL_NO_COLUMN);
                 if (serialNo != null) {
                     throw new CAException("The token is already used");
                 }
                 Date date = resultSet.getTimestamp(SQLConstants.CREATED_TIME_COLUMN);
-                if (date.getTime() + caConfiguration.getTokenValidity() < new java.util.Date().getTime()) {
+                if (date.getTime() + tokenValidity < new java.util.Date().getTime()) {
                     throw new CAException("The token is expired, create a new token");
                 }
                 String userName = resultSet.getString(SQLConstants.USERNAME_COLUMN);

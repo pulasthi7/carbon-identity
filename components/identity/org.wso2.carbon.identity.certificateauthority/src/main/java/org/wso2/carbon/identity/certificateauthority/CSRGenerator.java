@@ -30,6 +30,7 @@ import org.bouncycastle.pkcs.PKCS10CertificationRequestBuilder;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
 import org.wso2.carbon.identity.certificateauthority.utils.CAObjectUtils;
 
+import java.io.IOException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
@@ -45,7 +46,11 @@ public class CSRGenerator {
     private PrivateKey privateKey = null;
 
     public String getPrivateKey() throws CAException {
-        return CAObjectUtils.toEncodedPrivateKey(privateKey);
+        try {
+            return CAObjectUtils.toEncodedPrivateKey(privateKey);
+        } catch (IOException e) {
+            throw new CAException("Error when encoding the private key to PEM", e);
+        }
     }
 
     /**
@@ -62,15 +67,14 @@ public class CSRGenerator {
      * @return The generated PEM encoded CSR
      * @throws Exception
      */
-    public String generateCSR(String alg, int keyLength, String cn, String ou, String o, String l,
-                              String st, String c) throws Exception {
+    public String generateCSR(String alg, int keyLength, String cn, String ou, String o, String l, String st,
+                              String c) throws Exception {
         KeyPairGenerator keyGen = KeyPairGenerator.getInstance(alg);
         keyGen.initialize(keyLength, new SecureRandom());
         KeyPair keyPair = keyGen.generateKeyPair();
         publicKey = keyPair.getPublic();
         privateKey = keyPair.getPrivate();
-        X500Name x500Name = buildX500Name(cn.trim(), ou.trim(), o.trim(), l.trim(), st.trim(),
-                c.trim());
+        X500Name x500Name = buildX500Name(cn.trim(), ou.trim(), o.trim(), l.trim(), st.trim(), c.trim());
         PKCS10CertificationRequest csr = generatePKCS10(x500Name);
         return CAObjectUtils.toEncodedCsr(csr);
     }
@@ -124,8 +128,8 @@ public class CSRGenerator {
      */
     private PKCS10CertificationRequest generatePKCS10(X500Name x500Name) throws CAException {
         try {
-            PKCS10CertificationRequestBuilder p10Builder = new JcaPKCS10CertificationRequestBuilder(
-                    x500Name, publicKey);
+            PKCS10CertificationRequestBuilder p10Builder = new JcaPKCS10CertificationRequestBuilder(x500Name,
+                    publicKey);
             JcaContentSignerBuilder csBuilder = new JcaContentSignerBuilder(CAConstants.SHA256_WITH_RSA);
             ContentSigner signer = csBuilder.build(privateKey);
             return p10Builder.build(signer);

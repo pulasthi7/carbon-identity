@@ -20,9 +20,16 @@ package org.wso2.carbon.identity.certificateauthority.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.identity.certificateauthority.CAConstants;
+import org.wso2.carbon.identity.certificateauthority.config.CAConfiguration;
 import org.wso2.carbon.identity.certificateauthority.scheduledTask.CRLUpdater;
+import org.wso2.carbon.identity.certificateauthority.services.CRLService;
+import org.wso2.carbon.identity.certificateauthority.services.CSRService;
+import org.wso2.carbon.identity.certificateauthority.services.CertificateService;
+import org.wso2.carbon.identity.certificateauthority.services.OCSPService;
+import org.wso2.carbon.identity.certificateauthority.services.SCEPService;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.concurrent.Executors;
@@ -54,6 +61,19 @@ public class CAServiceComponent {
     }
 
     protected void activate(ComponentContext ctxt) {
+        BundleContext bundleContext = ctxt.getBundleContext();
+
+        //initialize configurations from file
+        CAConfiguration caConfiguration = CAConfiguration.getInstance();
+        caConfiguration.initialize();
+
+        //register OSGI services
+        bundleContext.registerService(CSRService.class, new CSRService(), null);
+        bundleContext.registerService(CertificateService.class, new CertificateService(), null);
+        bundleContext.registerService(CRLService.class, new CRLService(), null);
+        bundleContext.registerService(OCSPService.class, new OCSPService(), null);
+        bundleContext.registerService(SCEPService.class, new SCEPService(), null);
+
         //Schedule the CRL creation and update
         scheduler.scheduleAtFixedRate(new CRLUpdater(), CAConstants.CRL_UPDATER_INITIAL_DELAY,
                 CAConstants.CRL_UPDATE_INTERVAL, TimeUnit.SECONDS);

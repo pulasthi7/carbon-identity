@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.certificateauthority;
+package org.wso2.carbon.identity.certificateauthority.services;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -41,7 +41,8 @@ import org.bouncycastle.operator.DigestCalculator;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
-import org.wso2.carbon.identity.certificateauthority.config.CAConfiguration;
+import org.wso2.carbon.identity.certificateauthority.CAConstants;
+import org.wso2.carbon.identity.certificateauthority.CAException;
 import org.wso2.carbon.identity.certificateauthority.dao.CertificateDAO;
 import org.wso2.carbon.identity.certificateauthority.dao.RevocationDAO;
 import org.wso2.carbon.identity.certificateauthority.model.Certificate;
@@ -53,17 +54,13 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 
-public class OCSPHandler {
+public class OCSPService {
 
-    private CertificateDAO certificateDAO;
-    private RevocationDAO revocationDAO;
+    private CertificateDAO certificateDAO = new CertificateDAO();
+    private RevocationDAO revocationDAO = new RevocationDAO();
+    private CAConfigurationService configurationService = new CAConfigurationService();
 
-    private Log log = LogFactory.getLog(OCSPHandler.class);
-
-    public OCSPHandler() {
-        this.certificateDAO = new CertificateDAO();
-        this.revocationDAO = new RevocationDAO();
-    }
+    private Log log = LogFactory.getLog(OCSPService.class);
 
     /**
      * handles the OCSP requests
@@ -71,7 +68,7 @@ public class OCSPHandler {
      * @param req          The OCSP request
      * @param tenantDomain The tenant domain of the CA for whom the request is made
      * @return The OCSP response
-     * @throws CAException
+     * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
     public OCSPResp handleOCSPRequest(OCSPReq req, String tenantDomain)
             throws CAException {
@@ -82,11 +79,10 @@ public class OCSPHandler {
             }
             //sign with tenant's configured key
             Req[] requests = req.getRequestList();
-            CertificateID certID;
-            Certificate certificateInfo;
-            CAConfiguration configurationManager = CAConfiguration.getInstance();
-            X509Certificate caCert = configurationManager.getConfiguredCACert(tenantDomain);
-            PrivateKey privateKey = configurationManager.getConfiguredPrivateKey(tenantDomain);
+            CertificateID certificateId;
+            Certificate certificate;
+            X509Certificate caCert = configurationService.getConfiguredCACert(tenantDomain);
+            PrivateKey privateKey = configurationService.getConfiguredPrivateKey(tenantDomain);
             SubjectPublicKeyInfo keyInfo = SubjectPublicKeyInfo.getInstance(caCert.getPublicKey().getEncoded());
             DigestCalculator digestCalculator = new JcaDigestCalculatorProviderBuilder()
                     .setProvider(CAConstants.BC_PROVIDER).build().get(CertificateID.HASH_SHA1);
@@ -97,28 +93,28 @@ public class OCSPHandler {
                 basicRespGen.setResponseExtensions(new Extensions(new Extension[]{ext}));
             }
             for (Req request : requests) {
-                certID = request.getCertID();
-                certificateInfo = certificateDAO.getCertificateInfo(certID.getSerialNumber().toString(), tenantDomain);
-                if (certificateInfo == null || tenantDomain.equals(certificateInfo.getTenantDomain())) {
-                    basicRespGen.addResponse(certID, new UnknownStatus());
+                certificateId = request.getCertID();
+                certificate = certificateDAO.getCertificate(certificateId.getSerialNumber().toString(), tenantDomain);
+                if (certificate == null || tenantDomain.equals(certificate.getTenantDomain())) {
+                    basicRespGen.addResponse(certificateId, new UnknownStatus());
                 } else {
                     org.wso2.carbon.identity.certificateauthority.common.CertificateStatus certificateStatus = org
                             .wso2.carbon.identity.certificateauthority.common.CertificateStatus.valueOf
-                                    (certificateInfo.getStatus());
+                                    (certificate.getStatus());
                     switch (certificateStatus) {
                         case REVOKED:
                             RevokedCertificate revokedCertificate = revocationDAO
-                                    .getRevokedCertificate(certificateInfo.getSerialNo());
-                            basicRespGen.addResponse(certID,
+                                    .getRevokedCertificate(certificate.getSerialNo());
+                            basicRespGen.addResponse(certificateId,
                                     new RevokedStatus(revokedCertificate.getRevokedDate(),
                                             revokedCertificate.getReason())
                             );
                             break;
                         case ACTIVE:
-                            basicRespGen.addResponse(certID, CertificateStatus.GOOD);
+                            basicRespGen.addResponse(certificateId, CertificateStatus.GOOD);
                             break;
                         default:
-                            basicRespGen.addResponse(certID, new UnknownStatus());
+                            basicRespGen.addResponse(certificateId, new UnknownStatus());
                     }
                 }
             }

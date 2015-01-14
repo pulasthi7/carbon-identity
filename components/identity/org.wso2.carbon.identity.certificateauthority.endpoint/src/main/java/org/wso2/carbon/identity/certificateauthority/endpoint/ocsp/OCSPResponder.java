@@ -24,8 +24,8 @@ import org.apache.commons.logging.LogFactory;
 import org.bouncycastle.cert.ocsp.OCSPReq;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.wso2.carbon.identity.certificateauthority.CAException;
-import org.wso2.carbon.identity.certificateauthority.OCSPHandler;
 import org.wso2.carbon.identity.certificateauthority.endpoint.CAEndpointConstants;
+import org.wso2.carbon.identity.certificateauthority.services.OCSPService;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
@@ -59,8 +59,8 @@ public class OCSPResponder {
     public Response handleOCSPRequest(@Context HttpServletRequest request, @PathParam("tenantDomain") String tenant) {
         try {
             OCSPReq ocspReq = new OCSPReq(IOUtils.toByteArray(request.getInputStream()));
-            OCSPHandler ocspHandler = new OCSPHandler();
-            OCSPResp ocspResp = ocspHandler.handleOCSPRequest(ocspReq, tenant);
+            OCSPService ocspService = new OCSPService();
+            OCSPResp ocspResp = ocspService.handleOCSPRequest(ocspReq, tenant);
             return Response.ok().type(CAEndpointConstants.OCSP_RESPONSE_MEDIA_TYPE).entity(ocspResp.getEncoded())
                     .build();
         } catch (CAException e) {

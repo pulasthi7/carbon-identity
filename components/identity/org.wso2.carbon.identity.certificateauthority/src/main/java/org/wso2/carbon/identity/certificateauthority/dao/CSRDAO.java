@@ -64,11 +64,15 @@ public class CSRDAO {
      * @return The serial no of the newly added CSR, which can be used in later queries
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
-    public String addCsr(String csrContent, String userName, String tenantDomain, String userStoreDomain)
+    public String addCSR(String csrContent, String userName, String tenantDomain, String userStoreDomain)
             throws CAException {
-        PKCS10CertificationRequest request = CAObjectUtils.toPkcs10CertificationRequest
-                (csrContent);
-        return addCSR(request, userName, tenantDomain, userStoreDomain);
+        PKCS10CertificationRequest request = null;
+        try {
+            request = CAObjectUtils.toPkcs10CertificationRequest(csrContent);
+            return addCSR(request, userName, tenantDomain, userStoreDomain);
+        } catch (IOException e) {
+            throw new CAException("Error when decoding encoded CSR, CSR:\n" + csrContent + "\n", e);
+        }
     }
 
     /**
@@ -92,14 +96,18 @@ public class CSRDAO {
         RDN[] orgRdNs = request.getSubject().getRDNs(BCStyle.O);
         //Organization is not a mandatory field, it may be null, therefore initializing it to
         // empty string
-        String organization = "";
+
+        String organization = null;
         if (orgRdNs.length > 0) {
             organization = orgRdNs[0].getFirst().getValue().toString();
         }
         RDN[] cnRdNs = request.getSubject().getRDNs(BCStyle.CN);
-        String commonName = "";
+        String commonName;
         if (cnRdNs.length > 0) {
+            //Although not used in practice, cnRdNs can have multiple RDNs, if so we'll consider only the first one
             commonName = cnRdNs[0].getFirst().getValue().toString();
+        } else {
+            throw new IllegalArgumentException("The CN is mandatory, but it was not found in the CSR");
         }
         try {
             int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
@@ -136,8 +144,8 @@ public class CSRDAO {
      * @param serialNo serial number of the CSR
      * @return Details about the CSR
      */
-    public CSR getCSR(String serialNo, String userStoreDomain, String userName,
-                      String tenantDomain) throws CAException {
+    public CSR getCSR(String serialNo, String userStoreDomain, String userName, String tenantDomain)
+            throws CAException {
         Connection connection = null;
         PreparedStatement prepStmt = null;
         ResultSet resultSet = null;
@@ -171,7 +179,7 @@ public class CSRDAO {
             log.debug("CSR with serial no " + serialNo + " not found, " +
                     "or not accessible by " + userStoreDomain + "\\" + userName + " of tenant " + tenantDomain);
         }
-        throw new CAException("CSR for given serial not found");
+        return null;
     }
 
     /**
@@ -239,7 +247,7 @@ public class CSRDAO {
         if (log.isDebugEnabled()) {
             log.debug("CSR with serial no " + serialNo + " not found");
         }
-        throw new CAException("CSR for given serial not found");
+        return null;
     }
 
     /**
@@ -460,19 +468,29 @@ public class CSRDAO {
     /**
      * Delete the CSR with given serial number
      *
-     * @param serialNo serial number of the CSR which need to be deleted from DB
+     * @param serialNo     The serial no of the CSR to be deleted
+     * @param tenantDomain The domain of the tenant CA
+     * @throws CAException
      */
-    public void deleteCSR(Connection connection, String serialNo, int tenantId) throws CAException {
+    public void deleteCSR(String serialNo, String tenantDomain) throws CAException {
+        Connection connection = null;
         PreparedStatement prepStmt = null;
         String sql = SQLConstants.DELETE_CSR_QUERY;
         try {
+            int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
+            connection = IdentityDatabaseUtil.getDBConnection();
             prepStmt = connection.prepareStatement(sql);
             prepStmt.setString(1, serialNo);
             prepStmt.setInt(2, tenantId);
+            prepStmt.executeUpdate();
+        } catch (IdentityException e) {
+            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
             throw new CAException("Error when executing the SQL : " + sql, e);
+        } catch (UserStoreException e) {
+            throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } finally {
-            IdentityDatabaseUtil.closeStatement(prepStmt);
+            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
     }
 }

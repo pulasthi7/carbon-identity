@@ -28,16 +28,19 @@ public class CRLData {
     private Date thisUpdate;
     private Date nextUpdate;
     private String base64Crl;
-    private int tenantID;
+    private int tenantId;
     private int crlNumber;
     private int deltaCrlIndicator;
 
-    public CRLData(Date thisUpdate, Date nextUpdate, String base64Crl, int tenantID,
+    public CRLData(Date thisUpdate, Date nextUpdate, String base64Crl, int tenantId,
                    int crlNumber, int deltaCrlIndicator) {
+        if (crlNumber < 0) {
+            throw new IllegalArgumentException("CRL Number cannot be negative, given:" + crlNumber);
+        }
         this.thisUpdate = (Date) thisUpdate.clone();
         this.nextUpdate = (Date) nextUpdate.clone();
         this.base64Crl = base64Crl;
-        this.tenantID = tenantID;
+        this.tenantId = tenantId;
         this.crlNumber = crlNumber;
         this.deltaCrlIndicator = deltaCrlIndicator;
     }
@@ -50,8 +53,8 @@ public class CRLData {
         return deltaCrlIndicator;
     }
 
-    public int getTenantID() {
-        return tenantID;
+    public int getTenantId() {
+        return tenantId;
     }
 
     public Date getNextUpdate() {

@@ -24,6 +24,7 @@ import java.util.Date;
  * Represents a Certificate
  */
 public class Certificate {
+
     private String serialNo;
     private Date issuedDate;
     private Date expiryDate;

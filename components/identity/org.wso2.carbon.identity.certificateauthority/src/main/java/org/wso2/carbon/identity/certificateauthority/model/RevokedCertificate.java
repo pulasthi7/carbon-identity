@@ -37,7 +37,6 @@ public class RevokedCertificate {
 
     public String getSerialNo() {
         return serialNo;
-
     }
 
     public Date getRevokedDate() {

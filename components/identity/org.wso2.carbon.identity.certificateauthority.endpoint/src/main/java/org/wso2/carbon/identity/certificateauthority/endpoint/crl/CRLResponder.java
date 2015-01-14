@@ -21,8 +21,8 @@ package org.wso2.carbon.identity.certificateauthority.endpoint.crl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.certificateauthority.CAException;
-import org.wso2.carbon.identity.certificateauthority.CRLManager;
 import org.wso2.carbon.identity.certificateauthority.endpoint.CAEndpointConstants;
+import org.wso2.carbon.identity.certificateauthority.services.CRLService;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -37,12 +37,12 @@ import javax.ws.rs.core.Response;
 @Path("/crl")
 public class CRLResponder {
     private static final Log log = LogFactory.getLog(CRLResponder.class);
+    private static CRLService crlService = new CRLService();
 
-    private CRLManager crlManager = new CRLManager();
     /**
      * Responds with the CRL for the given tenant domain
      *
-     * @param command Whether the request is for CRL or Delta CRL
+     * @param command      Whether the request is for CRL or Delta CRL
      * @param tenantDomain The CA's tenant domain
      * @return The CRL response with the revoked certificates of the tenant CA
      */
@@ -53,7 +53,7 @@ public class CRLResponder {
                            @PathParam("tenantDomain") String tenantDomain) {
         if (CAEndpointConstants.REQUEST_TYPE_CRL.equals(command)) {
             try {
-                byte[] crl = crlManager.getLatestCrl(tenantDomain);
+                byte[] crl = crlService.getLatestCrl(tenantDomain);
                 return Response.ok().type(CAEndpointConstants.PKIX_CRL_MEDIA_TYPE).entity(crl).build();
             } catch (CAException e) {
                 if (log.isDebugEnabled()) {
@@ -62,7 +62,7 @@ public class CRLResponder {
             }
         } else if (CAEndpointConstants.REQUEST_TYPE_DELTA_CRL.equals(command)) {
             try {
-                byte[] deltaCRL = crlManager.getLatestDeltaCrl(tenantDomain);
+                byte[] deltaCRL = crlService.getLatestDeltaCrl(tenantDomain);
                 return Response.ok().type(CAEndpointConstants.PKIX_CRL_MEDIA_TYPE).entity(deltaCRL).build();
             } catch (CAException e) {
                 if (log.isDebugEnabled()) {

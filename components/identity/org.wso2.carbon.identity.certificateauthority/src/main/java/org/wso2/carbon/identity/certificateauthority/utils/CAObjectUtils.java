@@ -18,12 +18,12 @@
 
 package org.wso2.carbon.identity.certificateauthority.utils;
 
+import org.apache.commons.lang.StringUtils;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.PEMWriter;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.util.encoders.Base64;
 import org.wso2.carbon.identity.certificateauthority.CAConstants;
-import org.wso2.carbon.identity.certificateauthority.CAException;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -50,20 +50,15 @@ public class CAObjectUtils {
      *
      * @param encodedCrl The crl in base 64 encoded format
      * @return
-     * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
-    public static X509CRL toX509Crl(String encodedCrl) throws CAException {
-        try {
-            byte[] b64DecodeBytes = Base64.decode(encodedCrl.getBytes(CAConstants.UTF_8_CHARSET));
-            CertificateFactory certificateFactory = CertificateFactory.getInstance(CAConstants.X509);
-            return (X509CRL) certificateFactory.generateCRL(new ByteArrayInputStream(b64DecodeBytes));
-        } catch (CRLException e) {
-            throw new CAException("Can't decode CRL.", e);
-        } catch (CertificateException e) {
-            throw new CAException("Couldn't create certificate factory", e);
-        } catch (UnsupportedEncodingException e) {
-            throw new CAException("Error with the charset used", e);
+    public static X509CRL toX509Crl(String encodedCrl)
+            throws UnsupportedEncodingException, CertificateException, CRLException {
+        if (StringUtils.isBlank(encodedCrl)) {
+            throw new IllegalArgumentException("Invalid input as the encoded CRL, empty string given");
         }
+        byte[] b64DecodeBytes = Base64.decode(encodedCrl.getBytes(CAConstants.UTF_8_CHARSET));
+        CertificateFactory certificateFactory = CertificateFactory.getInstance(CAConstants.X509);
+        return (X509CRL) certificateFactory.generateCRL(new ByteArrayInputStream(b64DecodeBytes));
     }
 
     /**
@@ -72,33 +67,27 @@ public class CAObjectUtils {
      * @param certificate The X509 certificate to be encoded
      * @return
      */
-    public static String toPemEncodedCertificate(X509Certificate certificate) {
-        try {
-            StringWriter stringWriter = new StringWriter();
-            PEMWriter writer = new PEMWriter(stringWriter);
-            writer.writeObject(certificate);
-            writer.close();
-            return stringWriter.toString();
-        } catch (IOException ignored) {
-            return "";
-        }
+    public static String toPemEncodedCertificate(X509Certificate certificate) throws IOException {
+        StringWriter stringWriter = new StringWriter();
+        PEMWriter writer = new PEMWriter(stringWriter);
+        writer.writeObject(certificate);
+        writer.close();
+        return stringWriter.toString();
     }
 
     /**
      * Decode a base 64 encoded csr into a PKCS10CertificateRequest
      *
-     * @param encodedCsr Base 64 encoded CSR
+     * @param encodedCSR Base 64 encoded CSR
      * @return PKCS10CertificationRequest constructed from the encoded string
      */
-    public static PKCS10CertificationRequest toPkcs10CertificationRequest(String encodedCsr)
-            throws CAException {
-        try {
-            PEMParser pemParser = new PEMParser(new InputStreamReader(new ByteArrayInputStream
-                    (encodedCsr.getBytes(CAConstants.UTF_8_CHARSET)), CAConstants.UTF_8_CHARSET));
-            return (PKCS10CertificationRequest) pemParser.readObject();
-        } catch (IOException e) {
-            throw new CAException("Error parsing encoded request", e);
+    public static PKCS10CertificationRequest toPkcs10CertificationRequest(String encodedCSR) throws IOException {
+        if (StringUtils.isBlank(encodedCSR)) {
+            throw new IllegalArgumentException("Invalid input as the encoded CSR, empty string given");
         }
+        PEMParser pemParser = new PEMParser(new InputStreamReader(new ByteArrayInputStream(encodedCSR.getBytes
+                (CAConstants.UTF_8_CHARSET)), CAConstants.UTF_8_CHARSET));
+        return (PKCS10CertificationRequest) pemParser.readObject();
     }
 
     /**
@@ -106,38 +95,28 @@ public class CAObjectUtils {
      *
      * @param request The CSR to be PEM encoded
      * @return The PEM encoded representation of the CSR
-     * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
-    public static String toEncodedCsr(PKCS10CertificationRequest request) throws CAException {
-        try {
-            StringWriter writer = new StringWriter();
-            PEMWriter pemWriter = new PEMWriter(writer);
-            pemWriter.writeObject(request);
-            writer.close();
-            pemWriter.close();
-            return writer.toString();
-        } catch (IOException e) {
-            throw new CAException("Error encoding the request", e);
-        }
+    public static String toEncodedCsr(PKCS10CertificationRequest request) throws IOException {
+        StringWriter writer = new StringWriter();
+        PEMWriter pemWriter = new PEMWriter(writer);
+        pemWriter.writeObject(request);
+        writer.close();
+        pemWriter.close();
+        return writer.toString();
     }
 
     /**
      * PEM encode a private key
      *
      * @param key The key to be PEM encoded
-     * @return
-     * @throws org.wso2.carbon.identity.certificateauthority.CAException
+     * @return The PEM encoded private key
      */
-    public static String toEncodedPrivateKey(PrivateKey key) throws CAException {
-        try {
-            StringWriter writer = new StringWriter();
-            PEMWriter pemWriter = new PEMWriter(writer);
-            pemWriter.writeObject(key);
-            writer.close();
-            pemWriter.close();
-            return writer.toString();
-        } catch (IOException e) {
-            throw new CAException("Error encoding the private key", e);
-        }
+    public static String toEncodedPrivateKey(PrivateKey key) throws IOException {
+        StringWriter writer = new StringWriter();
+        PEMWriter pemWriter = new PEMWriter(writer);
+        pemWriter.writeObject(key);
+        writer.close();
+        pemWriter.close();
+        return writer.toString();
     }
 }

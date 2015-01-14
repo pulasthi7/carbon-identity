@@ -38,15 +38,15 @@ public class SCEPEndpoint {
     /**
      * Responds to the SCEP requests
      *
-     * @param request  The HttpServletRequest from context
-     * @param response The HttpServletResponse from context
-     * @param tenant   The tenant domain for whom the request is made
+     * @param request      The HttpServletRequest from context
+     * @param response     The HttpServletResponse from context
+     * @param tenantDomain The tenant domain for whom the request is made
      */
     @Path("/_t/{tenantDomain}")
-    public void service(@Context HttpServletRequest request, @Context HttpServletResponse
-            response, @PathParam("tenantDomain") String tenant) {
+    public void service(@Context HttpServletRequest request, @Context HttpServletResponse response,
+                        @PathParam("tenantDomain") String tenantDomain) {
         try {
-            ScepServlet scepServlet = new SCEPServletImpl(tenant);
+            ScepServlet scepServlet = new SCEPServletImpl(tenantDomain);
             scepServlet.service(request, response);
             //If the response is not committed jax-rs seems to modify the response headers to
             // return text/xml. Therefore, committing the response if it is not committed

@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.certificateauthority;
+package org.wso2.carbon.identity.certificateauthority.services;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -44,16 +44,19 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequest;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.certificateauthority.CAConstants;
+import org.wso2.carbon.identity.certificateauthority.CAException;
 import org.wso2.carbon.identity.certificateauthority.common.CSRStatus;
 import org.wso2.carbon.identity.certificateauthority.common.CertificateStatus;
-import org.wso2.carbon.identity.certificateauthority.config.CAConfiguration;
 import org.wso2.carbon.identity.certificateauthority.dao.CSRDAO;
 import org.wso2.carbon.identity.certificateauthority.dao.CertificateDAO;
 import org.wso2.carbon.identity.certificateauthority.dao.RevocationDAO;
 import org.wso2.carbon.identity.certificateauthority.model.CSR;
 import org.wso2.carbon.identity.certificateauthority.model.Certificate;
+import org.wso2.carbon.identity.certificateauthority.model.RevokedCertificate;
 import org.wso2.carbon.identity.certificateauthority.utils.CAObjectUtils;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -65,8 +68,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-public class CertificateManager {
-    private static final Log log = LogFactory.getLog(CertificateManager.class);
+public class CertificateService {
+    private static final Log log = LogFactory.getLog(CertificateService.class);
     private CSRDAO csrDAO = new CSRDAO();
     private CertificateDAO certificateDAO = new CertificateDAO();
     private RevocationDAO revocationDAO = new RevocationDAO();
@@ -77,7 +80,7 @@ public class CertificateManager {
      *
      * @param serialNo The serial no of the CSR to be signed
      * @param validity The validity of the resulting certificate in days
-     * @throws CAException If signing or storing the certificate fails
+     * @throws org.wso2.carbon.identity.certificateauthority.CAException If signing or storing the certificate fails
      */
     public void signCSR(String tenantDomain, String serialNo, int validity) throws CAException {
 
@@ -86,18 +89,22 @@ public class CertificateManager {
         if (!CSRStatus.PENDING.toString().equals(csr.getStatus())) {
             throw new CAException("Certificate already signed, rejected or revoked");
         }
-        CAConfiguration configurationManager = CAConfiguration.getInstance();
-        X509Certificate signedCert = getSignedCertificate(serialNo, csrDAO.getPKCS10CertificationRequest(serialNo),
-                validity, configurationManager.getConfiguredPrivateKey(), configurationManager.getConfiguredCACert());
-        certificateDAO.addCertificate(serialNo, signedCert, tenantDomain, csr.getUserName(), csr.getUserStoreDomain());
+        CAConfigurationService caConfigurationService = new CAConfigurationService();
+        PKCS10CertificationRequest certificationRequest = csrDAO.getPKCS10CertificationRequest(serialNo);
+        if (certificationRequest != null) {
+            X509Certificate signedCert = getSignedCertificate(serialNo, certificationRequest, validity,
+                    caConfigurationService.getConfiguredPrivateKey(), caConfigurationService.getConfiguredCACert());
+            certificateDAO.addCertificate(serialNo, signedCert, tenantDomain, csr.getUserName(),
+                    csr.getUserStoreDomain());
+        }
     }
 
     /**
      * Revoke or update the revoke reason for the given certificate
      *
      * @param tenantDomain the tenant domain of the CA
-     * @param serialNo The serial no of the certificate to be revoked
-     * @param reason   The reason code for the revocation as specified in {@link org.bouncycastle.asn1.x509.CRLReason}
+     * @param serialNo     The serial no of the certificate to be revoked
+     * @param reason       The reason code for the revocation as specified in {@link org.bouncycastle.asn1.x509.CRLReason}
      * @throws CAException
      */
     public void revokeCert(String tenantDomain, String serialNo, int reason) throws CAException {
@@ -135,7 +142,11 @@ public class CertificateManager {
      */
     public String getPemEncodedCertificate(String serialNo) throws CAException {
         X509Certificate x509Certificate = certificateDAO.getCertificate(serialNo);
-        return CAObjectUtils.toPemEncodedCertificate(x509Certificate);
+        try {
+            return CAObjectUtils.toPemEncodedCertificate(x509Certificate);
+        } catch (IOException e) {
+            throw new CAException("Error when encoding the certificate to PEM", e);
+        }
     }
 
     /**
@@ -220,5 +231,49 @@ public class CertificateManager {
         } catch (InvalidKeyException e) {
             throw new CAException("Invalid public key in CSR", e);
         }
+    }
+
+    /**
+     * Get the certificate specified by the serial number.
+     *
+     * @param serialNo serial number of the certificate
+     * @return Information about the certificate
+     */
+    public Certificate getCertificate(String serialNo, String tenantDomain) throws CAException {
+        return certificateDAO.getCertificate(serialNo, tenantDomain);
+    }
+
+    /**
+     * Lists all certificates issued by a tenant's CA.
+     *
+     * @param tenantDomain domain of the tenant
+     * @return Set of certificates with given status issued by the given CA
+     * @throws org.wso2.carbon.identity.certificateauthority.CAException
+     */
+    public List<Certificate> listCertificates(String tenantDomain) throws CAException {
+        return certificateDAO.listCertificates(tenantDomain);
+    }
+
+    /**
+     * Lists all certificates issued by a tenant's CA with given status
+     *
+     * @param status       Status filter for the certificates
+     * @param tenantDomain domain of the tenant
+     * @return Set of certificates with given status issued by the given CA
+     * @throws org.wso2.carbon.identity.certificateauthority.CAException
+     */
+    public List<Certificate> listCertificates(String status, String tenantDomain) throws CAException {
+        return certificateDAO.listCertificates(status, tenantDomain);
+    }
+
+    /**
+     * Get Revoked certificate details from serial number
+     *
+     * @param serialNo The SerialNo of the revoked certificate
+     * @return The details of the revoked certificate
+     * @throws org.wso2.carbon.identity.certificateauthority.CAException
+     */
+    public RevokedCertificate getRevokedCertificate(String serialNo) throws CAException {
+        return revocationDAO.getRevokedCertificate(serialNo);
     }
 }

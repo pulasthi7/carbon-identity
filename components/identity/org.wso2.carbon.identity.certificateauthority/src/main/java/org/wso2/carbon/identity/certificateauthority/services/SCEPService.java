@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.certificateauthority;
+package org.wso2.carbon.identity.certificateauthority.services;
 
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.logging.Log;
@@ -26,6 +26,9 @@ import org.bouncycastle.asn1.pkcs.Attribute;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.certificateauthority.CAConstants;
+import org.wso2.carbon.identity.certificateauthority.CAException;
+import org.wso2.carbon.identity.certificateauthority.CAUserService;
 import org.wso2.carbon.identity.certificateauthority.config.CAConfiguration;
 import org.wso2.carbon.identity.certificateauthority.dao.SCEPDAO;
 import org.wso2.carbon.identity.certificateauthority.internal.CAServiceComponent;
@@ -34,10 +37,12 @@ import org.wso2.carbon.user.api.UserStoreException;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 
-public class SCEPManager {
+public class SCEPService {
 
     private static final Log log = LogFactory.getLog(CAUserService.class);
     private SCEPDAO scepDAO = new SCEPDAO();
+    private CAConfigurationService configurationService = new CAConfigurationService();
+
 
     /**
      * Enrolls a CSR from SCEP protocol
@@ -46,7 +51,7 @@ public class SCEPManager {
      * @param transactionId The transcation id that is used to identify the SCEP transaction
      * @param tenantDomain  The tenant domain for which the request is made
      * @return The enrolled certificate
-     * @throws CAException
+     * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
     public X509Certificate enroll(PKCS10CertificationRequest certReq, String transactionId,
                                   String tenantDomain)
@@ -64,16 +69,17 @@ public class SCEPManager {
                     token = attributeValues.getObjectAt(0).toString();
                 }
             }
-            String serialNo = scepDAO.addScepCsr(certReq, transactionId, token, tenantDomain);
+            String serialNo = scepDAO.addScepCsr(certReq, transactionId, token, tenantDomain,
+                    configurationService.getTokenValidity());
             //To sign the certificate as admin, start a tenant flow (This is executed from an
             // unauthenticated endpoint, so need to set the tenant info before proceed to signing
             PrivilegedCarbonContext.startTenantFlow();
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
-            CertificateManager certificateManager = new CertificateManager();
-            certificateManager.signCSR(tenantDomain, serialNo, CAConfiguration.getInstance()
+            CertificateService certificateService = new CertificateService();
+            certificateService.signCSR(tenantDomain, serialNo, CAConfiguration.getInstance()
                     .getScepIssuedCertificateValidity());
-            return certificateManager.getX509Certificate(serialNo);
+            return certificateService.getX509Certificate(serialNo);
         } catch (UserStoreException e) {
             throw new CAException("Invalid tenant domain :" + tenantDomain);
         } finally {
@@ -107,7 +113,7 @@ public class SCEPManager {
      * @throws CAException
      */
     public X509Certificate getCaCert(String tenantDomain) throws CAException {
-        return CAConfiguration.getInstance().getConfiguredCACert(tenantDomain);
+        return configurationService.getConfiguredCACert(tenantDomain);
     }
 
     /**
@@ -118,22 +124,22 @@ public class SCEPManager {
      * @throws CAException
      */
     public PrivateKey getCaKey(String tenantDomain) throws CAException {
-        return CAConfiguration.getInstance().getConfiguredPrivateKey(tenantDomain);
+        return configurationService.getConfiguredPrivateKey(tenantDomain);
     }
 
     /**
      * Generate a SCEP token to be used for SCEP operations
      *
      * @param username        The user who is generating the token
-     * @param tenantDomain        The tenant domain of the user
+     * @param tenantDomain    The tenant domain of the user
      * @param userStoreDomain The user store domain of the user
      * @return The generated SCEP token
      * @throws CAException
      */
     public String generateScepToken(String username, String tenantDomain, String userStoreDomain)
             throws CAException {
-        CAConfiguration caConfiguration = CAConfiguration.getInstance();
-        int tokenLength = caConfiguration.getTokenLength();
+        CAConfigurationService configurationService = new CAConfigurationService();
+        int tokenLength = configurationService.getTokenLength();
         String token = "";
         boolean added = false;
         int retries = 0;

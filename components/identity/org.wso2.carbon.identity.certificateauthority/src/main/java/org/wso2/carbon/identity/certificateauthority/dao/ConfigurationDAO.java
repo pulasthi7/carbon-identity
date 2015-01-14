@@ -34,9 +34,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
- * Performs DAO operations related to the CA configurations
+ * Performs DAO operations related to the CA configurations.
  */
 public class ConfigurationDAO {
+
     private static Log log = LogFactory.getLog(ConfigurationDAO.class);
 
     /**
@@ -78,7 +79,7 @@ public class ConfigurationDAO {
     }
 
     /**
-     * Update the key of the tenant CA
+     * Update the key of the tenant CA.
      *
      * @param tenantDomain   The domain of the tenant whose key need to be updated
      * @param keyStore       The new key store where the key is
