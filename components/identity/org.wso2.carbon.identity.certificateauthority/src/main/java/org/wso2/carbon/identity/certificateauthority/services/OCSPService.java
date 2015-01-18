@@ -43,8 +43,6 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
 import org.wso2.carbon.identity.certificateauthority.CAConstants;
 import org.wso2.carbon.identity.certificateauthority.CAException;
-import org.wso2.carbon.identity.certificateauthority.dao.CertificateDAO;
-import org.wso2.carbon.identity.certificateauthority.dao.RevocationDAO;
 import org.wso2.carbon.identity.certificateauthority.model.Certificate;
 import org.wso2.carbon.identity.certificateauthority.model.RevokedCertificate;
 
@@ -56,11 +54,15 @@ import java.util.Date;
 
 public class OCSPService {
 
-    private CertificateDAO certificateDAO = new CertificateDAO();
-    private RevocationDAO revocationDAO = new RevocationDAO();
-    private CAConfigurationService configurationService = new CAConfigurationService();
-
+    private static OCSPService instance = new OCSPService();
     private Log log = LogFactory.getLog(OCSPService.class);
+
+    private OCSPService() {
+    }
+
+    public static OCSPService getInstance() {
+        return instance;
+    }
 
     /**
      * handles the OCSP requests
@@ -81,6 +83,7 @@ public class OCSPService {
             Req[] requests = req.getRequestList();
             CertificateID certificateId;
             Certificate certificate;
+            CAConfigurationService configurationService = CAConfigurationService.getInstance();
             X509Certificate caCert = configurationService.getConfiguredCACert(tenantDomain);
             PrivateKey privateKey = configurationService.getConfiguredPrivateKey(tenantDomain);
             SubjectPublicKeyInfo keyInfo = SubjectPublicKeyInfo.getInstance(caCert.getPublicKey().getEncoded());
@@ -94,7 +97,9 @@ public class OCSPService {
             }
             for (Req request : requests) {
                 certificateId = request.getCertID();
-                certificate = certificateDAO.getCertificate(certificateId.getSerialNumber().toString(), tenantDomain);
+                CertificateService certificateService = CertificateService.getInstance();
+                certificate = certificateService.getCertificate(certificateId.getSerialNumber().toString(),
+                        tenantDomain);
                 if (certificate == null || tenantDomain.equals(certificate.getTenantDomain())) {
                     basicRespGen.addResponse(certificateId, new UnknownStatus());
                 } else {
@@ -103,7 +108,7 @@ public class OCSPService {
                                     (certificate.getStatus());
                     switch (certificateStatus) {
                         case REVOKED:
-                            RevokedCertificate revokedCertificate = revocationDAO
+                            RevokedCertificate revokedCertificate = certificateService
                                     .getRevokedCertificate(certificate.getSerialNo());
                             basicRespGen.addResponse(certificateId,
                                     new RevokedStatus(revokedCertificate.getRevokedDate(),

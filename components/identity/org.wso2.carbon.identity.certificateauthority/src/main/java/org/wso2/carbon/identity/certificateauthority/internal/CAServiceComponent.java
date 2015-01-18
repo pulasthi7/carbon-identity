@@ -25,6 +25,7 @@ import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.identity.certificateauthority.CAConstants;
 import org.wso2.carbon.identity.certificateauthority.config.CAConfiguration;
 import org.wso2.carbon.identity.certificateauthority.scheduledTask.CRLUpdater;
+import org.wso2.carbon.identity.certificateauthority.services.CAConfigurationService;
 import org.wso2.carbon.identity.certificateauthority.services.CRLService;
 import org.wso2.carbon.identity.certificateauthority.services.CSRService;
 import org.wso2.carbon.identity.certificateauthority.services.CertificateService;
@@ -46,6 +47,12 @@ public class CAServiceComponent {
 
     private static RealmService realmService;
     private static Log log = LogFactory.getLog(CAServiceComponent.class);
+    private static CSRService csrService;
+    private static CertificateService certificateService;
+    private static CRLService crlService;
+    private static OCSPService ocspService;
+    private static SCEPService scepService;
+    private static CAConfigurationService caConfigurationService;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     public static RealmService getRealmService() {
@@ -54,6 +61,30 @@ public class CAServiceComponent {
 
     protected void setRealmService(RealmService realmService) {
         CAServiceComponent.realmService = realmService;
+    }
+
+    public static CSRService getCsrService() {
+        return csrService;
+    }
+
+    public static CertificateService getCertificateService() {
+        return certificateService;
+    }
+
+    public static CRLService getCrlService() {
+        return crlService;
+    }
+
+    public static OCSPService getOcspService() {
+        return ocspService;
+    }
+
+    public static SCEPService getScepService() {
+        return scepService;
+    }
+
+    public static CAConfigurationService getCaConfigurationService() {
+        return caConfigurationService;
     }
 
     protected void unsetRealmService(RealmService realmService) {
@@ -67,12 +98,20 @@ public class CAServiceComponent {
         CAConfiguration caConfiguration = CAConfiguration.getInstance();
         caConfiguration.initialize();
 
+        //initialize services
+        caConfigurationService = CAConfigurationService.getInstance();
+        csrService = CSRService.getInstance();
+        certificateService = CertificateService.getInstance();
+        crlService = CRLService.getInstance();
+        ocspService = OCSPService.getInstance();
+        scepService = SCEPService.getInstance();
+
         //register OSGI services
-        bundleContext.registerService(CSRService.class, new CSRService(), null);
-        bundleContext.registerService(CertificateService.class, new CertificateService(), null);
-        bundleContext.registerService(CRLService.class, new CRLService(), null);
-        bundleContext.registerService(OCSPService.class, new OCSPService(), null);
-        bundleContext.registerService(SCEPService.class, new SCEPService(), null);
+        bundleContext.registerService(CSRService.class, csrService, null);
+        bundleContext.registerService(CertificateService.class, certificateService, null);
+        bundleContext.registerService(CRLService.class, crlService, null);
+        bundleContext.registerService(OCSPService.class, ocspService, null);
+        bundleContext.registerService(SCEPService.class, scepService, null);
 
         //Schedule the CRL creation and update
         scheduler.scheduleAtFixedRate(new CRLUpdater(), CAConstants.CRL_UPDATER_INITIAL_DELAY,

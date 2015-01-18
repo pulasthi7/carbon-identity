@@ -47,7 +47,7 @@ public class CRLUpdater implements Runnable {
                 .SUPER_TENANT_ID);
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain
                 (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-        CRLService crlService = new CRLService();
+        CRLService crlService = CRLService.getInstance();
         crlService.createAndStoreCrl(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         PrivilegedCarbonContext.endTenantFlow();
 

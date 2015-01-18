@@ -27,6 +27,7 @@ import org.jscep.transaction.TransactionId;
 import org.jscep.transport.response.Capability;
 import org.wso2.carbon.identity.certificateauthority.CAException;
 import org.wso2.carbon.identity.certificateauthority.endpoint.CAEndpointConstants;
+import org.wso2.carbon.identity.certificateauthority.endpoint.util.CAEndpointUtils;
 import org.wso2.carbon.identity.certificateauthority.services.CRLService;
 import org.wso2.carbon.identity.certificateauthority.services.CertificateService;
 import org.wso2.carbon.identity.certificateauthority.services.SCEPService;
@@ -45,8 +46,6 @@ import java.util.Set;
 public class SCEPServletImpl extends ScepServlet {
 
     private static Log log = LogFactory.getLog(SCEPServletImpl.class);
-    private CRLService crlService = new CRLService();
-    private SCEPService scepService = new SCEPService();
     private String tenantDomain;
 
     /**
@@ -81,13 +80,15 @@ public class SCEPServletImpl extends ScepServlet {
     protected List<X509Certificate> doGetCert(X500Name x500Name, BigInteger bigInteger)
             throws Exception {
         List<X509Certificate> certificateList = new ArrayList<X509Certificate>();
-        CertificateService certificateService = new CertificateService();
+        CertificateService certificateService = CAEndpointUtils.getCertificateService();
         X509Certificate x509Certificate = certificateService.getX509Certificate(bigInteger.toString());
-        X500Name issuerX500Name = new X500Name(x509Certificate.getIssuerX500Principal().getName());
-        if (issuerX500Name.equals(x500Name)) {
-            certificateList.add(x509Certificate);
-            //adds the CA certificate to the chain
-            certificateList.addAll(doGetCaCertificate(null));
+        if (x509Certificate != null) {
+            X500Name issuerX500Name = new X500Name(x509Certificate.getIssuerX500Principal().getName());
+            if (issuerX500Name.equals(x500Name)) {
+                certificateList.add(x509Certificate);
+                //adds the CA certificate to the chain
+                certificateList.addAll(doGetCaCertificate(null));
+            }
         }
         return certificateList;
     }
@@ -95,6 +96,7 @@ public class SCEPServletImpl extends ScepServlet {
     @Override
     protected List<X509Certificate> doGetCertInitial(X500Name issuer, X500Name subject,
                                                      TransactionId transactionId) throws Exception {
+        SCEPService scepService = CAEndpointUtils.getSCEPService();
         List<X509Certificate> certificateList = new ArrayList<X509Certificate>();
         X509Certificate certificate =
                 scepService.getCertificate(tenantDomain, transactionId.toString());
@@ -110,15 +112,16 @@ public class SCEPServletImpl extends ScepServlet {
 
     @Override
     protected X509CRL doGetCrl(X500Name x500Name, BigInteger bigInteger) throws Exception {
+        CRLService crlService = CAEndpointUtils.getCRLService();
         return crlService.getLatestX509Crl(tenantDomain);
     }
 
     @Override
     protected List<X509Certificate> doEnrol(PKCS10CertificationRequest request,
                                             TransactionId transactionId) throws Exception {
+        SCEPService scepService = CAEndpointUtils.getSCEPService();
         List<X509Certificate> certificateList = new ArrayList<X509Certificate>();
-        X509Certificate certificate =
-                scepService.enroll(request, transactionId.toString(), tenantDomain);
+        X509Certificate certificate = scepService.enroll(request, transactionId.toString(), tenantDomain);
         if (certificate != null) {
             certificateList.add(certificate);
             certificateList.addAll(doGetCaCertificate(null));
@@ -139,6 +142,7 @@ public class SCEPServletImpl extends ScepServlet {
     @Override
     protected PrivateKey getSignerKey() {
         try {
+            SCEPService scepService = CAEndpointUtils.getSCEPService();
             return scepService.getCaKey(tenantDomain);
         } catch (CAException e) {
             if (log.isDebugEnabled()) {
@@ -151,6 +155,7 @@ public class SCEPServletImpl extends ScepServlet {
     @Override
     protected X509Certificate getSigner() {
         try {
+            SCEPService scepService = CAEndpointUtils.getSCEPService();
             return scepService.getCaCert(tenantDomain);
         } catch (CAException e) {
             if (log.isDebugEnabled()) {

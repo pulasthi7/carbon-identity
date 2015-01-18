@@ -18,10 +18,12 @@
 
 package org.wso2.carbon.identity.certificateauthority.endpoint.cert;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.certificateauthority.CAException;
 import org.wso2.carbon.identity.certificateauthority.endpoint.CAEndpointConstants;
+import org.wso2.carbon.identity.certificateauthority.endpoint.util.CAEndpointUtils;
 import org.wso2.carbon.identity.certificateauthority.services.CAConfigurationService;
 import org.wso2.carbon.identity.certificateauthority.services.CertificateService;
 
@@ -39,8 +41,6 @@ import javax.ws.rs.core.Response;
 public class CertificateRetriever {
     private static final Log log = LogFactory.getLog(CertificateRetriever.class);
 
-    private CAConfigurationService configurationService = new CAConfigurationService();
-
     /**
      * Responds with the certificate with the given serial number
      *
@@ -52,15 +52,19 @@ public class CertificateRetriever {
     @Produces("application/x-x509-user-cert")
     public Response getCertificate(@PathParam("serialNo") String serialNo) {
         try {
-            CertificateService certificateService = new CertificateService();
+            CertificateService certificateService = CAEndpointUtils.getCertificateService();
             String certificate = certificateService.getPemEncodedCertificate(serialNo);
-            return Response.ok().type(CAEndpointConstants.X509_USER_CERT_MEDIA_TYPE).entity(certificate).build();
+            if (!StringUtils.isBlank(certificate)) {
+                return Response.ok().type(CAEndpointConstants.X509_USER_CERT_MEDIA_TYPE).entity(certificate).build();
+            }
         } catch (CAException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Error occurred retrieving certificate with serialNo no:" + serialNo, e);
             }
             return Response.serverError().build();
         }
+        // certificate not available, so return a NOT_FOUND status
+        return Response.status(Response.Status.NOT_FOUND).build();
     }
 
     /**
@@ -74,6 +78,7 @@ public class CertificateRetriever {
     @Produces("application/x-x509-ca-cert")
     public Response getCaCertificate(@PathParam("tenantDomain") String tenantDomain) {
         try {
+            CAConfigurationService configurationService = CAEndpointUtils.getCaConfigurationService();
             String certificate = configurationService.getPemEncodedCACert(tenantDomain);
             return Response.ok().type(CAEndpointConstants.X509_CA_CERT_MEDIA_TYPE).entity(certificate).build();
         } catch (CAException e) {
@@ -97,15 +102,19 @@ public class CertificateRetriever {
     @Produces("application/octet-string")
     public Response downloadCertificate(@PathParam("serialNo") String serialNo) {
         try {
-            CertificateService certificateService = new CertificateService();
+            CertificateService certificateService = CAEndpointUtils.getCertificateService();
             String certificate = certificateService.getPemEncodedCertificate(serialNo);
-            return Response.ok().type(MediaType.APPLICATION_OCTET_STREAM_TYPE).entity(certificate).build();
+            if (!StringUtils.isBlank(certificate)) {
+                return Response.ok().type(MediaType.APPLICATION_OCTET_STREAM_TYPE).entity(certificate).build();
+            }
         } catch (Exception e) {
             if (log.isDebugEnabled()) {
                 log.debug("Error occurred retrieving certificate with serialNo no:" + serialNo, e);
             }
             return Response.serverError().build();
         }
+        // certificate not available, so return a NOT_FOUND status
+        return Response.status(Response.Status.NOT_FOUND).build();
     }
 
     /**
@@ -121,6 +130,7 @@ public class CertificateRetriever {
     @Produces("application/octet-string")
     public Response downloadCaCertificate(@PathParam("tenantDomain") String tenantDomain) {
         try {
+            CAConfigurationService configurationService = CAEndpointUtils.getCaConfigurationService();
             String certificate = configurationService.getPemEncodedCACert(tenantDomain);
             return Response.ok().type(MediaType.APPLICATION_OCTET_STREAM_TYPE).entity(certificate).build();
         } catch (Exception e) {

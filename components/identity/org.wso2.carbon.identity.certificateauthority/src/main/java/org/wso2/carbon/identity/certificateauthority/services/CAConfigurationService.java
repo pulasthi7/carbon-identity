@@ -52,9 +52,16 @@ import java.util.List;
 public class CAConfigurationService {
 
     private static final Log log = LogFactory.getLog(CAConfigurationService.class);
-
+    private static CAConfigurationService instance = new CAConfigurationService();
     private ConfigurationDAO configurationDAO = new ConfigurationDAO();
     private CAConfiguration configuration = CAConfiguration.getInstance();
+
+    private CAConfigurationService() {
+    }
+
+    public static CAConfigurationService getInstance() {
+        return instance;
+    }
 
     /**
      * Gives the CA certificate of the current tenant. Returns the default certificate if
@@ -237,12 +244,12 @@ public class CAConfigurationService {
             X509Certificate caCert = getConfiguredCACert();
             List<Certificate> certificates =
                     certificateDAO.listCertificates(CertificateStatus.ACTIVE.toString(), tenantDomain);
-            configurationDAO.updateCaConfiguration(tenantDomain, keyStore, alias, caCert);
+            configurationDAO.updateCAConfiguration(tenantDomain, keyStore, alias, caCert);
 
             //Revoke each issued certificates
             for (Certificate certificate : certificates) {
                 try {
-                    CertificateService certificateService = new CertificateService();
+                    CertificateService certificateService = CertificateService.getInstance();
                     certificateService.revokeCert(tenantDomain, certificate.getSerialNo(), CRLReason.cACompromise);
                 } catch (CAException e) {
                     //If any certificate revocation fails it should not affect the rest of the
@@ -250,7 +257,7 @@ public class CAConfigurationService {
                     log.error("Revocation failed for certificate with serial number:" + certificate.getSerialNo(), e);
                 }
             }
-            CRLService crlService = new CRLService();
+            CRLService crlService = CRLService.getInstance();
             crlService.createAndStoreDeltaCrl(tenantDomain);
         }
     }

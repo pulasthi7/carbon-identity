@@ -48,7 +48,6 @@ import org.wso2.carbon.identity.certificateauthority.CAConstants;
 import org.wso2.carbon.identity.certificateauthority.CAException;
 import org.wso2.carbon.identity.certificateauthority.common.CSRStatus;
 import org.wso2.carbon.identity.certificateauthority.common.CertificateStatus;
-import org.wso2.carbon.identity.certificateauthority.dao.CSRDAO;
 import org.wso2.carbon.identity.certificateauthority.dao.CertificateDAO;
 import org.wso2.carbon.identity.certificateauthority.dao.RevocationDAO;
 import org.wso2.carbon.identity.certificateauthority.model.CSR;
@@ -69,10 +68,18 @@ import java.util.Date;
 import java.util.List;
 
 public class CertificateService {
+
     private static final Log log = LogFactory.getLog(CertificateService.class);
-    private CSRDAO csrDAO = new CSRDAO();
+    private static CertificateService instance = new CertificateService();
     private CertificateDAO certificateDAO = new CertificateDAO();
     private RevocationDAO revocationDAO = new RevocationDAO();
+
+    private CertificateService() {
+    }
+
+    public static CertificateService getInstance() {
+        return instance;
+    }
 
     /**
      * Signs the CSR with the given serial no, so that the resulting certificate will have the
@@ -83,14 +90,14 @@ public class CertificateService {
      * @throws org.wso2.carbon.identity.certificateauthority.CAException If signing or storing the certificate fails
      */
     public void signCSR(String tenantDomain, String serialNo, int validity) throws CAException {
-
-        CSR csr = csrDAO.getCSR(serialNo, tenantDomain);
+        CSRService csrService = CSRService.getInstance();
+        CSR csr = csrService.getCSR(serialNo, tenantDomain);
 
         if (!CSRStatus.PENDING.toString().equals(csr.getStatus())) {
             throw new CAException("Certificate already signed, rejected or revoked");
         }
-        CAConfigurationService caConfigurationService = new CAConfigurationService();
-        PKCS10CertificationRequest certificationRequest = csrDAO.getPKCS10CertificationRequest(serialNo);
+        CAConfigurationService caConfigurationService = CAConfigurationService.getInstance();
+        PKCS10CertificationRequest certificationRequest = csrService.getPKCS10CertificationRequest(serialNo);
         if (certificationRequest != null) {
             X509Certificate signedCert = getSignedCertificate(serialNo, certificationRequest, validity,
                     caConfigurationService.getConfiguredPrivateKey(), caConfigurationService.getConfiguredCACert());
@@ -143,10 +150,13 @@ public class CertificateService {
     public String getPemEncodedCertificate(String serialNo) throws CAException {
         X509Certificate x509Certificate = certificateDAO.getCertificate(serialNo);
         try {
-            return CAObjectUtils.toPemEncodedCertificate(x509Certificate);
+            if (x509Certificate != null) {
+                return CAObjectUtils.toPemEncodedCertificate(x509Certificate);
+            }
         } catch (IOException e) {
             throw new CAException("Error when encoding the certificate to PEM", e);
         }
+        return null;
     }
 
     /**

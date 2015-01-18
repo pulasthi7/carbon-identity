@@ -40,9 +40,15 @@ import java.security.cert.X509Certificate;
 public class SCEPService {
 
     private static final Log log = LogFactory.getLog(CAUserService.class);
+    private static SCEPService instance = new SCEPService();
     private SCEPDAO scepDAO = new SCEPDAO();
-    private CAConfigurationService configurationService = new CAConfigurationService();
 
+    private SCEPService() {
+    }
+
+    public static SCEPService getInstance() {
+        return instance;
+    }
 
     /**
      * Enrolls a CSR from SCEP protocol
@@ -53,22 +59,21 @@ public class SCEPService {
      * @return The enrolled certificate
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
-    public X509Certificate enroll(PKCS10CertificationRequest certReq, String transactionId,
-                                  String tenantDomain)
+    public X509Certificate enroll(PKCS10CertificationRequest certReq, String transactionId, String tenantDomain)
             throws CAException {
         int tenantId = 0;
         try {
             tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId
                     (tenantDomain);
             String token = "";
-            Attribute[] attributes =
-                    certReq.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_challengePassword);
+            Attribute[] attributes = certReq.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_challengePassword);
             if (attributes != null && attributes.length > 0) {
                 ASN1Set attributeValues = attributes[0].getAttrValues();
                 if (attributeValues.size() > 0) {
                     token = attributeValues.getObjectAt(0).toString();
                 }
             }
+            CAConfigurationService configurationService = CAConfigurationService.getInstance();
             String serialNo = scepDAO.addScepCsr(certReq, transactionId, token, tenantDomain,
                     configurationService.getTokenValidity());
             //To sign the certificate as admin, start a tenant flow (This is executed from an
@@ -76,7 +81,7 @@ public class SCEPService {
             PrivilegedCarbonContext.startTenantFlow();
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
-            CertificateService certificateService = new CertificateService();
+            CertificateService certificateService = CertificateService.getInstance();
             certificateService.signCSR(tenantDomain, serialNo, CAConfiguration.getInstance()
                     .getScepIssuedCertificateValidity());
             return certificateService.getX509Certificate(serialNo);
@@ -95,14 +100,8 @@ public class SCEPService {
      * @return The enrolled certificate for the transaction
      * @throws CAException
      */
-    public X509Certificate getCertificate(String tenantDomain, String transactionId)
-            throws CAException {
-        try {
-            int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
-            return scepDAO.getCertificate(transactionId, tenantDomain);
-        } catch (UserStoreException e) {
-            throw new CAException("Invalid tenant domain :" + tenantDomain);
-        }
+    public X509Certificate getCertificate(String tenantDomain, String transactionId) throws CAException {
+        return scepDAO.getCertificate(transactionId, tenantDomain);
     }
 
     /**
@@ -113,7 +112,7 @@ public class SCEPService {
      * @throws CAException
      */
     public X509Certificate getCaCert(String tenantDomain) throws CAException {
-        return configurationService.getConfiguredCACert(tenantDomain);
+        return CAConfigurationService.getInstance().getConfiguredCACert(tenantDomain);
     }
 
     /**
@@ -124,7 +123,7 @@ public class SCEPService {
      * @throws CAException
      */
     public PrivateKey getCaKey(String tenantDomain) throws CAException {
-        return configurationService.getConfiguredPrivateKey(tenantDomain);
+        return CAConfigurationService.getInstance().getConfiguredPrivateKey(tenantDomain);
     }
 
     /**
@@ -136,9 +135,8 @@ public class SCEPService {
      * @return The generated SCEP token
      * @throws CAException
      */
-    public String generateScepToken(String username, String tenantDomain, String userStoreDomain)
-            throws CAException {
-        CAConfigurationService configurationService = new CAConfigurationService();
+    public String generateScepToken(String username, String tenantDomain, String userStoreDomain) throws CAException {
+        CAConfigurationService configurationService = CAConfigurationService.getInstance();
         int tokenLength = configurationService.getTokenLength();
         String token = "";
         boolean added = false;

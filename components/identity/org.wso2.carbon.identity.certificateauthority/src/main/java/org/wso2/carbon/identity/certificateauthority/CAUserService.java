@@ -36,8 +36,8 @@ import java.util.List;
 public class CAUserService {
 
     private static final Log log = LogFactory.getLog(CAUserService.class);
-    private CSRService csrService = new CSRService();
-    private CertificateService certificateService = new CertificateService();
+    private CSRService csrService = CSRService.getInstance();
+    private CertificateService certificateService = CertificateService.getInstance();
 
     /**
      * Sends a CSR to the CA to be signed

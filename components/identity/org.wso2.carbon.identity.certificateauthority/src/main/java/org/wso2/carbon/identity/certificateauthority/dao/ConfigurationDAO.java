@@ -88,7 +88,7 @@ public class ConfigurationDAO {
      *                       which will be revoked with the update
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
-    public void updateCaConfiguration(String tenantDomain, String keyStore, String alias,
+    public void updateCAConfiguration(String tenantDomain, String keyStore, String alias,
                                       X509Certificate oldCertificate) throws CAException {
         Connection connection = null;
         PreparedStatement prepStmt = null;

@@ -167,7 +167,7 @@ public class CertificateDAO {
         if (log.isDebugEnabled()) {
             log.debug("No Certificate with serial no : " + serialNo);
         }
-        throw new CAException("No such certificate");
+        return null;
     }
 
     /**
@@ -212,7 +212,7 @@ public class CertificateDAO {
         if (log.isDebugEnabled()) {
             log.debug("No Certificate with serial no : " + serialNo);
         }
-        throw new CAException("No such certificate");
+        return null;
     }
 
     /**

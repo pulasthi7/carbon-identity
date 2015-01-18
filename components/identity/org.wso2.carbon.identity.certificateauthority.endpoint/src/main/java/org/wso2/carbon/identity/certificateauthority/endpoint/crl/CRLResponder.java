@@ -22,6 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.certificateauthority.CAException;
 import org.wso2.carbon.identity.certificateauthority.endpoint.CAEndpointConstants;
+import org.wso2.carbon.identity.certificateauthority.endpoint.util.CAEndpointUtils;
 import org.wso2.carbon.identity.certificateauthority.services.CRLService;
 
 import javax.ws.rs.GET;
@@ -36,8 +37,8 @@ import javax.ws.rs.core.Response;
  */
 @Path("/crl")
 public class CRLResponder {
+
     private static final Log log = LogFactory.getLog(CRLResponder.class);
-    private static CRLService crlService = new CRLService();
 
     /**
      * Responds with the CRL for the given tenant domain
@@ -51,6 +52,7 @@ public class CRLResponder {
     @Produces("application/pkix-crl")
     public Response getCRL(@QueryParam(CAEndpointConstants.CRL_COMMAND) String command,
                            @PathParam("tenantDomain") String tenantDomain) {
+        CRLService crlService = CAEndpointUtils.getCRLService();
         if (CAEndpointConstants.REQUEST_TYPE_CRL.equals(command)) {
             try {
                 byte[] crl = crlService.getLatestCrl(tenantDomain);

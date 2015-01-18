@@ -43,24 +43,24 @@ public class CAAdminService extends AbstractAdmin {
     /**
      * DAO for CSR related operations
      */
-    private CSRService csrService = new CSRService();
+    private CSRService csrService = CSRService.getInstance();
 
     /**
      * The manager class for certificate related operations
      */
-    private CertificateService certificateService = new CertificateService();
+    private CertificateService certificateService = CertificateService.getInstance();
 
     /**
      * The manager class for the SCEP operations
      */
-    private SCEPService scepService = new SCEPService();
+    private SCEPService scepService = SCEPService.getInstance();
 
     /**
      * The manager class for the CRL operations
      */
-    private CRLService crlService = new CRLService();
+    private CRLService crlService = CRLService.getInstance();
 
-    private CAConfigurationService configurationService = new CAConfigurationService();
+    private CAConfigurationService configurationService = CAConfigurationService.getInstance();
 
     /**
      * Get the list of CSR assigned to the current tenant

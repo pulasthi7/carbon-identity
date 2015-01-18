@@ -55,10 +55,17 @@ import java.util.List;
  * Manages the CRL related operations
  */
 public class CRLService {
-    private static final Log log = LogFactory.getLog(CRLService.class);
 
+    private static final Log log = LogFactory.getLog(CRLService.class);
+    private static CRLService instance = new CRLService();
     private CRLDAO crlDAO = new CRLDAO();
-    private CAConfigurationService configurationService = new CAConfigurationService();
+
+    private CRLService() {
+    }
+
+    public static CRLService getInstance() {
+        return instance;
+    }
 
     /**
      * Create and stores a new CRL
@@ -204,6 +211,7 @@ public class CRLService {
         RevocationDAO revocationDAO = new RevocationDAO();
         CRLDAO crlDAO = new CRLDAO();
         List<RevokedCertificate> revokedCertificates = revocationDAO.listRevokedCertificates(tenantDomain);
+        CAConfigurationService configurationService = CAConfigurationService.getInstance();
         PrivateKey caKey = configurationService.getConfiguredPrivateKey();
         X509Certificate caCert = configurationService.getConfiguredCACert();
         int fullCrlNumber = crlDAO.getHighestCrlNumber(tenantDomain, false);
@@ -237,6 +245,7 @@ public class CRLService {
         }
         List<RevokedCertificate> revokedCertificates = revocationDAO.getRevokedCertificatesAfter(tenantDomain,
                 latestCrl.getThisUpdate());
+        CAConfigurationService configurationService = CAConfigurationService.getInstance();
         PrivateKey privateKey = configurationService.getConfiguredPrivateKey();
         X509Certificate caCert = configurationService.getConfiguredCACert();
         int fullCrlNumber = crlDAO.getHighestCrlNumber(tenantDomain, false);

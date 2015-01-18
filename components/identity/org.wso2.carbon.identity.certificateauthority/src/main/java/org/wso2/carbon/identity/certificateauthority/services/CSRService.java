@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.certificateauthority.services;
 
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.wso2.carbon.identity.certificateauthority.CAException;
 import org.wso2.carbon.identity.certificateauthority.dao.CSRDAO;
 import org.wso2.carbon.identity.certificateauthority.model.CSR;
@@ -26,7 +27,15 @@ import java.util.List;
 
 public class CSRService {
 
+    private static CSRService instance = new CSRService();
     private CSRDAO csrDAO = new CSRDAO();
+
+    private CSRService() {
+    }
+
+    public static CSRService getInstance() {
+        return instance;
+    }
 
     /**
      * Adds a new CSR to the DB
@@ -124,5 +133,16 @@ public class CSRService {
      */
     public void deleteCSR(String serialNo, String tenantDomain) throws CAException {
         csrDAO.deleteCSR(serialNo, tenantDomain);
+    }
+
+    /**
+     * Retrieves the CSR by serial number
+     *
+     * @param serialNo The serial no of the CSR to be retrieved
+     * @return The CSR as a PKCS10CertificationRequest
+     * @throws org.wso2.carbon.identity.certificateauthority.CAException
+     */
+    public PKCS10CertificationRequest getPKCS10CertificationRequest(String serialNo) throws CAException {
+        return csrDAO.getPKCS10CertificationRequest(serialNo);
     }
 }
