@@ -128,6 +128,10 @@ public class CSR {
         return country;
     }
 
+    /**
+     * Gets the value of ST in CSR
+     * @return
+     */
     public String getState() {
         return state;
     }

@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.certificateauthority.services;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bouncycastle.asn1.x509.CRLNumber;
@@ -96,6 +97,9 @@ public class CRLService {
      */
     public byte[] getLatestCrl(String tenantDomain)
             throws CAException {
+        if(StringUtils.isEmpty(tenantDomain)){
+            throw new IllegalArgumentException("Tenant domain cannot be empty");
+        }
         try {
             return crlDAO.getLatestCRL(tenantDomain, false).getBase64Crl().getBytes(
                     CAConstants.UTF_8_CHARSET);
@@ -113,6 +117,9 @@ public class CRLService {
      */
     public byte[] getLatestDeltaCrl(String tenantDomain)
             throws CAException {
+        if(StringUtils.isEmpty(tenantDomain)){
+            throw new IllegalArgumentException("Tenant domain cannot be empty");
+        }
         try {
             return crlDAO.getLatestCRL(tenantDomain, true).getBase64Crl()
                     .getBytes(CAConstants.UTF_8_CHARSET);
@@ -139,6 +146,9 @@ public class CRLService {
      * @throws CAException
      */
     public X509CRL getLatestX509Crl(String tenantDomain) throws CAException {
+        if(StringUtils.isEmpty(tenantDomain)){
+            throw new IllegalArgumentException("Tenant domain cannot be empty");
+        }
         try {
             return CAObjectUtils.toX509Crl(crlDAO.getLatestCRL(tenantDomain, false).getBase64Crl());
         } catch (UnsupportedEncodingException e) {
@@ -208,6 +218,9 @@ public class CRLService {
      */
 
     public X509CRL createFullCrl(String tenantDomain) throws CAException {
+        if(StringUtils.isEmpty(tenantDomain)){
+            throw new IllegalArgumentException("Tenant domain cannot be empty");
+        }
         RevocationDAO revocationDAO = new RevocationDAO();
         CRLDAO crlDAO = new CRLDAO();
         List<RevokedCertificate> revokedCertificates = revocationDAO.listRevokedCertificates(tenantDomain);
@@ -232,6 +245,9 @@ public class CRLService {
      * @throws CAException
      */
     public X509CRL createDeltaCrl(String tenantDomain) throws CAException {
+        if(StringUtils.isEmpty(tenantDomain)){
+            throw new IllegalArgumentException("Tenant domain cannot be empty");
+        }
         RevocationDAO revocationDAO = new RevocationDAO();
         X509CRL latestCrl;
         try {
@@ -264,6 +280,9 @@ public class CRLService {
      * @throws CAException
      */
     public void createAndStoreCrl(String tenantDomain) throws CAException {
+        if(StringUtils.isEmpty(tenantDomain)){
+            throw new IllegalArgumentException("Tenant domain cannot be empty");
+        }
         X509CRL crl = createFullCrl(tenantDomain);
         RevocationDAO revocationDAO = new RevocationDAO();
         revocationDAO.removeReactivatedCertificates();
@@ -285,6 +304,9 @@ public class CRLService {
      * @throws CAException
      */
     public void createAndStoreDeltaCrl(String tenantDomain) throws CAException {
+        if(StringUtils.isEmpty(tenantDomain)){
+            throw new IllegalArgumentException("Tenant domain cannot be empty");
+        }
         X509CRL crl = createDeltaCrl(tenantDomain);
         if (crl != null) {
             CRLDAO crlDAO = new CRLDAO();

@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.certificateauthority.services;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bouncycastle.asn1.ocsp.OCSPObjectIdentifiers;
@@ -74,6 +75,12 @@ public class OCSPService {
      */
     public OCSPResp handleOCSPRequest(OCSPReq req, String tenantDomain)
             throws CAException {
+        if(StringUtils.isEmpty(tenantDomain)){
+            throw new IllegalArgumentException("Tenant domain cannot be empty");
+        }
+        if(req == null){
+            throw new IllegalArgumentException("OCSP request cannot be null");
+        }
         OCSPRespBuilder respGenerator = new OCSPRespBuilder();
         try {
             if (req == null || req.getRequestList().length <= 0) {

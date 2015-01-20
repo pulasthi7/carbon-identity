@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.certificateauthority.services;
 
 import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bouncycastle.asn1.ASN1Set;
@@ -61,9 +62,17 @@ public class SCEPService {
      */
     public X509Certificate enroll(PKCS10CertificationRequest certReq, String transactionId, String tenantDomain)
             throws CAException {
-        int tenantId = 0;
+        if(StringUtils.isEmpty(tenantDomain)){
+            throw new IllegalArgumentException("Tenant domain cannot be empty");
+        }
+        if(StringUtils.isEmpty(transactionId)){
+            throw new IllegalArgumentException("Transaction ID cannot be empty");
+        }
+        if(certReq == null){
+            throw new IllegalArgumentException("Certificate request cannot be null");
+        }
         try {
-            tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId
+            int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId
                     (tenantDomain);
             String token = "";
             Attribute[] attributes = certReq.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_challengePassword);
@@ -101,6 +110,12 @@ public class SCEPService {
      * @throws CAException
      */
     public X509Certificate getCertificate(String tenantDomain, String transactionId) throws CAException {
+        if(StringUtils.isEmpty(tenantDomain)){
+            throw new IllegalArgumentException("Tenant domain cannot be empty");
+        }
+        if(StringUtils.isEmpty(transactionId)){
+            throw new IllegalArgumentException("Transaction ID cannot be empty");
+        }
         return scepDAO.getCertificate(transactionId, tenantDomain);
     }
 
@@ -112,6 +127,9 @@ public class SCEPService {
      * @throws CAException
      */
     public X509Certificate getCaCert(String tenantDomain) throws CAException {
+        if(StringUtils.isEmpty(tenantDomain)){
+            throw new IllegalArgumentException("Tenant domain cannot be empty");
+        }
         return CAConfigurationService.getInstance().getConfiguredCACert(tenantDomain);
     }
 
@@ -123,19 +141,31 @@ public class SCEPService {
      * @throws CAException
      */
     public PrivateKey getCaKey(String tenantDomain) throws CAException {
+        if(StringUtils.isEmpty(tenantDomain)){
+            throw new IllegalArgumentException("Tenant domain cannot be empty");
+        }
         return CAConfigurationService.getInstance().getConfiguredPrivateKey(tenantDomain);
     }
 
     /**
      * Generate a SCEP token to be used for SCEP operations
      *
-     * @param username        The user who is generating the token
+     * @param userName        The user who is generating the token
      * @param tenantDomain    The tenant domain of the user
      * @param userStoreDomain The user store domain of the user
      * @return The generated SCEP token
      * @throws CAException
      */
-    public String generateScepToken(String username, String tenantDomain, String userStoreDomain) throws CAException {
+    public String generateScepToken(String userName, String tenantDomain, String userStoreDomain) throws CAException {
+        if(StringUtils.isEmpty(tenantDomain)){
+            throw new IllegalArgumentException("Tenant domain cannot be empty");
+        }
+        if(StringUtils.isEmpty(userName)){
+            throw new IllegalArgumentException("User name cannot be empty");
+        }
+        if(StringUtils.isEmpty(userStoreDomain)){
+            throw new IllegalArgumentException("User store domain cannot be empty");
+        }
         CAConfigurationService configurationService = CAConfigurationService.getInstance();
         int tokenLength = configurationService.getTokenLength();
         String token = "";
@@ -144,7 +174,7 @@ public class SCEPService {
         //If the generated token exists in the db (used/available/expired) try with another
         while (!added) {
             token = RandomStringUtils.randomAlphanumeric(tokenLength);
-            added = scepDAO.addSCEPToken(token, username, userStoreDomain, tenantDomain);
+            added = scepDAO.addSCEPToken(token, userName, userStoreDomain, tenantDomain);
             retries++;
             if (retries >= CAConstants.MAX_SCEP_TOKEN_RETRIES) {
                 throw new CAException("Token creation failed, All tried keys exists in db. Try updating token length.");

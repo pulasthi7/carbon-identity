@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.certificateauthority.services;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bouncycastle.asn1.ASN1EncodableVector;
@@ -90,11 +91,20 @@ public class CertificateService {
      * @throws org.wso2.carbon.identity.certificateauthority.CAException If signing or storing the certificate fails
      */
     public void signCSR(String tenantDomain, String serialNo, int validity) throws CAException {
+        if(StringUtils.isEmpty(tenantDomain)){
+            throw new IllegalArgumentException("Tenant domain cannot be empty");
+        }
+        if(StringUtils.isEmpty(serialNo)){
+            throw new IllegalArgumentException("CSR Serial number cannot be empty");
+        }
+        if(validity<=0){
+            throw new IllegalArgumentException("Validity should have a positive value");
+        }
         CSRService csrService = CSRService.getInstance();
         CSR csr = csrService.getCSR(serialNo, tenantDomain);
 
-        if (!CSRStatus.PENDING.toString().equals(csr.getStatus())) {
-            throw new CAException("Certificate already signed, rejected or revoked");
+        if (csr != null && !CSRStatus.PENDING.toString().equals(csr.getStatus())) {
+            throw new CAException("CSR cannot be signed, It's either invalid, already signed, rejected or revoked");
         }
         CAConfigurationService caConfigurationService = CAConfigurationService.getInstance();
         PKCS10CertificationRequest certificationRequest = csrService.getPKCS10CertificationRequest(serialNo);
@@ -115,10 +125,21 @@ public class CertificateService {
      * @throws CAException
      */
     public void revokeCert(String tenantDomain, String serialNo, int reason) throws CAException {
+        if(StringUtils.isEmpty(tenantDomain)){
+            throw new IllegalArgumentException("Tenant domain cannot be empty");
+        }
+        if(StringUtils.isEmpty(serialNo)){
+            throw new IllegalArgumentException("Certificate Serial number cannot be empty");
+        }
+        if(!isRevokeReasonValid(reason)) {
+            throw new IllegalArgumentException("Reason code "+ reason + " is not valid");
+        }
         int currentRevokeReason = revocationDAO.getRevokeReason(serialNo);
         if (currentRevokeReason < 0) {
+            // -1 is returned if there is no revoke information available for the certificate. So we need to add as new.
             revocationDAO.addRevokedCertificate(serialNo, tenantDomain, reason);
         } else {
+            // certificate is already revoked, we are updating the reason
             revocationDAO.updateRevokedCertificate(serialNo, tenantDomain, reason);
         }
     }
@@ -132,6 +153,12 @@ public class CertificateService {
      * @throws CAException
      */
     public void revokeAllIssuedCertificates(String tenantDomain, int revokeReason) throws CAException {
+        if(StringUtils.isEmpty(tenantDomain)){
+            throw new IllegalArgumentException("Tenant domain cannot be empty");
+        }
+        if(!isRevokeReasonValid(revokeReason)) {
+            throw new IllegalArgumentException("Reason code "+ revokeReason + " is not valid");
+        }
         CertificateDAO certificateDAO = new CertificateDAO();
         List<Certificate> certificates =
                 certificateDAO.listCertificates(CertificateStatus.ACTIVE.toString(), tenantDomain);
@@ -148,6 +175,9 @@ public class CertificateService {
      * @throws CAException
      */
     public String getPemEncodedCertificate(String serialNo) throws CAException {
+        if(StringUtils.isEmpty(serialNo)){
+            throw new IllegalArgumentException("Certificate Serial number cannot be empty");
+        }
         X509Certificate x509Certificate = certificateDAO.getCertificate(serialNo);
         try {
             if (x509Certificate != null) {
@@ -167,6 +197,9 @@ public class CertificateService {
      * @throws CAException
      */
     public X509Certificate getX509Certificate(String serialNo) throws CAException {
+        if(StringUtils.isEmpty(serialNo)){
+            throw new IllegalArgumentException("Certificate Serial number cannot be empty");
+        }
         return certificateDAO.getCertificate(serialNo);
     }
 
@@ -250,6 +283,12 @@ public class CertificateService {
      * @return Information about the certificate
      */
     public Certificate getCertificate(String serialNo, String tenantDomain) throws CAException {
+        if(StringUtils.isEmpty(tenantDomain)){
+            throw new IllegalArgumentException("Tenant domain cannot be empty");
+        }
+        if(StringUtils.isEmpty(serialNo)){
+            throw new IllegalArgumentException("Certificate Serial number cannot be empty");
+        }
         return certificateDAO.getCertificate(serialNo, tenantDomain);
     }
 
@@ -261,6 +300,9 @@ public class CertificateService {
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
     public List<Certificate> listCertificates(String tenantDomain) throws CAException {
+        if(StringUtils.isEmpty(tenantDomain)){
+            throw new IllegalArgumentException("Tenant domain cannot be empty");
+        }
         return certificateDAO.listCertificates(tenantDomain);
     }
 
@@ -273,6 +315,12 @@ public class CertificateService {
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
     public List<Certificate> listCertificates(String status, String tenantDomain) throws CAException {
+        if(StringUtils.isEmpty(tenantDomain)){
+            throw new IllegalArgumentException("Tenant domain cannot be empty");
+        }
+        if(StringUtils.isEmpty(status)){
+            throw new IllegalArgumentException("Status cannot be empty");
+        }
         return certificateDAO.listCertificates(status, tenantDomain);
     }
 
@@ -284,6 +332,19 @@ public class CertificateService {
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
     public RevokedCertificate getRevokedCertificate(String serialNo) throws CAException {
+        if(StringUtils.isEmpty(serialNo)){
+            throw new IllegalArgumentException("Certificate Serial number cannot be empty");
+        }
         return revocationDAO.getRevokedCertificate(serialNo);
+    }
+
+    /**
+     * Check whether the given reason code is valid
+     * @param reasonCode The reason code to be validated
+     * @return <code>true</code> if reason code is valid, <code>false</code> otherwise
+     */
+    private boolean isRevokeReasonValid(int reasonCode){
+        //reason code should have a value in range [0,10], see CRLReason class for exact values.
+        return reasonCode >= 0 && reasonCode <= 10 ;
     }
 }

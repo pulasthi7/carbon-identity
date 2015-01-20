@@ -84,6 +84,9 @@ public class CAConfigurationService {
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
     public X509Certificate getConfiguredCACert(String tenantDomain) throws CAException {
+        if(StringUtils.isEmpty(tenantDomain)){
+            throw new IllegalArgumentException("Tenant domain cannot be empty");
+        }
         ConfigurationDAO configurationDAO = new ConfigurationDAO();
         String keyPath = configurationDAO.getConfiguredKey(tenantDomain);
         try {
@@ -117,6 +120,9 @@ public class CAConfigurationService {
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
     public String getPemEncodedCACert(String tenantDomain) throws CAException {
+        if(StringUtils.isEmpty(tenantDomain)){
+            throw new IllegalArgumentException("Tenant domain cannot be empty");
+        }
         try {
             return CAObjectUtils.toPemEncodedCertificate(getConfiguredCACert(tenantDomain));
         } catch (IOException e) {
@@ -144,6 +150,9 @@ public class CAConfigurationService {
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
     public PrivateKey getConfiguredPrivateKey(String tenantDomain) throws CAException {
+        if(StringUtils.isEmpty(tenantDomain)){
+            throw new IllegalArgumentException("Tenant domain cannot be empty");
+        }
         String keyPath = configurationDAO.getConfiguredKey(tenantDomain);
         try {
             int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
@@ -177,6 +186,9 @@ public class CAConfigurationService {
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
     public List<String> listAllKeys(Registry registry) throws CAException {
+        if(registry == null){
+            throw new IllegalArgumentException("Registry cannot be null");
+        }
         List<String> keyList = new ArrayList<String>();
 
         //tenantId is required for KeyStoreAdmin
