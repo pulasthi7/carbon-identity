@@ -76,6 +76,4 @@ public class CRLResponder {
         // responded accordingly
         return Response.status(Response.Status.BAD_REQUEST).build();
     }
-
-
 }

@@ -77,8 +77,7 @@ public class SCEPServletImpl extends ScepServlet {
     }
 
     @Override
-    protected List<X509Certificate> doGetCert(X500Name x500Name, BigInteger bigInteger)
-            throws Exception {
+    protected List<X509Certificate> doGetCert(X500Name x500Name, BigInteger bigInteger) throws Exception {
         List<X509Certificate> certificateList = new ArrayList<X509Certificate>();
         CertificateService certificateService = CAEndpointUtils.getCertificateService();
         X509Certificate x509Certificate = certificateService.getX509Certificate(bigInteger.toString());
@@ -98,8 +97,7 @@ public class SCEPServletImpl extends ScepServlet {
                                                      TransactionId transactionId) throws Exception {
         SCEPService scepService = CAEndpointUtils.getSCEPService();
         List<X509Certificate> certificateList = new ArrayList<X509Certificate>();
-        X509Certificate certificate =
-                scepService.getCertificate(tenantDomain, transactionId.toString());
+        X509Certificate certificate = scepService.getCertificate(tenantDomain, transactionId.toString());
         X500Name certificateIssuer = new X500Name(certificate.getIssuerX500Principal().getName());
         X500Name certificateSubject = new X500Name(certificate.getSubjectX500Principal().getName());
         if (certificateIssuer.equals(issuer) && certificateSubject.equals(subject)) {

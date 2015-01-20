@@ -54,7 +54,7 @@ public class CertificateRetriever {
         try {
             CertificateService certificateService = CAEndpointUtils.getCertificateService();
             String certificate = certificateService.getPemEncodedCertificate(serialNo);
-            if (!StringUtils.isBlank(certificate)) {
+            if (StringUtils.isNotBlank(certificate)) {
                 return Response.ok().type(CAEndpointConstants.X509_USER_CERT_MEDIA_TYPE).entity(certificate).build();
             }
         } catch (CAException e) {
@@ -104,7 +104,7 @@ public class CertificateRetriever {
         try {
             CertificateService certificateService = CAEndpointUtils.getCertificateService();
             String certificate = certificateService.getPemEncodedCertificate(serialNo);
-            if (!StringUtils.isBlank(certificate)) {
+            if (StringUtils.isNotBlank(certificate)) {
                 return Response.ok().type(MediaType.APPLICATION_OCTET_STREAM_TYPE).entity(certificate).build();
             }
         } catch (Exception e) {
