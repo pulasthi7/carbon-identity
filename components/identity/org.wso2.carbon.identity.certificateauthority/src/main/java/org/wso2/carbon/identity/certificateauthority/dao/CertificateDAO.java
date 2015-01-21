@@ -32,6 +32,8 @@ import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -65,13 +67,15 @@ public class CertificateDAO {
         Date requestDate = new Date();
         String sql = SQLConstants.ADD_CERTIFICATE_QUERY;
         PreparedStatement prepStatement = null;
+        InputStream certificateDataStream = null;
         try {
             int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
+            certificateDataStream = new ByteArrayInputStream(certificate.getEncoded());
             connection = IdentityDatabaseUtil.getDBConnection();
             Date expiryDate = certificate.getNotAfter();
             prepStatement = connection.prepareStatement(sql);
             prepStatement.setString(1, serialNo);
-            prepStatement.setBlob(2, new ByteArrayInputStream(certificate.getEncoded()));
+            prepStatement.setBlob(2, certificateDataStream);
             prepStatement.setString(3, CertificateStatus.ACTIVE.toString());
             prepStatement.setTimestamp(4, new Timestamp(requestDate.getTime()));
             prepStatement.setTimestamp(5, new Timestamp(expiryDate.getTime()));
@@ -96,6 +100,13 @@ public class CertificateDAO {
         } catch (UserStoreException e) {
             throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } finally {
+            if (certificateDataStream != null) {
+                try {
+                    certificateDataStream.close();
+                } catch (IOException e) {
+                    log.error("Error when closing certificate data stream for certificate " + serialNo, e);
+                }
+            }
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStatement);
         }
     }

@@ -35,6 +35,7 @@ import org.wso2.carbon.user.api.UserStoreException;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.sql.Blob;
@@ -109,11 +110,13 @@ public class CSRDAO {
         } else {
             throw new IllegalArgumentException("The CN is mandatory, but it was not found in the CSR");
         }
+        InputStream csrDataStream = null;
         try {
             int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
+            csrDataStream = new ByteArrayInputStream(request.getEncoded());
             connection = IdentityDatabaseUtil.getDBConnection();
             prepStmt = connection.prepareStatement(sql);
-            prepStmt.setBlob(1, new ByteArrayInputStream(request.getEncoded()));
+            prepStmt.setBlob(1, csrDataStream);
             prepStmt.setString(2, CSRStatus.PENDING.toString());
             prepStmt.setString(3, userName);
             prepStmt.setTimestamp(4, new Timestamp(requestDate.getTime()));
@@ -133,6 +136,13 @@ public class CSRDAO {
         } catch (UserStoreException e) {
             throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } finally {
+            if (csrDataStream != null) {
+                try {
+                    csrDataStream.close();
+                } catch (IOException e) {
+                    log.error("Error when closing input stream for CSR, Serial No:" + csrSerialNo);
+                }
+            }
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
         return csrSerialNo;
