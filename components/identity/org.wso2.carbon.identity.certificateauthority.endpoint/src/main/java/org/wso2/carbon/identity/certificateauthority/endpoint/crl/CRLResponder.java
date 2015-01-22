@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.certificateauthority.endpoint.crl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.certificateauthority.CAException;
+import org.wso2.carbon.identity.certificateauthority.CAServerException;
 import org.wso2.carbon.identity.certificateauthority.endpoint.CAEndpointConstants;
 import org.wso2.carbon.identity.certificateauthority.endpoint.util.CAEndpointUtils;
 import org.wso2.carbon.identity.certificateauthority.services.CRLService;
@@ -57,6 +58,8 @@ public class CRLResponder {
             try {
                 byte[] crl = crlService.getLatestCrl(tenantDomain);
                 return Response.ok().type(CAEndpointConstants.PKIX_CRL_MEDIA_TYPE).entity(crl).build();
+            } catch (CAServerException e) {
+                log.error("Server error serving CRL request.", e);
             } catch (CAException e) {
                 if (log.isDebugEnabled()) {
                     log.debug("Error while retrieving CRL for the tenant :" + tenantDomain, e);
@@ -66,6 +69,8 @@ public class CRLResponder {
             try {
                 byte[] deltaCRL = crlService.getLatestDeltaCrl(tenantDomain);
                 return Response.ok().type(CAEndpointConstants.PKIX_CRL_MEDIA_TYPE).entity(deltaCRL).build();
+            } catch (CAServerException e) {
+                log.error("Server error serving CRL request.", e);
             } catch (CAException e) {
                 if (log.isDebugEnabled()) {
                     log.debug("error while while retrieving delta CRL for the tenant :" + tenantDomain, e);

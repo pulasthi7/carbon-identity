@@ -24,6 +24,7 @@ import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.certificateauthority.CAConstants;
 import org.wso2.carbon.identity.certificateauthority.CAException;
+import org.wso2.carbon.identity.certificateauthority.CAServerException;
 import org.wso2.carbon.identity.certificateauthority.internal.CAServiceComponent;
 import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
@@ -77,9 +78,9 @@ public class SCEPDAO {
         } catch (UserStoreException e) {
             throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } catch (IdentityException e) {
-            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
+            throw new CAServerException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            throw new CAException("Error when executing the SQL : " + sql, e);
+            throw new CAServerException("Error when executing the SQL : " + sql, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
@@ -138,9 +139,9 @@ public class SCEPDAO {
         } catch (UserStoreException e) {
             throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } catch (IdentityException e) {
-            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
+            throw new CAServerException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            throw new CAException("Error when executing the SQL : " + sql, e);
+            throw new CAServerException("Error when executing the SQL : " + sql, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
         }
@@ -178,9 +179,9 @@ public class SCEPDAO {
         } catch (UserStoreException e) {
             throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } catch (IdentityException e) {
-            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
+            throw new CAServerException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            throw new CAException("Error when executing the SQL : " + sql, e);
+            throw new CAServerException("Error when executing the SQL : " + sql, e);
         } catch (CertificateException e) {
             throw new CAException("Error with certificate factory", e);
         } finally {

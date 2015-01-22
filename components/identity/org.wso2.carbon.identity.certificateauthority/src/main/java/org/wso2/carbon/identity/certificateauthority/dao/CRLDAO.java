@@ -24,6 +24,7 @@ import org.bouncycastle.util.encoders.Base64;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.certificateauthority.CAConstants;
 import org.wso2.carbon.identity.certificateauthority.CAException;
+import org.wso2.carbon.identity.certificateauthority.CAServerException;
 import org.wso2.carbon.identity.certificateauthority.internal.CAServiceComponent;
 import org.wso2.carbon.identity.certificateauthority.model.CRLData;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
@@ -77,13 +78,13 @@ public class CRLDAO {
         } catch (UserStoreException e) {
             throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } catch (IdentityException e) {
-            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
+            throw new CAServerException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            throw new CAException("Error when executing the SQL : " + sql, e);
+            throw new CAServerException("Error when executing the SQL : " + sql, e);
         } catch (CRLException e) {
             throw new CAException("Error when CRL encoding", e);
         } catch (UnsupportedEncodingException e) {
-            throw new CAException("Error with charset used", e);
+            throw new CAServerException("Error with charset used", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
@@ -129,9 +130,9 @@ public class CRLDAO {
         } catch (UserStoreException e) {
             throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } catch (IdentityException e) {
-            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
+            throw new CAServerException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            throw new CAException("Error when executing the SQL : " + sql, e);
+            throw new CAServerException("Error when executing the SQL : " + sql, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
@@ -170,9 +171,9 @@ public class CRLDAO {
         } catch (UserStoreException e) {
             throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } catch (IdentityException e) {
-            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
+            throw new CAServerException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            throw new CAException("Error when executing the SQL : " + sql, e);
+            throw new CAServerException("Error when executing the SQL : " + sql, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }

@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.certificateauthority.CAException;
+import org.wso2.carbon.identity.certificateauthority.CAServerException;
 import org.wso2.carbon.identity.certificateauthority.endpoint.CAEndpointConstants;
 import org.wso2.carbon.identity.certificateauthority.endpoint.util.CAEndpointUtils;
 import org.wso2.carbon.identity.certificateauthority.services.CAConfigurationService;
@@ -57,6 +58,9 @@ public class CertificateRetriever {
             if (StringUtils.isNotBlank(certificate)) {
                 return Response.ok().type(CAEndpointConstants.X509_USER_CERT_MEDIA_TYPE).entity(certificate).build();
             }
+        } catch (CAServerException e) {
+            log.error("Server error getting certificate.", e);
+            return Response.serverError().build();
         } catch (CAException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Error occurred retrieving certificate with serialNo no:" + serialNo, e);
@@ -81,6 +85,9 @@ public class CertificateRetriever {
             CAConfigurationService configurationService = CAEndpointUtils.getCaConfigurationService();
             String certificate = configurationService.getPemEncodedCACert(tenantDomain);
             return Response.ok().type(CAEndpointConstants.X509_CA_CERT_MEDIA_TYPE).entity(certificate).build();
+        } catch (CAServerException e) {
+            log.error("Server error when getting CA certificate.", e);
+            return Response.serverError().build();
         } catch (CAException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Error occurred while retrieving CA certificate for tenant domain:" + tenantDomain, e);
@@ -107,7 +114,10 @@ public class CertificateRetriever {
             if (StringUtils.isNotBlank(certificate)) {
                 return Response.ok().type(MediaType.APPLICATION_OCTET_STREAM_TYPE).entity(certificate).build();
             }
-        } catch (Exception e) {
+        } catch (CAServerException e) {
+            log.error("Server error when getting encoded certificate serialNo no:" + serialNo, e);
+            return Response.serverError().build();
+        } catch (CAException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Error occurred retrieving certificate with serialNo no:" + serialNo, e);
             }
@@ -133,7 +143,10 @@ public class CertificateRetriever {
             CAConfigurationService configurationService = CAEndpointUtils.getCaConfigurationService();
             String certificate = configurationService.getPemEncodedCACert(tenantDomain);
             return Response.ok().type(MediaType.APPLICATION_OCTET_STREAM_TYPE).entity(certificate).build();
-        } catch (Exception e) {
+        } catch (CAServerException e) {
+            log.error("Server error when getting CA certificate for tenant domain" + tenantDomain, e);
+            return Response.serverError().build();
+        } catch (CAException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Error occurred retrieving CA certificate for tenant domain" + tenantDomain, e);
             }

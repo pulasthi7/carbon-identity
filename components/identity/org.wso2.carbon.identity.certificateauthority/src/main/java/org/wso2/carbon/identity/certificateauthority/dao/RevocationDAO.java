@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.bouncycastle.asn1.x509.CRLReason;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.certificateauthority.CAException;
+import org.wso2.carbon.identity.certificateauthority.CAServerException;
 import org.wso2.carbon.identity.certificateauthority.common.CertificateStatus;
 import org.wso2.carbon.identity.certificateauthority.internal.CAServiceComponent;
 import org.wso2.carbon.identity.certificateauthority.model.RevokedCertificate;
@@ -76,7 +77,7 @@ public class RevocationDAO {
         } catch (UserStoreException e) {
             throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } catch (IdentityException e) {
-            throw new CAException("Error when executing the SQL : " + sql, e);
+            throw new CAServerException("Error when executing the SQL : " + sql, e);
         } catch (SQLException e) {
             try {
                 connection.rollback();
@@ -84,7 +85,7 @@ public class RevocationDAO {
                 log.error("Error when rolling back the revocation of certificate. Serial " +
                         "no:" + serialNo, e1);
             }
-            throw new CAException("Error when revoking certificate. Serial No:" + serialNo + ", " +
+            throw new CAServerException("Error when revoking certificate. Serial No:" + serialNo + ", " +
                     "given reason code:" + reason, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
@@ -123,14 +124,14 @@ public class RevocationDAO {
         } catch (UserStoreException e) {
             throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } catch (IdentityException e) {
-            throw new CAException("Error when executing the SQL : " + sql, e);
+            throw new CAServerException("Error when executing the SQL : " + sql, e);
         } catch (SQLException e) {
             try {
                 connection.rollback();
             } catch (SQLException e1) {
                 log.error("Error when rolling back the update of revoke reason", e1);
             }
-            throw new CAException("Error updating revoke reason for certificate. Serial No:" + serialNo, e);
+            throw new CAServerException("Error updating revoke reason for certificate. Serial No:" + serialNo, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
@@ -180,9 +181,9 @@ public class RevocationDAO {
                 return -1;
             }
         } catch (SQLException e) {
-            throw new CAException("Error when executing the SQL : " + sql, e);
+            throw new CAServerException("Error when executing the SQL : " + sql, e);
         } catch (IdentityException e) {
-            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
+            throw new CAServerException("Error when getting an Identity Persistence Store instance.", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
         }
@@ -213,9 +214,9 @@ public class RevocationDAO {
                 return revokedCertificatesList.get(0);
             }
         } catch (IdentityException e) {
-            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
+            throw new CAServerException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            throw new CAException("Error when executing the SQL : " + sql, e);
+            throw new CAServerException("Error when executing the SQL : " + sql, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
         }
@@ -262,9 +263,9 @@ public class RevocationDAO {
             resultSet = prepStmt.executeQuery();
             return getRevokedCertificatesList(resultSet);
         } catch (IdentityException e) {
-            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
+            throw new CAServerException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            throw new CAException("Error when executing the SQL : " + sql, e);
+            throw new CAServerException("Error when executing the SQL : " + sql, e);
         } catch (UserStoreException e) {
             throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } finally {
@@ -289,9 +290,9 @@ public class RevocationDAO {
             prepStmt.executeUpdate();
             connection.commit();
         } catch (IdentityException e) {
-            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
+            throw new CAServerException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            throw new CAException("Error when executing the SQL : " + sql, e);
+            throw new CAServerException("Error when executing the SQL : " + sql, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
@@ -324,9 +325,9 @@ public class RevocationDAO {
         } catch (UserStoreException e) {
             throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } catch (IdentityException e) {
-            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
+            throw new CAServerException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            throw new CAException("Error when executing the SQL : " + sql, e);
+            throw new CAServerException("Error when executing the SQL : " + sql, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
         }

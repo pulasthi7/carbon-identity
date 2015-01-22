@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.certificateauthority.CAConstants;
 import org.wso2.carbon.identity.certificateauthority.CAException;
+import org.wso2.carbon.identity.certificateauthority.CAServerException;
 import org.wso2.carbon.identity.certificateauthority.common.CSRStatus;
 import org.wso2.carbon.identity.certificateauthority.common.CertificateStatus;
 import org.wso2.carbon.identity.certificateauthority.internal.CAServiceComponent;
@@ -87,14 +88,14 @@ public class CertificateDAO {
             csrDAO.updateStatus(connection, serialNo, CSRStatus.SIGNED, tenantId);
             connection.commit();
         } catch (IdentityException e) {
-            throw new CAException("Error when getting an Identity Persistence Store instance", e);
+            throw new CAServerException("Error when getting an Identity Persistence Store instance", e);
         } catch (SQLException e) {
             try {
                 connection.rollback();
             } catch (SQLException e1) {
                 log.error("Error when rolling back the transaction to sign CSR", e1);
             }
-            throw new CAException("Error when executing the SQL : " + sql, e);
+            throw new CAServerException("Error when executing the SQL : " + sql, e);
         } catch (CertificateEncodingException e) {
             throw new CAException("Error while encoding certificate, serial no:" + serialNo, e);
         } catch (UserStoreException e) {
@@ -165,9 +166,9 @@ public class CertificateDAO {
                 }
             }
         } catch (IdentityException e) {
-            throw new CAException("Error when getting an Identity Persistence Store instance", e);
+            throw new CAServerException("Error when getting an Identity Persistence Store instance", e);
         } catch (SQLException e) {
-            throw new CAException("Error when executing the SQL : " + sql, e);
+            throw new CAServerException("Error when executing the SQL : " + sql, e);
         } catch (CertificateException e) {
             throw new CAException("Error generating certificate from blob for serial no: " + serialNo, e);
         } finally {
@@ -211,9 +212,9 @@ public class CertificateDAO {
                         expiryDate, status, username, tenantDomain, userStoreDomain);
             }
         } catch (IdentityException e) {
-            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
+            throw new CAServerException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            throw new CAException("Error when executing the SQL : " + sql, e);
+            throw new CAServerException("Error when executing the SQL : " + sql, e);
         } catch (UserStoreException e) {
             throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } finally {
@@ -246,9 +247,9 @@ public class CertificateDAO {
             resultSet = prepStmt.executeQuery();
             return getCertificatesFromResultSet(resultSet, tenantDomain);
         } catch (IdentityException e) {
-            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
+            throw new CAServerException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            throw new CAException("Error when executing the SQL : " + sql, e);
+            throw new CAServerException("Error when executing the SQL : " + sql, e);
         } catch (UserStoreException e) {
             throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } finally {
@@ -278,9 +279,9 @@ public class CertificateDAO {
             resultSet = prepStmt.executeQuery();
             return getCertificatesFromResultSet(resultSet, tenantDomain);
         } catch (IdentityException e) {
-            throw new CAException("Error when getting an Identity Persistence Store instance", e);
+            throw new CAServerException("Error when getting an Identity Persistence Store instance", e);
         } catch (SQLException e) {
-            throw new CAException("Error when executing the SQL : " + sql, e);
+            throw new CAServerException("Error when executing the SQL : " + sql, e);
         } catch (UserStoreException e) {
             throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } finally {

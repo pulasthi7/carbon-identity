@@ -26,6 +26,7 @@ import org.jscep.server.ScepServlet;
 import org.jscep.transaction.TransactionId;
 import org.jscep.transport.response.Capability;
 import org.wso2.carbon.identity.certificateauthority.CAException;
+import org.wso2.carbon.identity.certificateauthority.CAServerException;
 import org.wso2.carbon.identity.certificateauthority.endpoint.CAEndpointConstants;
 import org.wso2.carbon.identity.certificateauthority.endpoint.util.CAEndpointUtils;
 import org.wso2.carbon.identity.certificateauthority.services.CRLService;
@@ -142,6 +143,9 @@ public class SCEPServletImpl extends ScepServlet {
         try {
             SCEPService scepService = CAEndpointUtils.getSCEPService();
             return scepService.getCaKey(tenantDomain);
+        } catch (CAServerException e) {
+            log.error("Server error when getting signer key.", e);
+            return null;
         } catch (CAException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Key not available for tenant domain: " + tenantDomain, e);
@@ -155,6 +159,9 @@ public class SCEPServletImpl extends ScepServlet {
         try {
             SCEPService scepService = CAEndpointUtils.getSCEPService();
             return scepService.getCaCert(tenantDomain);
+        } catch (CAServerException e) {
+            log.error("Server Error when getting signer.", e);
+            return null;
         } catch (CAException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Certificate not available for tenant domain: " + tenantDomain, e);

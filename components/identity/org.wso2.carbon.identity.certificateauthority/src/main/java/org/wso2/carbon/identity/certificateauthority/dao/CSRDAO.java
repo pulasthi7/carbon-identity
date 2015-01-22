@@ -26,6 +26,7 @@ import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.certificateauthority.CAException;
+import org.wso2.carbon.identity.certificateauthority.CAServerException;
 import org.wso2.carbon.identity.certificateauthority.common.CSRStatus;
 import org.wso2.carbon.identity.certificateauthority.internal.CAServiceComponent;
 import org.wso2.carbon.identity.certificateauthority.model.CSR;
@@ -128,9 +129,9 @@ public class CSRDAO {
             prepStmt.executeUpdate();
             connection.commit();
         } catch (IdentityException e) {
-            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
+            throw new CAServerException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            throw new CAException("Error when executing the SQL : " + sql, e);
+            throw new CAServerException("Error when executing the SQL : " + sql, e);
         } catch (IOException e) {
             throw new CAException("Error when reading CSR to byte stream", e);
         } catch (UserStoreException e) {
@@ -140,7 +141,7 @@ public class CSRDAO {
                 try {
                     csrDataStream.close();
                 } catch (IOException e) {
-                    log.error("Error when closing input stream for CSR, Serial No:" + csrSerialNo);
+                    log.error("Error when closing input stream for CSR, Serial No:" + csrSerialNo, e);
                 }
             }
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
@@ -175,9 +176,9 @@ public class CSRDAO {
                 return csrInfoList.get(0);
             }
         } catch (IdentityException e) {
-            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
+            throw new CAServerException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            throw new CAException("Error when executing the SQL : " + sql, e);
+            throw new CAServerException("Error when executing the SQL : " + sql, e);
         } catch (IOException e) {
             throw new CAException("Error decoding CSR", e);
         } catch (UserStoreException e) {
@@ -246,9 +247,9 @@ public class CSRDAO {
                 return new PKCS10CertificationRequest(csrBlob.getBytes(1, (int) csrBlob.length()));
             }
         } catch (IdentityException e) {
-            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
+            throw new CAServerException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            throw new CAException("Error when executing the SQL : " + sql, e);
+            throw new CAServerException("Error when executing the SQL : " + sql, e);
         } catch (IOException e) {
             throw new CAException("Error decoding CSR", e);
         } finally {
@@ -285,9 +286,9 @@ public class CSRDAO {
                 return csrInfoList.get(0);
             }
         } catch (IdentityException e) {
-            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
+            throw new CAServerException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            throw new CAException("Error when executing the SQL : " + sql, e);
+            throw new CAServerException("Error when executing the SQL : " + sql, e);
         } catch (IOException e) {
             throw new CAException("Error decoding CSR", e);
         } catch (UserStoreException e) {
@@ -322,9 +323,9 @@ public class CSRDAO {
             resultSet = prepStmt.executeQuery();
             return getCSRListFromResultSet(resultSet, tenantDomain);
         } catch (IdentityException e) {
-            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
+            throw new CAServerException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            throw new CAException("Error when executing the SQL : " + sql, e);
+            throw new CAServerException("Error when executing the SQL : " + sql, e);
         } catch (IOException e) {
             throw new CAException("Error when decoding the CSR", e);
         } catch (UserStoreException e) {
@@ -359,9 +360,9 @@ public class CSRDAO {
             resultSet = prepStmt.executeQuery();
             return getCSRListFromResultSet(resultSet, tenantDomain);
         } catch (IdentityException e) {
-            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
+            throw new CAServerException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            throw new CAException("Error when executing the SQL : " + sql, e);
+            throw new CAServerException("Error when executing the SQL : " + sql, e);
         } catch (IOException e) {
             throw new CAException("Error when decoding the CSR", e);
         } catch (UserStoreException e) {
@@ -393,9 +394,9 @@ public class CSRDAO {
             resultSet = prepStmt.executeQuery();
             return getCSRListFromResultSet(resultSet, tenantDomain);
         } catch (IdentityException e) {
-            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
+            throw new CAServerException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            throw new CAException("Error when executing the SQL : " + sql, e);
+            throw new CAServerException("Error when executing the SQL : " + sql, e);
         } catch (IOException e) {
             throw new CAException("Error when decoding the CSR", e);
         } catch (UserStoreException e) {
@@ -494,9 +495,9 @@ public class CSRDAO {
             prepStmt.setInt(2, tenantId);
             prepStmt.executeUpdate();
         } catch (IdentityException e) {
-            throw new CAException("Error when getting an Identity Persistence Store instance.", e);
+            throw new CAServerException("Error when getting an Identity Persistence Store instance.", e);
         } catch (SQLException e) {
-            throw new CAException("Error when executing the SQL : " + sql, e);
+            throw new CAServerException("Error when executing the SQL : " + sql, e);
         } catch (UserStoreException e) {
             throw new CAException("Invalid tenant domain :" + tenantDomain, e);
         } finally {

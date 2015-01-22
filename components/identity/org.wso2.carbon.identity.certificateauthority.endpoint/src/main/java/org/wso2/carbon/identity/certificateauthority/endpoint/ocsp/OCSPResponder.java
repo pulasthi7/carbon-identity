@@ -24,6 +24,7 @@ import org.apache.commons.logging.LogFactory;
 import org.bouncycastle.cert.ocsp.OCSPReq;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.wso2.carbon.identity.certificateauthority.CAException;
+import org.wso2.carbon.identity.certificateauthority.CAServerException;
 import org.wso2.carbon.identity.certificateauthority.endpoint.CAEndpointConstants;
 import org.wso2.carbon.identity.certificateauthority.endpoint.util.CAEndpointUtils;
 import org.wso2.carbon.identity.certificateauthority.services.OCSPService;
@@ -64,8 +65,11 @@ public class OCSPResponder {
             OCSPResp ocspResp = ocspService.handleOCSPRequest(ocspReq, tenant);
             return Response.ok().type(CAEndpointConstants.OCSP_RESPONSE_MEDIA_TYPE).entity(ocspResp.getEncoded())
                     .build();
+        } catch (CAServerException e) {
+            //logging as error because this should have occurred due to a server error.
+            log.error("Server Error when handling OCSP request.", e);
+            return Response.serverError().build();
         } catch (CAException e) {
-            //This can be thrown due to multiple reasons, the reason and context can be found at exception's message
             if (log.isDebugEnabled()) {
                 log.debug("Error when handling the OCSP request for tenant:" + tenant, e);
             }
