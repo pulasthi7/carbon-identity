@@ -22,23 +22,26 @@ import org.wso2.carbon.identity.certificateauthority.CAException;
 
 import java.security.cert.X509CRL;
 
+/**
+ * The service interface for CRL services.
+ */
 public interface CRLService {
     /**
-     * Create and stores a new CRL
+     * Create and stores a new CRL.
      *
      * @throws CAException
      */
     public void addCRL() throws CAException;
 
     /**
-     * Create and stores a new delta CRL
+     * Create and stores a new delta CRL.
      *
      * @throws CAException
      */
     public void addDeltaCrl() throws CAException;
 
     /**
-     * Gets the latest CRL in binary format
+     * Gets the latest CRL in binary format.
      *
      * @param tenantDomain The tenant domain of the CA
      * @return The CRL in binary format
@@ -47,7 +50,7 @@ public interface CRLService {
     public byte[] getLatestCrl(String tenantDomain) throws CAException;
 
     /**
-     * Gets the latest delta CRL in binary format
+     * Gets the latest delta CRL in binary format.
      *
      * @param tenantDomain The tenant domain of the CA
      * @return The deltaCRL in binary format
@@ -56,14 +59,14 @@ public interface CRLService {
     public byte[] getLatestDeltaCrl(String tenantDomain) throws CAException;
 
     /**
-     * Update the CRL
+     * Update the CRL.
      *
      * @throws CAException
      */
     public void updateCrl() throws CAException;
 
     /**
-     * Get the latest CRL for the tenant CA
+     * Get the latest CRL for the tenant CA.
      *
      * @param tenantDomain The tenant domain of the CA
      * @return CRL of CA in X509 format
@@ -72,7 +75,7 @@ public interface CRLService {
     public X509CRL getLatestX509Crl(String tenantDomain) throws CAException;
 
     /**
-     * Create full CRL for the given tenant
+     * Create full CRL for the given tenant.
      *
      * @param tenantDomain The tenant domain
      * @return Full CRL of the tenant
@@ -81,7 +84,7 @@ public interface CRLService {
     public X509CRL createFullCrl(String tenantDomain) throws CAException;
 
     /**
-     * Create delta CRL for the given tenant
+     * Create delta CRL for the given tenant.
      *
      * @param tenantDomain The tenant domain of the CA
      * @return The delta CRL of the tenant CA
@@ -90,7 +93,7 @@ public interface CRLService {
     public X509CRL createDeltaCrl(String tenantDomain) throws CAException;
 
     /**
-     * Creates and store a CRL in db for the given tenant
+     * Creates and store a CRL in db for the given tenant.
      *
      * @param tenantDomain The tenant domain of the CA
      * @throws CAException
@@ -98,7 +101,7 @@ public interface CRLService {
     public void createAndStoreCrl(String tenantDomain) throws CAException;
 
     /**
-     * Create and store a delta CRL in database
+     * Create and store a delta CRL in database.
      *
      * @param tenantDomain The tenant id of the CA
      * @throws CAException

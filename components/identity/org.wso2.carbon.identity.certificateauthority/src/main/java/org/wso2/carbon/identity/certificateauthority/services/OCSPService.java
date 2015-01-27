@@ -22,10 +22,13 @@ import org.bouncycastle.cert.ocsp.OCSPReq;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.wso2.carbon.identity.certificateauthority.CAException;
 
+/**
+ * The service interface for OCSP services.
+ */
 public interface OCSPService {
 
     /**
-     * handles the OCSP requests
+     * handles the OCSP requests.
      *
      * @param req          The OCSP request
      * @param tenantDomain The tenant domain of the CA for whom the request is made

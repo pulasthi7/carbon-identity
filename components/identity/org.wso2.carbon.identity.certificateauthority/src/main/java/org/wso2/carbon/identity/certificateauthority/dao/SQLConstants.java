@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.certificateauthority.dao;
 
 /**
- * Contains the SQL queries for CA operations
+ * Contains the SQL queries for CA operations.
  */
 public class SQLConstants {
 

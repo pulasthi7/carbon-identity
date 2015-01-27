@@ -25,6 +25,9 @@ import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
+/**
+ * The service interface for CA configurations.
+ */
 public interface CAConfigurationService {
 
     /**
@@ -58,7 +61,7 @@ public interface CAConfigurationService {
 
     /**
      * Returns the private key of the current tenant which is used to sign CSRs,
-     * CRL and OCSP requests
+     * CRL and OCSP requests.
      *
      * @return The private key of the current tenant
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
@@ -67,7 +70,7 @@ public interface CAConfigurationService {
 
     /**
      * Returns the private key of the given tenant, which is used to sign CSRs,
-     * CRL and OCSP requests
+     * CRL and OCSP requests.
      *
      * @return The private key of the given tenant
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
@@ -76,7 +79,7 @@ public interface CAConfigurationService {
 
     /**
      * Lists all the keys available for the current tenant. Tenant admin can configure one of
-     * them as the key to sign the CSRs, CRLs and OCSP requests
+     * them as the key to sign the CSRs, CRLs and OCSP requests.
      *
      * @param registry The registry where the keystores are
      * @return List of keystores and key aliases in the format "keystore/alias"
@@ -87,7 +90,7 @@ public interface CAConfigurationService {
     /**
      * Update the key that the tenant will be using for CA operations.<br/>
      * <b>Note: </b> Updating the key will revoke all the certificates that were signed using the
-     * key
+     * key.
      *
      * @param tenantDomain The tenant domain of the tenant whose key should be updated
      * @param keyStore     The new keystore where the key is
@@ -97,7 +100,7 @@ public interface CAConfigurationService {
     public void updateKey(String tenantDomain, String keyStore, String alias) throws CAException;
 
     /**
-     * Get the validity of a generated SCEP token
+     * Get the validity of a generated SCEP token.
      *
      * @return
      */
@@ -111,7 +114,7 @@ public interface CAConfigurationService {
     public int getTokenLength();
 
     /**
-     * Get the validity of the certificates that are issued from a SCEP operation
+     * Get the validity of the certificates that are issued from a SCEP operation.
      *
      * @return
      */

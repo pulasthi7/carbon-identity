@@ -23,26 +23,25 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.certificateauthority.bean.CSR;
 import org.wso2.carbon.identity.certificateauthority.bean.Certificate;
+import org.wso2.carbon.identity.certificateauthority.internal.CAServiceComponent;
 import org.wso2.carbon.identity.certificateauthority.services.CSRService;
-import org.wso2.carbon.identity.certificateauthority.services.CSRServiceImpl;
 import org.wso2.carbon.identity.certificateauthority.services.CertificateService;
-import org.wso2.carbon.identity.certificateauthority.services.CertificateServiceImpl;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.List;
 
 /**
- * This class contains the services that will be used by the CA users
+ * This class contains the services that will be used by the CA users.
  */
 @SuppressWarnings("UnusedDeclaration")
 public class CAUserService {
 
     private static final Log log = LogFactory.getLog(CAUserService.class);
-    private CSRService csrService = CSRServiceImpl.getInstance();
-    private CertificateService certificateService = CertificateServiceImpl.getInstance();
+    private CSRService csrService = CAServiceComponent.getCsrService();
+    private CertificateService certificateService = CAServiceComponent.getCertificateService();
 
     /**
-     * Sends a CSR to the CA to be signed
+     * Sends a CSR to the CA to be signed.
      *
      * @param encodedCSR PEM encoded CSR
      * @return The serial number of the CSR that was stored at CA
@@ -61,7 +60,7 @@ public class CAUserService {
     }
 
     /**
-     * Gets the CSR specified by the given serial number
+     * Gets the CSR specified by the given serial number.
      *
      * @param serialNo The serial number
      * @return The CSR
@@ -81,7 +80,7 @@ public class CAUserService {
     }
 
     /**
-     * Gets the CSR list requested by the current user
+     * Gets the CSR list requested by the current user.
      *
      * @return List of CSRs by the current user
      * @throws CAException
@@ -101,7 +100,7 @@ public class CAUserService {
     }
 
     /**
-     * Gets the certificate given by the serial number
+     * Gets the certificate given by the serial number.
      *
      * @param serialNo The serial number of the certificate
      * @return The certificate with the given serial number

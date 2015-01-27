@@ -56,7 +56,7 @@ public class CertificateDAO {
     private static final Log log = LogFactory.getLog(CertificateDAO.class);
 
     /**
-     * Stores certificate in the database, and update the relevant CSR status
+     * Stores certificate in the database, and update the relevant CSR status.
      *
      * @param serialNo     The serial number of the certificate
      * @param tenantDomain tenant domain tenant who issued the certificate
@@ -140,7 +140,7 @@ public class CertificateDAO {
     }
 
     /**
-     * Gets the certificate specified by the given serial number
+     * Gets the certificate specified by the given serial number.
      *
      * @param serialNo serial number of the certificate
      * @return Certificate if exists
@@ -228,7 +228,7 @@ public class CertificateDAO {
     }
 
     /**
-     * Lists all certificates issued by a tenant's CA
+     * Lists all certificates issued by a tenant's CA.
      *
      * @param tenantDomain domain of the tenant
      * @return Set of all the certificates issued by the tenant's CA
@@ -258,7 +258,7 @@ public class CertificateDAO {
     }
 
     /**
-     * Lists all certificates issued by a tenant's CA with given status
+     * Lists all certificates issued by a tenant's CA with given status.
      *
      * @param status       Status filter for the certificates
      * @param tenantDomain domain of the tenant
@@ -290,7 +290,7 @@ public class CertificateDAO {
     }
 
     /**
-     * Retrieve Certificate bean from ResultSet
+     * Retrieve Certificate bean from ResultSet.
      *
      * @param resultSet    The result set from which the certificates are retrieved
      * @param tenantDomain The id of the tenant CA relevant to the query

@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.certificateauthority;
 import org.wso2.carbon.base.ServerConfiguration;
 
 /**
- * Constants required by CA
+ * Constants required by CA.
  */
 public class CAConstants {
 
@@ -35,7 +35,7 @@ public class CAConstants {
     }
 
     /**
-     * The server URL for HTTP transport, used in building OCSP, CRL endpoint extensions
+     * The server URL for HTTP transport, used in building OCSP, CRL endpoint extensions.
      */
     public static final String HTTP_SERVER_URL;
 

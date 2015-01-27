@@ -40,7 +40,7 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 
 /**
- * Handles OCSP requests
+ * Handles OCSP requests.
  */
 @Path("/ocsp")
 public class OCSPResponder {
@@ -48,7 +48,7 @@ public class OCSPResponder {
     private static Log log = LogFactory.getLog(OCSPResponder.class);
 
     /**
-     * Responds for the OCSP requests
+     * Responds for the OCSP requests.
      *
      * @param request The HttpServletRequest from the context
      * @param tenant  The tenant domain for whom the request is made

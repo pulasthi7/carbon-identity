@@ -38,6 +38,9 @@ import org.wso2.carbon.user.api.UserStoreException;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 
+/**
+ * The service implementation of SCEPService.
+ */
 public class SCEPServiceImpl implements SCEPService {
 
     private static final Log log = LogFactory.getLog(CAUserService.class);
@@ -74,7 +77,7 @@ public class SCEPServiceImpl implements SCEPService {
                     token = attributeValues.getObjectAt(0).toString();
                 }
             }
-            CAConfigurationService configurationService = CAConfigurationServiceImpl.getInstance();
+            CAConfigurationService configurationService = CAServiceComponent.getCaConfigurationService();
             String serialNo = scepDAO.addScepCsr(certReq, transactionId, token, tenantDomain,
                     configurationService.getTokenValidity());
             //To sign the certificate as admin, start a tenant flow (This is executed from an
@@ -82,7 +85,7 @@ public class SCEPServiceImpl implements SCEPService {
             PrivilegedCarbonContext.startTenantFlow();
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
-            CertificateService certificateService = CertificateServiceImpl.getInstance();
+            CertificateService certificateService = CAServiceComponent.getCertificateService();
             certificateService.signCSR(tenantDomain, serialNo, CAConfiguration.getInstance()
                     .getScepIssuedCertificateValidity());
             return certificateService.getX509Certificate(serialNo);
@@ -109,7 +112,7 @@ public class SCEPServiceImpl implements SCEPService {
         if (StringUtils.isEmpty(tenantDomain)) {
             throw new IllegalArgumentException("Tenant domain cannot be empty");
         }
-        return CAConfigurationServiceImpl.getInstance().getConfiguredCACert(tenantDomain);
+        return CAServiceComponent.getCaConfigurationService().getConfiguredCACert(tenantDomain);
     }
 
     @Override
@@ -117,7 +120,7 @@ public class SCEPServiceImpl implements SCEPService {
         if (StringUtils.isEmpty(tenantDomain)) {
             throw new IllegalArgumentException("Tenant domain cannot be empty");
         }
-        return CAConfigurationServiceImpl.getInstance().getConfiguredPrivateKey(tenantDomain);
+        return CAServiceComponent.getCaConfigurationService().getConfiguredPrivateKey(tenantDomain);
     }
 
     @Override
@@ -131,7 +134,7 @@ public class SCEPServiceImpl implements SCEPService {
         if (StringUtils.isEmpty(userStoreDomain)) {
             throw new IllegalArgumentException("User store domain cannot be empty");
         }
-        CAConfigurationService configurationService = CAConfigurationServiceImpl.getInstance();
+        CAConfigurationService configurationService = CAServiceComponent.getCaConfigurationService();
         int tokenLength = configurationService.getTokenLength();
         String token = "";
         boolean added = false;

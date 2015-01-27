@@ -54,7 +54,7 @@ public class CSRGenerator {
     }
 
     /**
-     * Generate a CSR from given attributes
+     * Generate a CSR from given attributes.
      *
      * @param alg       The signature algorithm
      * @param keyLength The key length to be used in key generation
@@ -120,7 +120,7 @@ public class CSRGenerator {
     }
 
     /**
-     * Generate PKCS10CertificationRequest from given X500name
+     * Generate PKCS10CertificationRequest from given X500name.
      *
      * @param x500Name The X500Name for the resulting PKCS10CertificationRequest
      * @return PKCS10CertificationRequest for the public key

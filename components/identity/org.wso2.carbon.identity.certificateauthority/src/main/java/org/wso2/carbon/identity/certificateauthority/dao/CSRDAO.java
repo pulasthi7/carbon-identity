@@ -50,14 +50,14 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Performs DAO operations related to the CSRs
+ * Performs DAO operations related to the CSRs.
  */
 public class CSRDAO {
 
     private static final Log log = LogFactory.getLog(CSRDAO.class);
 
     /**
-     * Adds a new CSR to the DB
+     * Adds a new CSR to the DB.
      *
      * @param csrContent      The CSR as an encoded string
      * @param userName        The user who requested the CSR to sign
@@ -78,7 +78,7 @@ public class CSRDAO {
     }
 
     /**
-     * Adds a new CSR to the DB
+     * Adds a new CSR to the DB.
      *
      * @param request         PKCS10CertificationRequest form of the request
      * @param userName        The user who requested the CSR to sign
@@ -150,7 +150,7 @@ public class CSRDAO {
     }
 
     /**
-     * Gets CSR bean from database for given serial number
+     * Gets CSR bean from database for given serial number.
      *
      * @param serialNo serial number of the CSR
      * @return Details about the CSR
@@ -194,7 +194,7 @@ public class CSRDAO {
     }
 
     /**
-     * Mark the CSR as a rejected one
+     * Mark the CSR as a rejected one.
      *
      * @param serialNo     The serial no of the CSR to be marked as rejected
      * @param tenantDomain The domain of the tenant CA
@@ -224,7 +224,7 @@ public class CSRDAO {
     }
 
     /**
-     * Retrieves the CSRs stored in the DB
+     * Retrieves the CSRs stored in the DB.
      *
      * @param serialNo The serial no of the CSR to be retrieved
      * @return The CSR as a PKCS10CertificationRequest
@@ -262,7 +262,7 @@ public class CSRDAO {
     }
 
     /**
-     * Retrieve the CSR details for the given serial no
+     * Retrieve the CSR details for the given serial no.
      *
      * @param serialNo     The serial no of the CSR to be retrieved
      * @param tenantDomain The id of the tenant CA
@@ -304,7 +304,7 @@ public class CSRDAO {
     }
 
     /**
-     * Lists CSRs that are for the specified tenant
+     * Lists CSRs that are for the specified tenant.
      *
      * @param tenantDomain The domain of the tenant whose CSRs need to be listed
      * @return The list of CSRs for the tenant
@@ -336,7 +336,7 @@ public class CSRDAO {
     }
 
     /**
-     * Lists CSRs requested by a user
+     * Lists CSRs requested by a user.
      *
      * @param username        The username of the user whose CSRs need to be listed
      * @param userStoreDomain The user store where the user is
@@ -373,7 +373,7 @@ public class CSRDAO {
     }
 
     /**
-     * Lists CSRs by status for a given tenant CA
+     * Lists CSRs by status for a given tenant CA.
      *
      * @param tenantDomain The domain of the tenant whose CSRs need to be listed
      * @param status       The filter for the status
@@ -407,7 +407,7 @@ public class CSRDAO {
     }
 
     /**
-     * Gets the CSRs from a ResultSet
+     * Gets the CSRs from a ResultSet.
      *
      * @param resultSet The resultSet from which the CSRs are retrieved
      * @return The List of CSR from the ResultSet
@@ -454,7 +454,7 @@ public class CSRDAO {
     }
 
     /**
-     * Update the status of a CSR to the given status
+     * Update the status of a CSR to the given status.
      *
      * @param serialNo The serial number of the CSR
      * @param status   The new status of the csr
@@ -477,7 +477,7 @@ public class CSRDAO {
     }
 
     /**
-     * Delete the CSR with given serial number
+     * Delete the CSR with given serial number.
      *
      * @param serialNo     The serial no of the CSR to be deleted
      * @param tenantDomain The domain of the tenant CA

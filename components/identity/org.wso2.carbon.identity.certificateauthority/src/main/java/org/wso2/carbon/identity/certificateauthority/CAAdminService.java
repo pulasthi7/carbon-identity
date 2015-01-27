@@ -25,51 +25,34 @@ import org.wso2.carbon.core.AbstractAdmin;
 import org.wso2.carbon.identity.certificateauthority.bean.CSR;
 import org.wso2.carbon.identity.certificateauthority.bean.Certificate;
 import org.wso2.carbon.identity.certificateauthority.bean.RevokedCertificate;
+import org.wso2.carbon.identity.certificateauthority.internal.CAServiceComponent;
 import org.wso2.carbon.identity.certificateauthority.services.CAConfigurationService;
-import org.wso2.carbon.identity.certificateauthority.services.CAConfigurationServiceImpl;
 import org.wso2.carbon.identity.certificateauthority.services.CRLService;
-import org.wso2.carbon.identity.certificateauthority.services.CRLServiceImpl;
 import org.wso2.carbon.identity.certificateauthority.services.CSRService;
-import org.wso2.carbon.identity.certificateauthority.services.CSRServiceImpl;
 import org.wso2.carbon.identity.certificateauthority.services.CertificateService;
-import org.wso2.carbon.identity.certificateauthority.services.CertificateServiceImpl;
 import org.wso2.carbon.identity.certificateauthority.services.SCEPService;
-import org.wso2.carbon.identity.certificateauthority.services.SCEPServiceImpl;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.List;
 
 /**
- * The Service class for the administrative operations of CA
+ * The Service class for the administrative operations of CA.
  */
 @SuppressWarnings("UnusedDeclaration")
 public class CAAdminService extends AbstractAdmin {
     private static final Log log = LogFactory.getLog(CAAdminService.class);
 
     /**
-     * DAO for CSR related operations
+     * DAO for CSR related operations.
      */
-    private CSRService csrService = CSRServiceImpl.getInstance();
+    private CSRService csrService = CAServiceComponent.getCsrService();
+    private CertificateService certificateService = CAServiceComponent.getCertificateService();
+    private SCEPService scepService = CAServiceComponent.getScepService();
+    private CRLService crlService = CAServiceComponent.getCrlService();
+    private CAConfigurationService configurationService = CAServiceComponent.getCaConfigurationService();
 
     /**
-     * The manager class for certificate related operations
-     */
-    private CertificateService certificateService = CertificateServiceImpl.getInstance();
-
-    /**
-     * The manager class for the SCEP operations
-     */
-    private SCEPService scepService = SCEPServiceImpl.getInstance();
-
-    /**
-     * The manager class for the CRL operations
-     */
-    private CRLService crlService = CRLServiceImpl.getInstance();
-
-    private CAConfigurationService configurationService = CAConfigurationServiceImpl.getInstance();
-
-    /**
-     * Get the list of CSR assigned to the current tenant
+     * Get the list of CSR assigned to the current tenant.
      *
      * @return list of CSR assigned to the current tenant
      */
@@ -85,7 +68,7 @@ public class CAAdminService extends AbstractAdmin {
     }
 
     /**
-     * Gets the CSRs for the tenant CA having the given status
+     * Gets the CSRs for the tenant CA having the given status.
      *
      * @param status The status filter
      * @return CSRs of the tenant CA which has the given status
@@ -103,7 +86,7 @@ public class CAAdminService extends AbstractAdmin {
     }
 
     /**
-     * Get the CSR specified by the given serial number
+     * Get the CSR specified by the given serial number.
      *
      * @param serialNo The serial number of the CSR
      * @return CSR with the given serial number
@@ -120,7 +103,7 @@ public class CAAdminService extends AbstractAdmin {
     }
 
     /**
-     * Reject CSR without signing
+     * Reject CSR without signing.
      *
      * @param serialNo The serial number of the CSR to be rejected
      * @throws CAException
@@ -136,7 +119,7 @@ public class CAAdminService extends AbstractAdmin {
     }
 
     /**
-     * Signs the CSR and stores the resulting certificate
+     * Signs the CSR and stores the resulting certificate.
      *
      * @param serialNo The serial number of the CSR to be signed
      * @param validity The number of days that the resulting certificate should be valid before expiration
@@ -153,7 +136,7 @@ public class CAAdminService extends AbstractAdmin {
     }
 
     /**
-     * Lists all the certificate issued by the tenant CA
+     * Lists all the certificate issued by the tenant CA.
      *
      * @return List of all tenant CA issued certificates
      * @throws CAException
@@ -170,7 +153,7 @@ public class CAAdminService extends AbstractAdmin {
     }
 
     /**
-     * Lists all the certificates issued by the tenant CA filtered by the given status
+     * Lists all the certificates issued by the tenant CA filtered by the given status.
      *
      * @param status The status filter
      * @return List of certificates with given status issued by tenant CA
@@ -189,7 +172,7 @@ public class CAAdminService extends AbstractAdmin {
     }
 
     /**
-     * Get the details of the certificate identified by the given serial number
+     * Get the details of the certificate identified by the given serial number.
      *
      * @param serialNo The serial number of the certificate
      * @return The certificate
@@ -207,7 +190,7 @@ public class CAAdminService extends AbstractAdmin {
     }
 
     /**
-     * Revokes certificate with given serial number, specifying the given revoke reason
+     * Revokes certificate with given serial number, specifying the given revoke reason.
      *
      * @param serialNo The serial number of the certificate to be revoked
      * @param reason   The reason code for the revocation as specified in {@link org.bouncycastle.asn1.x509.CRLReason}
@@ -226,7 +209,7 @@ public class CAAdminService extends AbstractAdmin {
     }
 
     /**
-     * Gets the revoke reason of the certificate given by the serial number
+     * Gets the revoke reason of the certificate given by the serial number.
      *
      * @param serialNo The serial number of the certificate
      * @return The reason code for the revocation as specified in {@link org.bouncycastle.asn1.x509.CRLReason}
@@ -248,8 +231,7 @@ public class CAAdminService extends AbstractAdmin {
     }
 
     /**
-     * Lists keys available for the tenant admin. The current configured key is the first of the
-     * list
+     * Lists keys available for the tenant admin. The current configured key is the first of the list.
      *
      * @return A list of keys available for tenant admin
      * @throws CAException
@@ -286,7 +268,7 @@ public class CAAdminService extends AbstractAdmin {
 
     /**
      * Generate and store a token for a SCEP enrollment. This token will be used to authorize the
-     * SCEP enrollment requests that comes to the non-protected scep endpoint
+     * SCEP enrollment requests that comes to the non-protected scep endpoint.
      *
      * @return The generated SCEP token
      * @throws CAException

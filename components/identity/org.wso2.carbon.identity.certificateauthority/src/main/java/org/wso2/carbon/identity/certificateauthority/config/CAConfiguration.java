@@ -29,7 +29,7 @@ import javax.xml.namespace.QName;
 
 /**
  * Reads and store the configuration needed for CA.
- * Configurations are read from identity.xml
+ * Configurations are read from identity.xml.
  */
 public class CAConfiguration {
 
@@ -45,10 +45,6 @@ public class CAConfiguration {
     private int scepTokenValidity = CAConstants.DEFAULT_SCEP_TOKEN_VALIDITY;
     private int scepCertificateValidity = CAConstants.DEFAULT_SCEP_CERTIFICATE_VALIDITY;
 
-
-    /**
-     * Private constructor that initialize the configs from identity.xml.
-     */
     private CAConfiguration() {
     }
 
@@ -121,7 +117,7 @@ public class CAConfiguration {
     }
 
     /**
-     * Get the validity of a generated SCEP token
+     * Get the validity of a generated SCEP token.
      *
      * @return
      */
@@ -139,7 +135,7 @@ public class CAConfiguration {
     }
 
     /**
-     * Get the validity of the certificates that are issued from a SCEP operation
+     * Get the validity of the certificates that are issued from a SCEP operation.
      *
      * @return
      */

@@ -23,10 +23,13 @@ import org.jscep.transport.response.Capability;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Contains the Constants needed by CA Endpoint classes.
+ */
 public class CAEndpointConstants {
 
     /**
-     * Used in SCEP protocol, This represents the capabilities currently supported by the CA
+     * Used in SCEP protocol, This represents the capabilities currently supported by the CA.
      */
     public static final Set<Capability> SCEP_CAPABILITIES;
 

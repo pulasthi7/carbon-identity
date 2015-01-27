@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.certificateauthority.bean;
 import java.util.Date;
 
 /**
- * Represents a revoked certificate
+ * Represents a revoked certificate.
  */
 public class RevokedCertificate {
 
@@ -35,14 +35,29 @@ public class RevokedCertificate {
         this.reason = reason;
     }
 
+    /**
+     * Get the revoked certificates serial no.
+     *
+     * @return
+     */
     public String getSerialNo() {
         return serialNo;
     }
 
+    /**
+     * Get the certificate's revoked date.
+     *
+     * @return
+     */
     public Date getRevokedDate() {
         return (Date) revokedDate.clone();
     }
 
+    /**
+     * Get the certificate's revoked reason.
+     *
+     * @return
+     */
     public int getReason() {
         return reason;
     }

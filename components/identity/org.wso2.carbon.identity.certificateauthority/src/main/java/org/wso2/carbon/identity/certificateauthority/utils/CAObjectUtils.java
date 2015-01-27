@@ -46,7 +46,7 @@ public class CAObjectUtils {
     }
 
     /**
-     * Decode base 64 encoded CRL to X509CRL
+     * Decode base 64 encoded CRL to X509CRL.
      *
      * @param encodedCrl The crl in base 64 encoded format
      * @return
@@ -62,7 +62,7 @@ public class CAObjectUtils {
     }
 
     /**
-     * PEM encode a given certificate
+     * PEM encode a given certificate.
      *
      * @param certificate The X509 certificate to be encoded
      * @return
@@ -76,7 +76,7 @@ public class CAObjectUtils {
     }
 
     /**
-     * Decode a base 64 encoded csr into a PKCS10CertificateRequest
+     * Decode a base 64 encoded csr into a PKCS10CertificateRequest.
      *
      * @param encodedCSR Base 64 encoded CSR
      * @return PKCS10CertificationRequest constructed from the encoded string
@@ -91,7 +91,7 @@ public class CAObjectUtils {
     }
 
     /**
-     * Encode a CSR to a PEM encoded String
+     * Encode a CSR to a PEM encoded String.
      *
      * @param request The CSR to be PEM encoded
      * @return The PEM encoded representation of the CSR
@@ -106,7 +106,7 @@ public class CAObjectUtils {
     }
 
     /**
-     * PEM encode a private key
+     * PEM encode a private key.
      *
      * @param key The key to be PEM encoded
      * @return The PEM encoded private key

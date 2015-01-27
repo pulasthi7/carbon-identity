@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.certificateauthority.bean;
 import java.util.Date;
 
 /**
- * Represents a CSR
+ * Represents a CSR.
  */
 public class CSR {
     private String serialNo;
@@ -57,7 +57,7 @@ public class CSR {
     }
 
     /**
-     * Get the serial number of the CSR
+     * Get the serial number of the CSR.
      *
      * @return
      */
@@ -66,7 +66,7 @@ public class CSR {
     }
 
     /**
-     * Get the CSR's requested date
+     * Get the CSR's requested date.
      *
      * @return
      */
@@ -75,7 +75,7 @@ public class CSR {
     }
 
     /**
-     * Get the CSR's current status as in {@link org.wso2.carbon.identity.certificateauthority.common.CSRStatus}
+     * Get the CSR's current status as in {@link org.wso2.carbon.identity.certificateauthority.common.CSRStatus}.
      *
      * @return
      */
@@ -84,7 +84,7 @@ public class CSR {
     }
 
     /**
-     * Get the value of CN field of CSR
+     * Get the value of CN field of CSR.
      *
      * @return
      */
@@ -93,7 +93,7 @@ public class CSR {
     }
 
     /**
-     * Get the value of O field in CSR
+     * Get the value of O field in CSR .
      *
      * @return
      */
@@ -102,7 +102,7 @@ public class CSR {
     }
 
     /**
-     * Get the value of OU in CSR
+     * Get the value of OU in CSR.
      *
      * @return
      */
@@ -111,7 +111,7 @@ public class CSR {
     }
 
     /**
-     * Get the value of L in CSR
+     * Get the value of L in CSR.
      *
      * @return
      */
@@ -120,7 +120,7 @@ public class CSR {
     }
 
     /**
-     * Get value of C in CSR
+     * Get value of C in CSR.
      *
      * @return
      */
@@ -129,7 +129,8 @@ public class CSR {
     }
 
     /**
-     * Gets the value of ST in CSR
+     * Gets the value of ST in CSR.
+     *
      * @return
      */
     public String getState() {
@@ -137,7 +138,7 @@ public class CSR {
     }
 
     /**
-     * Get the user's name who requested CSR
+     * Get the user's name who requested CSR.
      *
      * @return
      */
@@ -146,7 +147,7 @@ public class CSR {
     }
 
     /**
-     * Get the user store domain of the user
+     * Get the user store domain of the user.
      *
      * @return
      */
@@ -155,7 +156,7 @@ public class CSR {
     }
 
     /**
-     * Get the tenant domain of the user
+     * Get the tenant domain of the user.
      *
      * @return
      */

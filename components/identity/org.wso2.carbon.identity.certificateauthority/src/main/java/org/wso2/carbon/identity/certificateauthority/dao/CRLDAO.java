@@ -41,13 +41,13 @@ import java.sql.Timestamp;
 import java.util.Date;
 
 /**
- * Performs DAO operations related to CRLs
+ * Performs DAO operations related to CRLs.
  */
 public class CRLDAO {
     private static final Log log = LogFactory.getLog(CRLDAO.class);
 
     /**
-     * Add CRL bean into database
+     * Add CRL bean into database.
      *
      * @param crl               x509 CRL
      * @param tenantDomain      Domain of the tenant who issue the CRL
@@ -91,7 +91,7 @@ public class CRLDAO {
     }
 
     /**
-     * Get the latest CRL constructed for a tenant
+     * Get the latest CRL constructed for a tenant.
      *
      * @param tenantDomain Domain of the tenant
      * @param isDeltaCrl   <code>true</code>if delta crl is requested, and <code>false</code> if full crl is requested
@@ -140,7 +140,7 @@ public class CRLDAO {
     }
 
     /**
-     * Finds the highest CRL number for given tenant
+     * Finds the highest CRL number for given tenant.
      *
      * @param tenantDomain Domain of the tenantd of the tenant
      * @param isDeltaCrl   <code>true</code>if delta crl is requested,

@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.certificateauthority.CAException;
 import org.wso2.carbon.identity.certificateauthority.bean.RevokedCertificate;
 import org.wso2.carbon.identity.certificateauthority.dao.CRLDAO;
 import org.wso2.carbon.identity.certificateauthority.dao.RevocationDAO;
+import org.wso2.carbon.identity.certificateauthority.internal.CAServiceComponent;
 import org.wso2.carbon.identity.certificateauthority.scheduledTask.CRLUpdater;
 import org.wso2.carbon.identity.certificateauthority.utils.CAObjectUtils;
 
@@ -53,7 +54,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Manages the CRL related operations
+ * Service implementation for CRLService
  */
 public class CRLServiceImpl implements CRLService {
 
@@ -129,7 +130,7 @@ public class CRLServiceImpl implements CRLService {
     }
 
     /**
-     * Creates X509 CRL
+     * Creates X509 CRL.
      *
      * @param caCertificate       The CA Certificate
      * @param caPrivateKey        The CA private key
@@ -185,7 +186,7 @@ public class CRLServiceImpl implements CRLService {
         RevocationDAO revocationDAO = new RevocationDAO();
         CRLDAO crlDAO = new CRLDAO();
         List<RevokedCertificate> revokedCertificates = revocationDAO.listRevokedCertificates(tenantDomain);
-        CAConfigurationService configurationService = CAConfigurationServiceImpl.getInstance();
+        CAConfigurationService configurationService = CAServiceComponent.getCaConfigurationService();
         PrivateKey caKey = configurationService.getConfiguredPrivateKey();
         X509Certificate caCert = configurationService.getConfiguredCACert();
         int fullCrlNumber = crlDAO.getHighestCrlNumber(tenantDomain, false);
@@ -216,7 +217,7 @@ public class CRLServiceImpl implements CRLService {
         }
         List<RevokedCertificate> revokedCertificates = revocationDAO.getRevokedCertificatesAfter(tenantDomain,
                 latestCrl.getThisUpdate());
-        CAConfigurationService configurationService = CAConfigurationServiceImpl.getInstance();
+        CAConfigurationService configurationService = CAServiceComponent.getCaConfigurationService();
         PrivateKey privateKey = configurationService.getConfiguredPrivateKey();
         X509Certificate caCert = configurationService.getConfiguredCACert();
         int fullCrlNumber = crlDAO.getHighestCrlNumber(tenantDomain, false);
@@ -240,8 +241,12 @@ public class CRLServiceImpl implements CRLService {
         int deltaCrlNumber = crlDAO.getHighestCrlNumber(tenantDomain, true);
         // nextCrlNumber: The highest number of last CRL (full or delta) and increased by 1 (both
         // full CRLs and deltaCRLs share the same series of CRL Number)
-        int nextCrlNumber = ((fullCrlNumber > deltaCrlNumber) ? fullCrlNumber : deltaCrlNumber) + CAConstants
-                .CRL_NUMBER_INCREMENT;
+        int nextCrlNumber;
+        if (fullCrlNumber > deltaCrlNumber) {
+            nextCrlNumber = fullCrlNumber + CAConstants.CRL_NUMBER_INCREMENT;
+        } else {
+            nextCrlNumber = deltaCrlNumber + CAConstants.CRL_NUMBER_INCREMENT;
+        }
         crlDAO.addCRL(crl, tenantDomain, crl.getThisUpdate(), crl.getNextUpdate(), nextCrlNumber,
                 CAConstants.CRL_INDICATOR);
 
@@ -256,11 +261,15 @@ public class CRLServiceImpl implements CRLService {
         if (crl != null) {
             CRLDAO crlDAO = new CRLDAO();
             int fullCrlNumber = crlDAO.getHighestCrlNumber(tenantDomain, false);
-            int deltaNumber = crlDAO.getHighestCrlNumber(tenantDomain, true);
+            int deltaCRLNumber = crlDAO.getHighestCrlNumber(tenantDomain, true);
             // nextCrlNumber: The highest number of last CRL (full or delta) and increased by 1
             // (both full CRLs and deltaCRLs share the same series of CRL Number)
-            int nextCrlNumber = ((fullCrlNumber > deltaNumber) ? fullCrlNumber : deltaNumber) + CAConstants
-                    .CRL_NUMBER_INCREMENT;
+            int nextCrlNumber;
+            if (fullCrlNumber > deltaCRLNumber) {
+                nextCrlNumber = fullCrlNumber + CAConstants.CRL_NUMBER_INCREMENT;
+            } else {
+                nextCrlNumber = deltaCRLNumber + CAConstants.CRL_NUMBER_INCREMENT;
+            }
             crlDAO.addCRL(crl, tenantDomain, crl.getThisUpdate(), crl.getNextUpdate(), nextCrlNumber,
                     CAConstants.DELTA_CRL_INDICATOR);
         }

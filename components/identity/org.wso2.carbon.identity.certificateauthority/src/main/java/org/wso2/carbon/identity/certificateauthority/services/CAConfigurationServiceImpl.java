@@ -49,6 +49,9 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 
+/**
+ * Implementation if the CAConfigurationService.
+ */
 public class CAConfigurationServiceImpl implements CAConfigurationService {
 
     private static final Log log = LogFactory.getLog(CAConfigurationServiceImpl.class);
@@ -213,7 +216,7 @@ public class CAConfigurationServiceImpl implements CAConfigurationService {
             //Revoke each issued certificates
             for (Certificate certificate : certificates) {
                 try {
-                    CertificateService certificateService = CertificateServiceImpl.getInstance();
+                    CertificateService certificateService = CAServiceComponent.getCertificateService();
                     certificateService.revokeCert(tenantDomain, certificate.getSerialNo(), CRLReason.cACompromise);
                 } catch (CAException e) {
                     //If any certificate revocation fails it should not affect the rest of the
@@ -221,7 +224,7 @@ public class CAConfigurationServiceImpl implements CAConfigurationService {
                     log.error("Revocation failed for certificate with serial number:" + certificate.getSerialNo(), e);
                 }
             }
-            CRLService crlService = CRLServiceImpl.getInstance();
+            CRLService crlService = CAServiceComponent.getCrlService();
             crlService.createAndStoreDeltaCrl(tenantDomain);
         }
     }

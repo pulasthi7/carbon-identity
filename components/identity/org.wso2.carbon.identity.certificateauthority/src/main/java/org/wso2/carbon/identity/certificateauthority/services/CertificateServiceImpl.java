@@ -54,6 +54,7 @@ import org.wso2.carbon.identity.certificateauthority.common.CSRStatus;
 import org.wso2.carbon.identity.certificateauthority.common.CertificateStatus;
 import org.wso2.carbon.identity.certificateauthority.dao.CertificateDAO;
 import org.wso2.carbon.identity.certificateauthority.dao.RevocationDAO;
+import org.wso2.carbon.identity.certificateauthority.internal.CAServiceComponent;
 import org.wso2.carbon.identity.certificateauthority.utils.CAObjectUtils;
 
 import java.io.IOException;
@@ -68,6 +69,9 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * The service implementation of CertificateService
+ */
 public class CertificateServiceImpl implements CertificateService {
 
     private static final Log log = LogFactory.getLog(CertificateServiceImpl.class);
@@ -93,13 +97,13 @@ public class CertificateServiceImpl implements CertificateService {
         if (validity <= 0) {
             throw new IllegalArgumentException("Validity should have a positive value");
         }
-        CSRService csrService = CSRServiceImpl.getInstance();
+        CSRService csrService = CAServiceComponent.getCsrService();
         CSR csr = csrService.getCSR(serialNo, tenantDomain);
 
         if (csr != null && !CSRStatus.PENDING.toString().equals(csr.getStatus())) {
             throw new CAException("CSR cannot be signed, It's either invalid, already signed, rejected or revoked");
         }
-        CAConfigurationService caConfigurationService = CAConfigurationServiceImpl.getInstance();
+        CAConfigurationService caConfigurationService = CAServiceComponent.getCaConfigurationService();
         PKCS10CertificationRequest certificationRequest = csrService.getPKCS10CertificationRequest(serialNo);
         if (certificationRequest != null) {
             X509Certificate signedCert = getSignedCertificate(serialNo, certificationRequest, validity,
@@ -171,7 +175,7 @@ public class CertificateServiceImpl implements CertificateService {
     }
 
     /**
-     * Signs the CSR and return the certificate in x509 format
+     * Signs the CSR and return the certificate in x509 format.
      *
      * @param serialNo   The serial no of the CSR
      * @param request    The PKCS10CertificationRequest to be signed
@@ -282,7 +286,7 @@ public class CertificateServiceImpl implements CertificateService {
     }
 
     /**
-     * Check whether the given reason code is valid
+     * Check whether the given reason code is valid.
      *
      * @param reasonCode The reason code to be validated
      * @return <code>true</code> if reason code is valid, <code>false</code> otherwise

@@ -40,13 +40,13 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Performs revocation related DAO operations
+ * Performs revocation related DAO operations.
  */
 public class RevocationDAO {
     private static final Log log = LogFactory.getLog(RevocationDAO.class);
 
     /**
-     * Add a revoked certificate to the database
+     * Add a revoked certificate to the database.
      *
      * @param serialNo     SerialNo of the revoked certificate
      * @param tenantDomain The tenant domain
@@ -93,7 +93,7 @@ public class RevocationDAO {
     }
 
     /**
-     * Update the revoke reason of the given certificate
+     * Update the revoke reason of the given certificate.
      *
      * @param serialNo     The SerialNo of the revoked certificate
      * @param tenantDomain The tenant domain
@@ -138,7 +138,7 @@ public class RevocationDAO {
     }
 
     /**
-     * Updates the certificate status based on whether the reason is "Remove from CRL"
+     * Updates the certificate status based on whether the reason is "Remove from CRL".
      *
      * @param connection The db connection which does the db updates related
      * @param serialNo   The SerialNo of the revoked certificate
@@ -158,7 +158,7 @@ public class RevocationDAO {
     }
 
     /**
-     * Gets the revoke reason of the certificate
+     * Gets the revoke reason of the certificate.
      *
      * @param serialNo
      * @return The reason code for the revocation if the certificate is revoked,
@@ -190,7 +190,7 @@ public class RevocationDAO {
     }
 
     /**
-     * Get Revoked certificate details from serial number
+     * Get Revoked certificate details from serial number.
      *
      * @param serialNo The SerialNo of the revoked certificate
      * @return The details of the revoked certificate
@@ -224,7 +224,7 @@ public class RevocationDAO {
     }
 
     /**
-     * Gets RevokedCertificate list from a ResultSet
+     * Gets RevokedCertificate list from a ResultSet.
      *
      * @param resultSet The resultSet where the Revoked Certificate details are
      * @return List of the details of the revoked certificates
@@ -244,7 +244,7 @@ public class RevocationDAO {
     }
 
     /**
-     * Gets revoked certificates by a tenant
+     * Gets revoked certificates by a tenant.
      *
      * @param tenantDomain The tenant domain
      * @return List of Revoked certificates by the tenant
@@ -274,7 +274,7 @@ public class RevocationDAO {
     }
 
     /**
-     * Remove all activated certificates (after temporary revocation) from revocation table
+     * Remove all activated certificates (after temporary revocation) from revocation table.
      *
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
@@ -299,7 +299,7 @@ public class RevocationDAO {
     }
 
     /**
-     * Gets revoked certificates after the given timestamp
+     * Gets revoked certificates after the given timestamp.
      *
      * @param tenantDomain The tenant domain
      * @param date         The timestamp from when the revoked certificates are listed

@@ -26,6 +26,9 @@ import org.wso2.carbon.identity.certificateauthority.dao.CSRDAO;
 
 import java.util.List;
 
+/**
+ * The implementation for CSRService.
+ */
 public class CSRServiceImpl implements CSRService {
 
     private static CSRService instance = new CSRServiceImpl();

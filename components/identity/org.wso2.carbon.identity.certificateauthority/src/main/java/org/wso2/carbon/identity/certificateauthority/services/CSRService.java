@@ -24,10 +24,13 @@ import org.wso2.carbon.identity.certificateauthority.bean.CSR;
 
 import java.util.List;
 
+/**
+ * The service interface for CSR services.
+ */
 public interface CSRService {
 
     /**
-     * Adds a new CSR to the DB
+     * Adds a new CSR to the DB.
      *
      * @param csrContent      The CSR as an encoded string
      * @param userName        The user who requested the CSR to sign
@@ -40,7 +43,7 @@ public interface CSRService {
                          String userStoreDomain) throws CAException;
 
     /**
-     * Retrieve the CSR details for the given serial no
+     * Retrieve the CSR details for the given serial no.
      *
      * @param serialNo     The serial no of the CSR to be retrieved
      * @param tenantDomain The id of the tenant CA
@@ -50,7 +53,7 @@ public interface CSRService {
     public CSR getCSR(String serialNo, String userStoreDomain, String userName, String tenantDomain) throws CAException;
 
     /**
-     * Retrieve the CSR for the given serial no
+     * Retrieve the CSR for the given serial no.
      *
      * @param serialNo     The serial no of the CSR to be retrieved
      * @param tenantDomain The id of the tenant CA
@@ -60,7 +63,7 @@ public interface CSRService {
     public CSR getCSR(String serialNo, String tenantDomain) throws CAException;
 
     /**
-     * Mark the CSR as a rejected one
+     * Mark the CSR as a rejected one.
      *
      * @param serialNo     The serial no of the CSR to be marked as rejected
      * @param tenantDomain The domain of the tenant CA
@@ -69,7 +72,7 @@ public interface CSRService {
     public void rejectCSR(String serialNo, String tenantDomain) throws CAException;
 
     /**
-     * Lists CSRs that are for the given tenant
+     * Lists CSRs that are for the given tenant.
      *
      * @param tenantDomain The domain of the tenant whose CSRs need to be listed
      * @return The list of CSRs for the tenant
@@ -78,7 +81,7 @@ public interface CSRService {
     public List<CSR> listCSRs(String tenantDomain) throws CAException;
 
     /**
-     * Lists CSRs requested by a user
+     * Lists CSRs requested by a user.
      *
      * @param userName        The username of the user whose CSRs need to be listed
      * @param userStoreDomain The user store where the user is
@@ -89,7 +92,7 @@ public interface CSRService {
     public List<CSR> listCSRs(String userName, String userStoreDomain, String tenantDomain) throws CAException;
 
     /**
-     * Lists CSRs by status for a given tenant CA
+     * Lists CSRs by status for a given tenant CA.
      *
      * @param tenantDomain The domain of the tenant whose CSRs need to be listed
      * @param status       The filter for the status
@@ -99,7 +102,7 @@ public interface CSRService {
     public List<CSR> listCSRsByStatus(String tenantDomain, String status) throws CAException;
 
     /**
-     * Delete the CSR with given serial number
+     * Delete the CSR with given serial number.
      *
      * @param serialNo     The serial no of the CSR to be deleted
      * @param tenantDomain The domain of the tenant CA
@@ -108,7 +111,7 @@ public interface CSRService {
     public void deleteCSR(String serialNo, String tenantDomain) throws CAException;
 
     /**
-     * Retrieves the CSR by serial number
+     * Retrieves the CSR by serial number.
      *
      * @param serialNo The serial no of the CSR to be retrieved
      * @return The CSR as a PKCS10CertificationRequest

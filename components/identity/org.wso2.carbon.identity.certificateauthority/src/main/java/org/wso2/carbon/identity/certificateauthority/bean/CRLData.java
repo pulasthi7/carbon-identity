@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.certificateauthority.bean;
 import java.util.Date;
 
 /**
- * Represents a CRL
+ * Represents a CRL.
  */
 public class CRLData {
 
@@ -32,8 +32,18 @@ public class CRLData {
     private int crlNumber;
     private int deltaCrlIndicator;
 
-    public CRLData(Date thisUpdate, Date nextUpdate, String base64Crl, int tenantId,
-                   int crlNumber, int deltaCrlIndicator) {
+    /**
+     * Constructs CRLData object.
+     *
+     * @param thisUpdate        The time the CRL was updated
+     * @param nextUpdate        The time the next CRL will be updated
+     * @param base64Crl         The base 64 encoded crl
+     * @param tenantId          The CA's tenant Id
+     * @param crlNumber         The CRL number
+     * @param deltaCrlIndicator Identifies delta CRL and CRLs
+     */
+    public CRLData(Date thisUpdate, Date nextUpdate, String base64Crl, int tenantId, int crlNumber,
+                   int deltaCrlIndicator) {
         if (crlNumber < 0) {
             throw new IllegalArgumentException("CRL Number cannot be negative, given:" + crlNumber);
         }
@@ -45,26 +55,56 @@ public class CRLData {
         this.deltaCrlIndicator = deltaCrlIndicator;
     }
 
+    /**
+     * Retrieves the CRL number.
+     *
+     * @return
+     */
     public int getCrlNumber() {
         return crlNumber;
     }
 
+    /**
+     * Retrieves the delta CRL indicator.
+     *
+     * @return
+     */
     public int getDeltaCrlIndicator() {
         return deltaCrlIndicator;
     }
 
+    /**
+     * Retrieves the CA's tenant id.
+     *
+     * @return
+     */
     public int getTenantId() {
         return tenantId;
     }
 
+    /**
+     * Retrieves the next update date.
+     *
+     * @return
+     */
     public Date getNextUpdate() {
         return (Date) nextUpdate.clone();
     }
 
+    /**
+     * Retrieves the current update date.
+     *
+     * @return
+     */
     public Date getThisUpdate() {
         return (Date) thisUpdate.clone();
     }
 
+    /**
+     * Retrieves the Base 64 encoded CRL.
+     *
+     * @return
+     */
     public String getBase64Crl() {
         return base64Crl;
     }

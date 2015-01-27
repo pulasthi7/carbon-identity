@@ -36,14 +36,14 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
- * Class to handle certificate downloads
+ * Handles certificate download requests.
  */
 @Path("/certificate")
 public class CertificateRetriever {
     private static final Log log = LogFactory.getLog(CertificateRetriever.class);
 
     /**
-     * Responds with the certificate with the given serial number
+     * Responds with the certificate with the given serial number.
      *
      * @param serialNo The serial number of the certificate to be downloaded
      * @return The PEM encoded certificate as a "application/x-x509-user-cert"
@@ -72,7 +72,7 @@ public class CertificateRetriever {
     }
 
     /**
-     * Responds with the CA certificate for the given tenant domain
+     * Responds with the CA certificate for the given tenant domain.
      *
      * @param tenantDomain The tenant domain of the CA whose certificate need to be downloaded
      * @return The PEM encoded certificate as a "application/x-x509-ca-cert"
@@ -99,7 +99,7 @@ public class CertificateRetriever {
     /**
      * This is the same as {@link #getCertificate(String)} except the response type. The response
      * type is "application/octet-string" for make it possible to download the certificate
-     * without warnings or blocking at the browser
+     * without warnings or blocking at the browser.
      *
      * @param serialNo The serial no of the certificate to be downloaded
      * @return The PEM encoded certificate as a "application/octet-string"
@@ -130,7 +130,7 @@ public class CertificateRetriever {
     /**
      * This is the same as {@link #getCaCertificate(String)} except the response type. The response
      * type is "application/octet-string" for make it possible to download the certificate
-     * without warnings or blocking at the browser
+     * without warnings or blocking at the browser.
      *
      * @param tenantDomain The tenant domain of the CA whose certificate need to be downloaded
      * @return The PEM encoded certificate as a "application/octet-string"

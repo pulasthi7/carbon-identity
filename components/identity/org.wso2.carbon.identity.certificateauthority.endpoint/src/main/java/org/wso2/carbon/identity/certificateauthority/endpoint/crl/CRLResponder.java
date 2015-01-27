@@ -34,7 +34,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 
 /**
- * Class to handle CRL queries
+ * Handles CRL queries.
  */
 @Path("/crl")
 public class CRLResponder {
@@ -42,7 +42,7 @@ public class CRLResponder {
     private static final Log log = LogFactory.getLog(CRLResponder.class);
 
     /**
-     * Responds with the CRL for the given tenant domain
+     * Responds with the CRL for the given tenant domain.
      *
      * @param command      Whether the request is for CRL or Delta CRL
      * @param tenantDomain The CA's tenant domain

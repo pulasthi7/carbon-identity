@@ -24,10 +24,13 @@ import org.wso2.carbon.identity.certificateauthority.CAException;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 
+/**
+ * The service interface for SCEP services.
+ */
 public interface SCEPService {
 
     /**
-     * Enrolls a CSR from SCEP protocol
+     * Enrolls a CSR from SCEP protocol.
      *
      * @param certReq       The certificate request
      * @param transactionId The transcation id that is used to identify the SCEP transaction
@@ -39,7 +42,7 @@ public interface SCEPService {
             throws CAException;
 
     /**
-     * Gets the certificate that is issued in the transaction identified by transactionId
+     * Gets the certificate that is issued in the transaction identified by transactionId.
      *
      * @param tenantDomain  The tenant domain for which the request is made
      * @param transactionId The transcation id that is used to identify the SCEP transaction
@@ -49,7 +52,7 @@ public interface SCEPService {
     public X509Certificate getCertificate(String tenantDomain, String transactionId) throws CAException;
 
     /**
-     * Gives the CA certificate for the given tenant
+     * Gives the CA certificate for the given tenant.
      *
      * @param tenantDomain The tenant domain whose CA certificate is required
      * @return The CA certificate for the tenant
@@ -58,7 +61,7 @@ public interface SCEPService {
     public X509Certificate getCaCert(String tenantDomain) throws CAException;
 
     /**
-     * Gets the CA's private key for the SCEP operations
+     * Gets the CA's private key for the SCEP operations.
      *
      * @param tenantDomain The tenant domain whose CA key is required
      * @return The CA's private key
@@ -67,7 +70,7 @@ public interface SCEPService {
     public PrivateKey getCaKey(String tenantDomain) throws CAException;
 
     /**
-     * Generate a SCEP token to be used for SCEP operations
+     * Generate a SCEP token to be used for SCEP operations.
      *
      * @param userName        The user who is generating the token
      * @param tenantDomain    The tenant domain of the user

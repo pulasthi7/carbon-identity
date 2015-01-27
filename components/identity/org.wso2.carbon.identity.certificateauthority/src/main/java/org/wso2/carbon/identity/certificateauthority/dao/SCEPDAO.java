@@ -42,7 +42,7 @@ import java.sql.Timestamp;
 import java.util.Date;
 
 /**
- * Performs DAO operations related to SCEP enrollments
+ * Performs DAO operations related to SCEP enrollments.
  */
 public class SCEPDAO {
     private static Log log = LogFactory.getLog(SCEPDAO.class);
@@ -87,7 +87,7 @@ public class SCEPDAO {
     }
 
     /**
-     * Adds a CSR from SCEP PKI operation to the DB
+     * Adds a CSR from SCEP PKI operation to the DB.
      *
      * @param certReq      The CSR to be added
      * @param transId      The transaction ID which can be used to identify the CSR
@@ -148,7 +148,7 @@ public class SCEPDAO {
     }
 
     /**
-     * Gets the certificate that was enrolled for the given transaction id
+     * Gets the certificate that was enrolled for the given transaction id.
      *
      * @param transactionId The id that is used to identify the PKI operation
      * @param tenantDomain  The tenant domain of CA

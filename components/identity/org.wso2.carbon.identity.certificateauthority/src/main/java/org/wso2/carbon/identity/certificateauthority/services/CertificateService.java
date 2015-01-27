@@ -25,10 +25,13 @@ import org.wso2.carbon.identity.certificateauthority.bean.RevokedCertificate;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
+/**
+ * The service interface for CA certificate services.
+ */
 public interface CertificateService {
     /**
      * Signs the CSR with the given serial no, so that the resulting certificate will have the
-     * given validity period from the time of signing
+     * given validity period from the time of signing.
      *
      * @param serialNo The serial no of the CSR to be signed
      * @param validity The validity of the resulting certificate in days
@@ -37,7 +40,7 @@ public interface CertificateService {
     public void signCSR(String tenantDomain, String serialNo, int validity) throws CAException;
 
     /**
-     * Revoke or update the revoke reason for the given certificate
+     * Revoke or update the revoke reason for the given certificate.
      *
      * @param tenantDomain the tenant domain of the CA
      * @param serialNo     The serial no of the certificate to be revoked
@@ -47,7 +50,7 @@ public interface CertificateService {
     public void revokeCert(String tenantDomain, String serialNo, int reason) throws CAException;
 
     /**
-     * Revokes all certificates issued by a tenant ID
+     * Revokes all certificates issued by a tenant ID.
      *
      * @param tenantDomain The tenant id of the CA
      * @param revokeReason The reason code for the revocation as specified in
@@ -57,7 +60,7 @@ public interface CertificateService {
     public void revokeAllIssuedCertificates(String tenantDomain, int revokeReason) throws CAException;
 
     /**
-     * Get the PEM encoded Certificate for the given serial no
+     * Get the PEM encoded Certificate for the given serial no.
      *
      * @param serialNo The serial no of the certificate
      * @return The certificate as a PEM encoded string
@@ -66,7 +69,7 @@ public interface CertificateService {
     public String getPemEncodedCertificate(String serialNo) throws CAException;
 
     /**
-     * Get the certificate in X509 format for the given serial no
+     * Get the certificate in X509 format for the given serial no.
      *
      * @param serialNo The serial no of the certificate
      * @return The certificate in X509 format
@@ -92,7 +95,7 @@ public interface CertificateService {
     public List<Certificate> listCertificates(String tenantDomain) throws CAException;
 
     /**
-     * Lists all certificates issued by a tenant's CA with given status
+     * Lists all certificates issued by a tenant's CA with given status.
      *
      * @param status       Status filter for the certificates
      * @param tenantDomain domain of the tenant
@@ -102,7 +105,7 @@ public interface CertificateService {
     public List<Certificate> listCertificates(String status, String tenantDomain) throws CAException;
 
     /**
-     * Get Revoked certificate details from serial number
+     * Get Revoked certificate details from serial number.
      *
      * @param serialNo The SerialNo of the revoked certificate
      * @return The details of the revoked certificate

@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.certificateauthority.bean;
 import java.util.Date;
 
 /**
- * Represents a Certificate
+ * Represents a Certificate.
  */
 public class Certificate {
 
@@ -34,7 +34,7 @@ public class Certificate {
     private String userStoreDomain;
 
     /**
-     * Default constructor
+     * Default constructor.
      *
      * @param serialNo        The serial no of the certificate
      * @param issuedDate      The issued date of the certificate
@@ -57,7 +57,7 @@ public class Certificate {
     }
 
     /**
-     * Gets the serial no of the certificate
+     * Gets the serial no of the certificate.
      *
      * @return
      */
@@ -66,7 +66,7 @@ public class Certificate {
     }
 
     /**
-     * Get the certificate issued date
+     * Get the certificate issued date.
      *
      * @return
      */
@@ -75,7 +75,7 @@ public class Certificate {
     }
 
     /**
-     * Gets the certificate expiry date
+     * Gets the certificate expiry date.
      *
      * @return
      */
@@ -84,7 +84,7 @@ public class Certificate {
     }
 
     /**
-     * Get the certificate status
+     * Get the certificate status.
      *
      * @return
      */
@@ -93,7 +93,7 @@ public class Certificate {
     }
 
     /**
-     * Get the username of the user for whom the certificate is issued
+     * Get the username of the user for whom the certificate is issued.
      *
      * @return
      */
@@ -102,7 +102,7 @@ public class Certificate {
     }
 
     /**
-     * Get the tenant id of the user
+     * Get the tenant id of the user.
      *
      * @return
      */
@@ -111,7 +111,7 @@ public class Certificate {
     }
 
     /**
-     * Get the user domain of the user
+     * Get the user domain of the user.
      *
      * @return
      */

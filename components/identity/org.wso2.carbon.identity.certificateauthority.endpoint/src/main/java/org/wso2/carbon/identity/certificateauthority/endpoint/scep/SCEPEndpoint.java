@@ -30,13 +30,16 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Context;
 import java.io.IOException;
 
+/**
+ * Handles SCEP requests.
+ */
 @Path("/scep")
 public class SCEPEndpoint {
 
     private static final Log log = LogFactory.getLog(SCEPEndpoint.class);
 
     /**
-     * Responds to the SCEP requests
+     * Responds to the SCEP requests.
      *
      * @param request      The HttpServletRequest from context
      * @param response     The HttpServletResponse from context

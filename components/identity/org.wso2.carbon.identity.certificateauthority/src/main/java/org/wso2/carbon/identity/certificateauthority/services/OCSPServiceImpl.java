@@ -46,6 +46,7 @@ import org.wso2.carbon.identity.certificateauthority.CAConstants;
 import org.wso2.carbon.identity.certificateauthority.CAException;
 import org.wso2.carbon.identity.certificateauthority.bean.Certificate;
 import org.wso2.carbon.identity.certificateauthority.bean.RevokedCertificate;
+import org.wso2.carbon.identity.certificateauthority.internal.CAServiceComponent;
 
 import java.io.IOException;
 import java.security.PrivateKey;
@@ -53,6 +54,9 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 
+/**
+ * The service implementation for OCSPService.
+ */
 public class OCSPServiceImpl implements OCSPService {
 
     private static OCSPService instance = new OCSPServiceImpl();
@@ -83,7 +87,7 @@ public class OCSPServiceImpl implements OCSPService {
             Req[] requests = req.getRequestList();
             CertificateID certificateId;
             Certificate certificate;
-            CAConfigurationService configurationService = CAConfigurationServiceImpl.getInstance();
+            CAConfigurationService configurationService = CAServiceComponent.getCaConfigurationService();
             X509Certificate caCert = configurationService.getConfiguredCACert(tenantDomain);
             PrivateKey privateKey = configurationService.getConfiguredPrivateKey(tenantDomain);
             SubjectPublicKeyInfo keyInfo = SubjectPublicKeyInfo.getInstance(caCert.getPublicKey().getEncoded());
@@ -97,7 +101,7 @@ public class OCSPServiceImpl implements OCSPService {
             }
             for (Req request : requests) {
                 certificateId = request.getCertID();
-                CertificateService certificateService = CertificateServiceImpl.getInstance();
+                CertificateService certificateService = CAServiceComponent.getCertificateService();
                 certificate = certificateService.getCertificate(certificateId.getSerialNumber().toString(),
                         tenantDomain);
                 if (certificate == null || tenantDomain.equals(certificate.getTenantDomain())) {

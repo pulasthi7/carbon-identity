@@ -19,19 +19,22 @@
 package org.wso2.carbon.identity.certificateauthority.common;
 
 /**
- * Enum to represent the different states of a CSR
+ * Enum to represent the different states of a CSR.
  */
 public enum CSRStatus {
+
     /**
-     * The CSR is pending to be signed by the CA
+     * The CSR is pending to be signed by the CA.
      */
     PENDING,
+
     /**
-     * The CSR is signed by the CA
+     * The CSR is signed by the CA.
      */
     SIGNED,
+
     /**
-     * The CA has rejected the CSR without signing
+     * The CA has rejected the CSR without signing.
      */
     REJECTED
 }

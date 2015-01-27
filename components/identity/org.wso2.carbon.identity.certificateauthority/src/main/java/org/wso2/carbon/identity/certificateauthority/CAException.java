@@ -19,12 +19,12 @@
 package org.wso2.carbon.identity.certificateauthority;
 
 /**
- * The exception to be thrown when a CA operation fails
+ * The exception to be thrown when a CA operation fails.
  */
 public class CAException extends Exception {
 
     /**
-     * Instantiate a new exception with the given exception message
+     * Instantiate a new exception with the given exception message.
      *
      * @param message The exception message
      */
@@ -33,7 +33,7 @@ public class CAException extends Exception {
     }
 
     /**
-     * Instantiate a new exception by wrapping a given throwable
+     * Instantiate a new exception by wrapping a given throwable.
      *
      * @param message The exception message
      * @param cause   The throwable to be wrapped

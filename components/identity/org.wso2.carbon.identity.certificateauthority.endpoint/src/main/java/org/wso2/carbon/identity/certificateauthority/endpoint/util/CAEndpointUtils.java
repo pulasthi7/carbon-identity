@@ -25,29 +25,53 @@ import org.wso2.carbon.identity.certificateauthority.services.CertificateService
 import org.wso2.carbon.identity.certificateauthority.services.OCSPService;
 import org.wso2.carbon.identity.certificateauthority.services.SCEPService;
 
+/**
+ * Contais util methods needed by the CA endpoint classes.
+ */
 public class CAEndpointUtils {
 
     private CAEndpointUtils() {
     }
 
+    /**
+     * Gets the CA Configuration OSGi Service.
+     *
+     * @return
+     */
     public static CAConfigurationService getCaConfigurationService() {
         return (CAConfigurationService) CarbonContext.getThreadLocalCarbonContext().getOSGiService(
                 CAConfigurationService.class, null);
     }
 
+    /**
+     * Gets the OSGi Service related to certificate operations.
+     * @return
+     */
     public static CertificateService getCertificateService() {
         return (CertificateService) CarbonContext.getThreadLocalCarbonContext().getOSGiService(CertificateService
                 .class, null);
     }
 
+    /**
+     * Gets the OSGi Service related to SCEP operations.
+     * @return
+     */
     public static SCEPService getSCEPService() {
         return (SCEPService) CarbonContext.getThreadLocalCarbonContext().getOSGiService(SCEPService.class, null);
     }
 
+    /**
+     * Gets the OSGi Service related to CRL operations.
+     * @return
+     */
     public static CRLService getCRLService() {
         return (CRLService) CarbonContext.getThreadLocalCarbonContext().getOSGiService(CRLService.class, null);
     }
 
+    /**
+     * Gets the OSGi Service related to OCSP operations.
+     * @return
+     */
     public static OCSPService getOCSPService() {
         return (OCSPService) CarbonContext.getThreadLocalCarbonContext().getOSGiService(OCSPService.class, null);
     }

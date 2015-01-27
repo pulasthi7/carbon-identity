@@ -19,15 +19,17 @@
 package org.wso2.carbon.identity.certificateauthority.common;
 
 /**
- * Represents the different States of a certificate
+ * Represents the different States of a certificate.
  */
 public enum CertificateStatus {
+
     /**
-     * The certificate is valid and can be used to authenticate the subject, (if not expired)
+     * The certificate is valid and can be used to authenticate the subject, (if not expired).
      */
     ACTIVE,
+
     /**
-     * The certificate has been revoked and should not be accepted even if it is not expired yet
+     * The certificate has been revoked and should not be accepted even if it is not expired yet.
      */
     REVOKED
 }
