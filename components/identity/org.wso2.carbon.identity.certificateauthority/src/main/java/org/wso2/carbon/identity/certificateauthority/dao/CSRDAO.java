@@ -300,7 +300,7 @@ public class CSRDAO {
             log.debug("CSR with serial no " + serialNo + " not found, " +
                     "or not accessible by tenant " + tenantDomain);
         }
-        throw new CAException("CSR for given serial not found");
+        return null;
     }
 
     /**

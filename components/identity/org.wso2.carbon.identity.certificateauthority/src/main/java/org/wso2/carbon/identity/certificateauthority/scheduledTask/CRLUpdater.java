@@ -25,6 +25,7 @@ import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.certificateauthority.CAException;
 import org.wso2.carbon.identity.certificateauthority.internal.CAServiceComponent;
 import org.wso2.carbon.identity.certificateauthority.services.CRLService;
+import org.wso2.carbon.identity.certificateauthority.services.CRLServiceImpl;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserRealmService;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -47,7 +48,7 @@ public class CRLUpdater implements Runnable {
                 .SUPER_TENANT_ID);
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain
                 (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-        CRLService crlService = CRLService.getInstance();
+        CRLService crlService = CRLServiceImpl.getInstance();
         crlService.createAndStoreCrl(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         PrivilegedCarbonContext.endTenantFlow();
 

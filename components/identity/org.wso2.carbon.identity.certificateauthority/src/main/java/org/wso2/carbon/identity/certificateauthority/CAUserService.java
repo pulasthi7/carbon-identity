@@ -24,7 +24,9 @@ import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.certificateauthority.model.CSR;
 import org.wso2.carbon.identity.certificateauthority.model.Certificate;
 import org.wso2.carbon.identity.certificateauthority.services.CSRService;
+import org.wso2.carbon.identity.certificateauthority.services.CSRServiceImpl;
 import org.wso2.carbon.identity.certificateauthority.services.CertificateService;
+import org.wso2.carbon.identity.certificateauthority.services.CertificateServiceImpl;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.List;
@@ -36,8 +38,8 @@ import java.util.List;
 public class CAUserService {
 
     private static final Log log = LogFactory.getLog(CAUserService.class);
-    private CSRService csrService = CSRService.getInstance();
-    private CertificateService certificateService = CertificateService.getInstance();
+    private CSRService csrService = CSRServiceImpl.getInstance();
+    private CertificateService certificateService = CertificateServiceImpl.getInstance();
 
     /**
      * Sends a CSR to the CA to be signed

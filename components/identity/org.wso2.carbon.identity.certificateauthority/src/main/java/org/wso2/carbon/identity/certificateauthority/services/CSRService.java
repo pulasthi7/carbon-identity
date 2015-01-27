@@ -18,25 +18,13 @@
 
 package org.wso2.carbon.identity.certificateauthority.services;
 
-import org.apache.commons.lang.StringUtils;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.wso2.carbon.identity.certificateauthority.CAException;
-import org.wso2.carbon.identity.certificateauthority.dao.CSRDAO;
 import org.wso2.carbon.identity.certificateauthority.model.CSR;
 
 import java.util.List;
 
-public class CSRService {
-
-    private static CSRService instance = new CSRService();
-    private CSRDAO csrDAO = new CSRDAO();
-
-    private CSRService() {
-    }
-
-    public static CSRService getInstance() {
-        return instance;
-    }
+public interface CSRService {
 
     /**
      * Adds a new CSR to the DB
@@ -48,22 +36,8 @@ public class CSRService {
      * @return The serial no of the newly added CSR, which can be used in later queries
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
-    public String addCSR(String csrContent, String userName, String tenantDomain, String userStoreDomain)
-            throws CAException {
-        if(StringUtils.isEmpty(tenantDomain)){
-            throw new IllegalArgumentException("Tenant domain cannot be empty");
-        }
-        if(StringUtils.isEmpty(csrContent)){
-            throw new IllegalArgumentException("CSR content cannot be empty");
-        }
-        if(StringUtils.isEmpty(userName)){
-            throw new IllegalArgumentException("User name cannot be empty");
-        }
-        if(StringUtils.isEmpty(userStoreDomain)){
-            throw new IllegalArgumentException("User store domain cannot be empty");
-        }
-        return csrDAO.addCSR(csrContent, userName, tenantDomain, userStoreDomain);
-    }
+    public String addCSR(String csrContent, String userName, String tenantDomain,
+                         String userStoreDomain) throws CAException;
 
     /**
      * Retrieve the CSR details for the given serial no
@@ -73,22 +47,7 @@ public class CSRService {
      * @return The CSR details
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
-    public CSR getCSR(String serialNo, String userStoreDomain, String userName, String tenantDomain)
-            throws CAException {
-        if(StringUtils.isEmpty(tenantDomain)){
-            throw new IllegalArgumentException("Tenant domain cannot be empty");
-        }
-        if(StringUtils.isEmpty(serialNo)){
-            throw new IllegalArgumentException("Certificate Serial number cannot be empty");
-        }
-        if(StringUtils.isEmpty(userName)){
-            throw new IllegalArgumentException("User name cannot be empty");
-        }
-        if(StringUtils.isEmpty(userStoreDomain)){
-            throw new IllegalArgumentException("User store domain cannot be empty");
-        }
-        return csrDAO.getCSR(serialNo, userStoreDomain, userName, tenantDomain);
-    }
+    public CSR getCSR(String serialNo, String userStoreDomain, String userName, String tenantDomain) throws CAException;
 
     /**
      * Retrieve the CSR for the given serial no
@@ -98,15 +57,7 @@ public class CSRService {
      * @return The CSR details
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
-    public CSR getCSR(String serialNo, String tenantDomain) throws CAException {
-        if(StringUtils.isEmpty(tenantDomain)){
-            throw new IllegalArgumentException("Tenant domain cannot be empty");
-        }
-        if(StringUtils.isEmpty(serialNo)){
-            throw new IllegalArgumentException("Certificate Serial number cannot be empty");
-        }
-        return csrDAO.getCSR(serialNo, tenantDomain);
-    }
+    public CSR getCSR(String serialNo, String tenantDomain) throws CAException;
 
     /**
      * Mark the CSR as a rejected one
@@ -115,15 +66,7 @@ public class CSRService {
      * @param tenantDomain The domain of the tenant CA
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
-    public void rejectCSR(String serialNo, String tenantDomain) throws CAException {
-        if(StringUtils.isEmpty(tenantDomain)){
-            throw new IllegalArgumentException("Tenant domain cannot be empty");
-        }
-        if(StringUtils.isEmpty(serialNo)){
-            throw new IllegalArgumentException("Certificate Serial number cannot be empty");
-        }
-        csrDAO.rejectCSR(serialNo, tenantDomain);
-    }
+    public void rejectCSR(String serialNo, String tenantDomain) throws CAException;
 
     /**
      * Lists CSRs that are for the given tenant
@@ -132,12 +75,7 @@ public class CSRService {
      * @return The list of CSRs for the tenant
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
-    public List<CSR> listCSRs(String tenantDomain) throws CAException {
-        if(StringUtils.isEmpty(tenantDomain)){
-            throw new IllegalArgumentException("Tenant domain cannot be empty");
-        }
-        return csrDAO.listCSRs(tenantDomain);
-    }
+    public List<CSR> listCSRs(String tenantDomain) throws CAException;
 
     /**
      * Lists CSRs requested by a user
@@ -148,18 +86,7 @@ public class CSRService {
      * @return List of CSRs from the user
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
-    public List<CSR> listCSRs(String userName, String userStoreDomain, String tenantDomain) throws CAException {
-        if(StringUtils.isEmpty(tenantDomain)){
-            throw new IllegalArgumentException("Tenant domain cannot be empty");
-        }
-        if(StringUtils.isEmpty(userName)){
-            throw new IllegalArgumentException("User name cannot be empty");
-        }
-        if(StringUtils.isEmpty(userStoreDomain)){
-            throw new IllegalArgumentException("User store domain cannot be empty");
-        }
-        return csrDAO.listCSRs(userName, userStoreDomain, tenantDomain);
-    }
+    public List<CSR> listCSRs(String userName, String userStoreDomain, String tenantDomain) throws CAException;
 
     /**
      * Lists CSRs by status for a given tenant CA
@@ -169,15 +96,7 @@ public class CSRService {
      * @return List of CSRs with the given status
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
-    public List<CSR> listCSRsByStatus(String tenantDomain, String status) throws CAException {
-        if(StringUtils.isEmpty(tenantDomain)){
-            throw new IllegalArgumentException("Tenant domain cannot be empty");
-        }
-        if(StringUtils.isEmpty(status)){
-            throw new IllegalArgumentException("Certificate status cannot be empty");
-        }
-        return csrDAO.listCSRsByStatus(tenantDomain, status);
-    }
+    public List<CSR> listCSRsByStatus(String tenantDomain, String status) throws CAException;
 
     /**
      * Delete the CSR with given serial number
@@ -186,15 +105,7 @@ public class CSRService {
      * @param tenantDomain The domain of the tenant CA
      * @throws CAException
      */
-    public void deleteCSR(String serialNo, String tenantDomain) throws CAException {
-        if(StringUtils.isEmpty(tenantDomain)){
-            throw new IllegalArgumentException("Tenant domain cannot be empty");
-        }
-        if(StringUtils.isEmpty(serialNo)){
-            throw new IllegalArgumentException("Certificate Serial number cannot be empty");
-        }
-        csrDAO.deleteCSR(serialNo, tenantDomain);
-    }
+    public void deleteCSR(String serialNo, String tenantDomain) throws CAException;
 
     /**
      * Retrieves the CSR by serial number
@@ -203,10 +114,5 @@ public class CSRService {
      * @return The CSR as a PKCS10CertificationRequest
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
-    public PKCS10CertificationRequest getPKCS10CertificationRequest(String serialNo) throws CAException {
-        if(StringUtils.isEmpty(serialNo)){
-            throw new IllegalArgumentException("Certificate Serial number cannot be empty");
-        }
-        return csrDAO.getPKCS10CertificationRequest(serialNo);
-    }
+    public PKCS10CertificationRequest getPKCS10CertificationRequest(String serialNo) throws CAException;
 }

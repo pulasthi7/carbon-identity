@@ -26,11 +26,17 @@ import org.wso2.carbon.identity.certificateauthority.CAConstants;
 import org.wso2.carbon.identity.certificateauthority.config.CAConfiguration;
 import org.wso2.carbon.identity.certificateauthority.scheduledTask.CRLUpdater;
 import org.wso2.carbon.identity.certificateauthority.services.CAConfigurationService;
+import org.wso2.carbon.identity.certificateauthority.services.CAConfigurationServiceImpl;
 import org.wso2.carbon.identity.certificateauthority.services.CRLService;
+import org.wso2.carbon.identity.certificateauthority.services.CRLServiceImpl;
 import org.wso2.carbon.identity.certificateauthority.services.CSRService;
+import org.wso2.carbon.identity.certificateauthority.services.CSRServiceImpl;
 import org.wso2.carbon.identity.certificateauthority.services.CertificateService;
+import org.wso2.carbon.identity.certificateauthority.services.CertificateServiceImpl;
 import org.wso2.carbon.identity.certificateauthority.services.OCSPService;
+import org.wso2.carbon.identity.certificateauthority.services.OCSPServiceImpl;
 import org.wso2.carbon.identity.certificateauthority.services.SCEPService;
+import org.wso2.carbon.identity.certificateauthority.services.SCEPServiceImpl;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.concurrent.Executors;
@@ -99,12 +105,12 @@ public class CAServiceComponent {
         caConfiguration.initialize();
 
         //initialize services
-        caConfigurationService = CAConfigurationService.getInstance();
-        csrService = CSRService.getInstance();
-        certificateService = CertificateService.getInstance();
-        crlService = CRLService.getInstance();
-        ocspService = OCSPService.getInstance();
-        scepService = SCEPService.getInstance();
+        caConfigurationService = CAConfigurationServiceImpl.getInstance();
+        csrService = CSRServiceImpl.getInstance();
+        certificateService = CertificateServiceImpl.getInstance();
+        crlService = CRLServiceImpl.getInstance();
+        ocspService = OCSPServiceImpl.getInstance();
+        scepService = SCEPServiceImpl.getInstance();
 
         //register OSGI services
         bundleContext.registerService(CSRService.class, csrService, null);

@@ -220,7 +220,7 @@ public class RevocationDAO {
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
         }
-        throw new CAException("No revoked certificate with given serial number");
+        return null;
     }
 
     /**

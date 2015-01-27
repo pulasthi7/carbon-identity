@@ -24,11 +24,17 @@ import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.core.AbstractAdmin;
 import org.wso2.carbon.identity.certificateauthority.model.CSR;
 import org.wso2.carbon.identity.certificateauthority.model.Certificate;
+import org.wso2.carbon.identity.certificateauthority.model.RevokedCertificate;
 import org.wso2.carbon.identity.certificateauthority.services.CAConfigurationService;
+import org.wso2.carbon.identity.certificateauthority.services.CAConfigurationServiceImpl;
 import org.wso2.carbon.identity.certificateauthority.services.CRLService;
+import org.wso2.carbon.identity.certificateauthority.services.CRLServiceImpl;
 import org.wso2.carbon.identity.certificateauthority.services.CSRService;
+import org.wso2.carbon.identity.certificateauthority.services.CSRServiceImpl;
 import org.wso2.carbon.identity.certificateauthority.services.CertificateService;
+import org.wso2.carbon.identity.certificateauthority.services.CertificateServiceImpl;
 import org.wso2.carbon.identity.certificateauthority.services.SCEPService;
+import org.wso2.carbon.identity.certificateauthority.services.SCEPServiceImpl;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.List;
@@ -43,24 +49,24 @@ public class CAAdminService extends AbstractAdmin {
     /**
      * DAO for CSR related operations
      */
-    private CSRService csrService = CSRService.getInstance();
+    private CSRService csrService = CSRServiceImpl.getInstance();
 
     /**
      * The manager class for certificate related operations
      */
-    private CertificateService certificateService = CertificateService.getInstance();
+    private CertificateService certificateService = CertificateServiceImpl.getInstance();
 
     /**
      * The manager class for the SCEP operations
      */
-    private SCEPService scepService = SCEPService.getInstance();
+    private SCEPService scepService = SCEPServiceImpl.getInstance();
 
     /**
      * The manager class for the CRL operations
      */
-    private CRLService crlService = CRLService.getInstance();
+    private CRLService crlService = CRLServiceImpl.getInstance();
 
-    private CAConfigurationService configurationService = CAConfigurationService.getInstance();
+    private CAConfigurationService configurationService = CAConfigurationServiceImpl.getInstance();
 
     /**
      * Get the list of CSR assigned to the current tenant
@@ -228,7 +234,13 @@ public class CAAdminService extends AbstractAdmin {
      */
     public int getRevokedReason(String serialNo) throws CAException {
         try {
-            return certificateService.getRevokedCertificate(serialNo).getReason();
+            RevokedCertificate revokedCertificate = certificateService.getRevokedCertificate(serialNo);
+            if (revokedCertificate != null) {
+                return revokedCertificate.getReason();
+            } else {
+                log.error("No revoked certificate with serial number: " + serialNo);
+                throw new CAException("No revoked certificate with given serial number");
+            }
         } catch (CAException e) {
             log.error("Error when retrieving the revoke reason. Certificate serial no:" + serialNo, e);
             throw new CAException("Error when retrieving revoke reason for the certificate");

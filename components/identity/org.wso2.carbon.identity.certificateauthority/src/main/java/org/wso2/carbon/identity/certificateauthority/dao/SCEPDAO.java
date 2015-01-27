@@ -191,6 +191,6 @@ public class SCEPDAO {
         if (log.isDebugEnabled()) {
             log.debug("The certificate is not found for transaction Id:" + transactionId);
         }
-        throw new CAException("Requested certificate is not available");
+        return null;
     }
 }

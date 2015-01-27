@@ -99,6 +99,14 @@ public class SCEPServletImpl extends ScepServlet {
         SCEPService scepService = CAEndpointUtils.getSCEPService();
         List<X509Certificate> certificateList = new ArrayList<X509Certificate>();
         X509Certificate certificate = scepService.getCertificate(tenantDomain, transactionId.toString());
+        if (certificate == null) {
+            //A certificate with given params does not exists, logging as debug since the request is from an
+            // unauthenticated endpoint
+            if (log.isDebugEnabled()) {
+                log.debug("No certificate with transaction id: " + transactionId.toString());
+            }
+            return certificateList;
+        }
         X500Name certificateIssuer = new X500Name(certificate.getIssuerX500Principal().getName());
         X500Name certificateSubject = new X500Name(certificate.getSubjectX500Principal().getName());
         if (certificateIssuer.equals(issuer) && certificateSubject.equals(subject)) {

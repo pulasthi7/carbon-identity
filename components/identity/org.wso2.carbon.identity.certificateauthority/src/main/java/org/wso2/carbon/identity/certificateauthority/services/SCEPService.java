@@ -18,38 +18,13 @@
 
 package org.wso2.carbon.identity.certificateauthority.services;
 
-import org.apache.commons.lang.RandomStringUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.bouncycastle.asn1.ASN1Set;
-import org.bouncycastle.asn1.pkcs.Attribute;
-import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.identity.certificateauthority.CAConstants;
 import org.wso2.carbon.identity.certificateauthority.CAException;
-import org.wso2.carbon.identity.certificateauthority.CAUserService;
-import org.wso2.carbon.identity.certificateauthority.config.CAConfiguration;
-import org.wso2.carbon.identity.certificateauthority.dao.SCEPDAO;
-import org.wso2.carbon.identity.certificateauthority.internal.CAServiceComponent;
-import org.wso2.carbon.user.api.UserStoreException;
 
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 
-public class SCEPService {
-
-    private static final Log log = LogFactory.getLog(CAUserService.class);
-    private static SCEPService instance = new SCEPService();
-    private SCEPDAO scepDAO = new SCEPDAO();
-
-    private SCEPService() {
-    }
-
-    public static SCEPService getInstance() {
-        return instance;
-    }
+public interface SCEPService {
 
     /**
      * Enrolls a CSR from SCEP protocol
@@ -61,45 +36,7 @@ public class SCEPService {
      * @throws org.wso2.carbon.identity.certificateauthority.CAException
      */
     public X509Certificate enroll(PKCS10CertificationRequest certReq, String transactionId, String tenantDomain)
-            throws CAException {
-        if(StringUtils.isEmpty(tenantDomain)){
-            throw new IllegalArgumentException("Tenant domain cannot be empty");
-        }
-        if(StringUtils.isEmpty(transactionId)){
-            throw new IllegalArgumentException("Transaction ID cannot be empty");
-        }
-        if(certReq == null){
-            throw new IllegalArgumentException("Certificate request cannot be null");
-        }
-        try {
-            int tenantId = CAServiceComponent.getRealmService().getTenantManager().getTenantId
-                    (tenantDomain);
-            String token = "";
-            Attribute[] attributes = certReq.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_challengePassword);
-            if (attributes != null && attributes.length > 0) {
-                ASN1Set attributeValues = attributes[0].getAttrValues();
-                if (attributeValues.size() > 0) {
-                    token = attributeValues.getObjectAt(0).toString();
-                }
-            }
-            CAConfigurationService configurationService = CAConfigurationService.getInstance();
-            String serialNo = scepDAO.addScepCsr(certReq, transactionId, token, tenantDomain,
-                    configurationService.getTokenValidity());
-            //To sign the certificate as admin, start a tenant flow (This is executed from an
-            // unauthenticated endpoint, so need to set the tenant info before proceed to signing
-            PrivilegedCarbonContext.startTenantFlow();
-            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
-            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
-            CertificateService certificateService = CertificateService.getInstance();
-            certificateService.signCSR(tenantDomain, serialNo, CAConfiguration.getInstance()
-                    .getScepIssuedCertificateValidity());
-            return certificateService.getX509Certificate(serialNo);
-        } catch (UserStoreException e) {
-            throw new CAException("Invalid tenant domain :" + tenantDomain);
-        } finally {
-            PrivilegedCarbonContext.endTenantFlow();
-        }
-    }
+            throws CAException;
 
     /**
      * Gets the certificate that is issued in the transaction identified by transactionId
@@ -109,15 +46,7 @@ public class SCEPService {
      * @return The enrolled certificate for the transaction
      * @throws CAException
      */
-    public X509Certificate getCertificate(String tenantDomain, String transactionId) throws CAException {
-        if(StringUtils.isEmpty(tenantDomain)){
-            throw new IllegalArgumentException("Tenant domain cannot be empty");
-        }
-        if(StringUtils.isEmpty(transactionId)){
-            throw new IllegalArgumentException("Transaction ID cannot be empty");
-        }
-        return scepDAO.getCertificate(transactionId, tenantDomain);
-    }
+    public X509Certificate getCertificate(String tenantDomain, String transactionId) throws CAException;
 
     /**
      * Gives the CA certificate for the given tenant
@@ -126,12 +55,7 @@ public class SCEPService {
      * @return The CA certificate for the tenant
      * @throws CAException
      */
-    public X509Certificate getCaCert(String tenantDomain) throws CAException {
-        if(StringUtils.isEmpty(tenantDomain)){
-            throw new IllegalArgumentException("Tenant domain cannot be empty");
-        }
-        return CAConfigurationService.getInstance().getConfiguredCACert(tenantDomain);
-    }
+    public X509Certificate getCaCert(String tenantDomain) throws CAException;
 
     /**
      * Gets the CA's private key for the SCEP operations
@@ -140,12 +64,7 @@ public class SCEPService {
      * @return The CA's private key
      * @throws CAException
      */
-    public PrivateKey getCaKey(String tenantDomain) throws CAException {
-        if(StringUtils.isEmpty(tenantDomain)){
-            throw new IllegalArgumentException("Tenant domain cannot be empty");
-        }
-        return CAConfigurationService.getInstance().getConfiguredPrivateKey(tenantDomain);
-    }
+    public PrivateKey getCaKey(String tenantDomain) throws CAException;
 
     /**
      * Generate a SCEP token to be used for SCEP operations
@@ -156,30 +75,5 @@ public class SCEPService {
      * @return The generated SCEP token
      * @throws CAException
      */
-    public String generateScepToken(String userName, String tenantDomain, String userStoreDomain) throws CAException {
-        if(StringUtils.isEmpty(tenantDomain)){
-            throw new IllegalArgumentException("Tenant domain cannot be empty");
-        }
-        if(StringUtils.isEmpty(userName)){
-            throw new IllegalArgumentException("User name cannot be empty");
-        }
-        if(StringUtils.isEmpty(userStoreDomain)){
-            throw new IllegalArgumentException("User store domain cannot be empty");
-        }
-        CAConfigurationService configurationService = CAConfigurationService.getInstance();
-        int tokenLength = configurationService.getTokenLength();
-        String token = "";
-        boolean added = false;
-        int retries = 0;
-        //If the generated token exists in the db (used/available/expired) try with another
-        while (!added) {
-            token = RandomStringUtils.randomAlphanumeric(tokenLength);
-            added = scepDAO.addSCEPToken(token, userName, userStoreDomain, tenantDomain);
-            retries++;
-            if (retries >= CAConstants.MAX_SCEP_TOKEN_RETRIES) {
-                throw new CAException("Token creation failed, All tried keys exists in db. Try updating token length.");
-            }
-        }
-        return token;
-    }
+    public String generateScepToken(String userName, String tenantDomain, String userStoreDomain) throws CAException;
 }
