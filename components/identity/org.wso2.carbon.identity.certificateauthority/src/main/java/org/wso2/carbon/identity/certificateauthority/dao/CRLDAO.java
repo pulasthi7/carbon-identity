@@ -25,8 +25,8 @@ import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.certificateauthority.CAConstants;
 import org.wso2.carbon.identity.certificateauthority.CAException;
 import org.wso2.carbon.identity.certificateauthority.CAServerException;
+import org.wso2.carbon.identity.certificateauthority.bean.CRLData;
 import org.wso2.carbon.identity.certificateauthority.internal.CAServiceComponent;
-import org.wso2.carbon.identity.certificateauthority.model.CRLData;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 
@@ -47,7 +47,7 @@ public class CRLDAO {
     private static final Log log = LogFactory.getLog(CRLDAO.class);
 
     /**
-     * Add CRL model into database
+     * Add CRL bean into database
      *
      * @param crl               x509 CRL
      * @param tenantDomain      Domain of the tenant who issue the CRL

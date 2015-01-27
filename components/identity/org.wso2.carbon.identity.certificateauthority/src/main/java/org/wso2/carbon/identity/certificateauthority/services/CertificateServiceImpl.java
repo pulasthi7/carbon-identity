@@ -47,13 +47,13 @@ import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequest;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.certificateauthority.CAConstants;
 import org.wso2.carbon.identity.certificateauthority.CAException;
+import org.wso2.carbon.identity.certificateauthority.bean.CSR;
+import org.wso2.carbon.identity.certificateauthority.bean.Certificate;
+import org.wso2.carbon.identity.certificateauthority.bean.RevokedCertificate;
 import org.wso2.carbon.identity.certificateauthority.common.CSRStatus;
 import org.wso2.carbon.identity.certificateauthority.common.CertificateStatus;
 import org.wso2.carbon.identity.certificateauthority.dao.CertificateDAO;
 import org.wso2.carbon.identity.certificateauthority.dao.RevocationDAO;
-import org.wso2.carbon.identity.certificateauthority.model.CSR;
-import org.wso2.carbon.identity.certificateauthority.model.Certificate;
-import org.wso2.carbon.identity.certificateauthority.model.RevokedCertificate;
 import org.wso2.carbon.identity.certificateauthority.utils.CAObjectUtils;
 
 import java.io.IOException;

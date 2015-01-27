@@ -34,9 +34,9 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.certificateauthority.CAConstants;
 import org.wso2.carbon.identity.certificateauthority.CAException;
+import org.wso2.carbon.identity.certificateauthority.bean.RevokedCertificate;
 import org.wso2.carbon.identity.certificateauthority.dao.CRLDAO;
 import org.wso2.carbon.identity.certificateauthority.dao.RevocationDAO;
-import org.wso2.carbon.identity.certificateauthority.model.RevokedCertificate;
 import org.wso2.carbon.identity.certificateauthority.scheduledTask.CRLUpdater;
 import org.wso2.carbon.identity.certificateauthority.utils.CAObjectUtils;
 

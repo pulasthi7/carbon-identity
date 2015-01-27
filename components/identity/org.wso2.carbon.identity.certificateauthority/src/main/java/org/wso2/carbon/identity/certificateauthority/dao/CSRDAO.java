@@ -27,9 +27,9 @@ import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.certificateauthority.CAException;
 import org.wso2.carbon.identity.certificateauthority.CAServerException;
+import org.wso2.carbon.identity.certificateauthority.bean.CSR;
 import org.wso2.carbon.identity.certificateauthority.common.CSRStatus;
 import org.wso2.carbon.identity.certificateauthority.internal.CAServiceComponent;
-import org.wso2.carbon.identity.certificateauthority.model.CSR;
 import org.wso2.carbon.identity.certificateauthority.utils.CAObjectUtils;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -150,7 +150,7 @@ public class CSRDAO {
     }
 
     /**
-     * Gets CSR model from database for given serial number
+     * Gets CSR bean from database for given serial number
      *
      * @param serialNo serial number of the CSR
      * @return Details about the CSR

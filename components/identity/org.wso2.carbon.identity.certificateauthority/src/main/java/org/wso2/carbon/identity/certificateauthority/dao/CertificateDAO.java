@@ -24,10 +24,10 @@ import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.certificateauthority.CAConstants;
 import org.wso2.carbon.identity.certificateauthority.CAException;
 import org.wso2.carbon.identity.certificateauthority.CAServerException;
+import org.wso2.carbon.identity.certificateauthority.bean.Certificate;
 import org.wso2.carbon.identity.certificateauthority.common.CSRStatus;
 import org.wso2.carbon.identity.certificateauthority.common.CertificateStatus;
 import org.wso2.carbon.identity.certificateauthority.internal.CAServiceComponent;
-import org.wso2.carbon.identity.certificateauthority.model.Certificate;
 import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -290,7 +290,7 @@ public class CertificateDAO {
     }
 
     /**
-     * Retrieve Certificate model from ResultSet
+     * Retrieve Certificate bean from ResultSet
      *
      * @param resultSet    The result set from which the certificates are retrieved
      * @param tenantDomain The id of the tenant CA relevant to the query

@@ -21,8 +21,8 @@ package org.wso2.carbon.identity.certificateauthority.services;
 import org.apache.commons.lang.StringUtils;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.wso2.carbon.identity.certificateauthority.CAException;
+import org.wso2.carbon.identity.certificateauthority.bean.CSR;
 import org.wso2.carbon.identity.certificateauthority.dao.CSRDAO;
-import org.wso2.carbon.identity.certificateauthority.model.CSR;
 
 import java.util.List;
 

@@ -44,8 +44,8 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
 import org.wso2.carbon.identity.certificateauthority.CAConstants;
 import org.wso2.carbon.identity.certificateauthority.CAException;
-import org.wso2.carbon.identity.certificateauthority.model.Certificate;
-import org.wso2.carbon.identity.certificateauthority.model.RevokedCertificate;
+import org.wso2.carbon.identity.certificateauthority.bean.Certificate;
+import org.wso2.carbon.identity.certificateauthority.bean.RevokedCertificate;
 
 import java.io.IOException;
 import java.security.PrivateKey;

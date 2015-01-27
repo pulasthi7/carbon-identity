@@ -24,9 +24,9 @@ import org.bouncycastle.asn1.x509.CRLReason;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.certificateauthority.CAException;
 import org.wso2.carbon.identity.certificateauthority.CAServerException;
+import org.wso2.carbon.identity.certificateauthority.bean.RevokedCertificate;
 import org.wso2.carbon.identity.certificateauthority.common.CertificateStatus;
 import org.wso2.carbon.identity.certificateauthority.internal.CAServiceComponent;
-import org.wso2.carbon.identity.certificateauthority.model.RevokedCertificate;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 
