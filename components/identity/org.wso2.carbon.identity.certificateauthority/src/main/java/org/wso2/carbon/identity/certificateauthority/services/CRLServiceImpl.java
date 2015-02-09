@@ -193,8 +193,12 @@ public class CRLServiceImpl implements CRLService {
         int deltaCrlNumber = crlDAO.getHighestCrlNumber(tenantDomain, true);
         // nextCrlNumber: The highest number of last CRL (full or delta) and increased by 1 (both
         // full CRLs and deltaCRLs share the same series of CRL Number)
-        int nextCrlNumber = ((fullCrlNumber > deltaCrlNumber) ? fullCrlNumber : deltaCrlNumber) + CAConstants
-                .CRL_NUMBER_INCREMENT;
+        int nextCrlNumber;
+        if (fullCrlNumber > deltaCrlNumber) {
+            nextCrlNumber = fullCrlNumber + CAConstants.CRL_NUMBER_INCREMENT;
+        } else {
+            nextCrlNumber = deltaCrlNumber + CAConstants.CRL_NUMBER_INCREMENT;
+        }
         return createCRL(caCert, caKey, revokedCertificates, nextCrlNumber, CAConstants.CRL_INDICATOR, false);
 
     }
@@ -224,8 +228,12 @@ public class CRLServiceImpl implements CRLService {
         int deltaCrlNumber = crlDAO.getHighestCrlNumber(tenantDomain, true);
         // nextCrlNumber: The highest number of last CRL (full or delta) and increased by 1 (both
         // full CRLs and deltaCRLs share the same series of CRL Number)
-        int nextCrlNumber = ((fullCrlNumber > deltaCrlNumber) ? fullCrlNumber : deltaCrlNumber) + CAConstants
-                .CRL_NUMBER_INCREMENT;
+        int nextCrlNumber;
+        if (fullCrlNumber > deltaCrlNumber) {
+            nextCrlNumber = fullCrlNumber + CAConstants.CRL_NUMBER_INCREMENT;
+        } else {
+            nextCrlNumber = deltaCrlNumber + CAConstants.CRL_NUMBER_INCREMENT;
+        }
         return createCRL(caCert, privateKey, revokedCertificates, nextCrlNumber, fullCrlNumber, false);
     }
 
