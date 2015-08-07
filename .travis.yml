@@ -1,5 +1,4 @@
+sudo: false
 language: java
 before_install:
-  - sudo rm /etc/mavenrc
-  - export M2_HOME=/usr/local/maven
-  - export MAVEN_OPTS="-Dmaven.repo.local=$HOME/.m2/repository -Xms1024m -Xmx3072m -XX:PermSize=512m"
+  - export MAVEN_OPTS="-Xms1024m -Xmx4096m -XX:PermSize=512m"
