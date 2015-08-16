@@ -20,8 +20,10 @@ package org.wso2.carbon.idp.mgt.dao;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.CertData;
 import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -46,6 +48,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.security.cert.CertificateException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -631,7 +634,7 @@ public class IdPManagementDAO {
                 for (ProvisioningConnectorConfig connector : provisioningConnectors) {
                     Property[] connctorProperties = connector.getProvisioningProperties();
 
-                    if (connctorProperties != null && connctorProperties.length > 0) {
+                    if (connctorProperties != null) {
 
                         // SP_IDP_PROVISIONING_CONFIG
                         // TENANT_ID, IDP_ID, PROVISIONING_CONNECTOR_TYPE, IS_ENABLED, IS_DEFAULT
@@ -657,40 +660,43 @@ public class IdPManagementDAO {
                         if (rs.next()) {
                             int provisioningConfigID = rs.getInt(1);
 
-                            for (Property config : connctorProperties) {
+                            if (connctorProperties.length > 0) {
+                                for (Property config : connctorProperties) {
 
-                                if (config == null) {
-                                    continue;
+                                    if (config == null) {
+                                        continue;
+                                    }
+
+                                    // SP_IDP_PROV_CONFIG_PROPERTY
+                                    //TENANT_ID, PROVISIONING_CONFIG_ID, PROPERTY_KEY,
+                                    // PROPERTY_VALUE, PROPERTY_BLOB_VALUE, PROPERTY_TYPE, IS_SECRET
+                                    prepStmt.setInt(1, tenantId);
+                                    prepStmt.setInt(2, provisioningConfigID);
+                                    prepStmt.setString(3, CharacterEncoder.getSafeText(config.getName()));
+
+                                    // TODO : Sect property type accordingly
+                                    if (IdentityApplicationConstants.ConfigElements.PROPERTY_TYPE_BLOB.equals
+                                            (config.getType())) {
+                                        prepStmt.setString(4, null);
+                                        setBlobValue(config.getValue(), prepStmt, 5);
+                                        prepStmt.setString(6, config.getType());
+                                    } else {
+                                        prepStmt.setString(4, CharacterEncoder.getSafeText(config.getValue()));
+                                        setBlobValue(null, prepStmt, 5);
+                                        prepStmt.setString(6, IdentityApplicationConstants.ConfigElements.
+                                                PROPERTY_TYPE_STRING);
+                                    }
+
+                                    if (config.isConfidential()) {
+                                        prepStmt.setString(7, "1");
+                                    } else {
+                                        prepStmt.setString(7, "0");
+                                    }
+                                    prepStmt.addBatch();
+
                                 }
-
-                                // SP_IDP_PROV_CONFIG_PROPERTY
-                                //TENANT_ID, PROVISIONING_CONFIG_ID, PROPERTY_KEY,
-                                // PROPERTY_VALUE, PROPERTY_BLOB_VALUE, PROPERTY_TYPE, IS_SECRET
-                                prepStmt.setInt(1, tenantId);
-                                prepStmt.setInt(2, provisioningConfigID);
-                                prepStmt.setString(3, CharacterEncoder.getSafeText(config.getName()));
-
-                                // TODO : Sect property type accordingly
-                                if (IdentityApplicationConstants.ConfigElements.PROPERTY_TYPE_BLOB.equals
-                                        (config.getType())) {
-                                    prepStmt.setString(4, null);
-                                    setBlobValue(config.getValue(), prepStmt, 5);
-                                    prepStmt.setString(6, config.getType());
-                                } else {
-                                    prepStmt.setString(4, CharacterEncoder.getSafeText(config.getValue()));
-                                    setBlobValue(null, prepStmt, 5);
-                                    prepStmt.setString(6, IdentityApplicationConstants.ConfigElements.
-                                            PROPERTY_TYPE_STRING);
-                                }
-
-                                if (config.isConfidential()) {
-                                    prepStmt.setString(7, "1");
-                                } else {
-                                    prepStmt.setString(7, "0");
-                                }
-                                prepStmt.addBatch();
-
                             }
+
                         }
 
                         // Adding properties for base config
@@ -715,10 +721,10 @@ public class IdPManagementDAO {
             if (inputStream != null) {
                 prepStmt.setBinaryStream(index, inputStream, inputStream.available());
             } else {
-                prepStmt.setBinaryStream(index, inputStream, 0);
+                prepStmt.setBinaryStream(index, new ByteArrayInputStream(CharacterEncoder.getSafeText("").getBytes()), 0);
             }
         } else {
-            prepStmt.setBinaryStream(index, null, 0);
+            prepStmt.setBinaryStream(index, new ByteArrayInputStream(CharacterEncoder.getSafeText("").getBytes()), 0);
         }
     }
 
@@ -1088,7 +1094,7 @@ public class IdPManagementDAO {
                     federatedIdp.setPrimary(false);
                 }
 
-                federatedIdp.setHomeRealmId(rs.getString("dp.HOME_REALM_ID"));
+                federatedIdp.setHomeRealmId(rs.getString("idp.HOME_REALM_ID"));
                 federatedIdp.setCertificate(getBlobValue(rs.getBinaryStream("idp.CERTIFICATE")));
                 federatedIdp.setAlias(rs.getString("idp.ALIAS"));
 
@@ -1266,7 +1272,17 @@ public class IdPManagementDAO {
             }
 
             prepStmt.setString(4, CharacterEncoder.getSafeText(identityProvider.getHomeRealmId()));
+
+            if (StringUtils.isNotBlank(identityProvider.getCertificate())) {
+                try {
+                    IdentityApplicationManagementUtil.getCertData(identityProvider.getCertificate());
+                } catch (CertificateException ex) {
+                    String msg = "Malformed Public Certificate file has been provided.";
+                    throw new IdentityApplicationManagementException(msg, ex);
+                }
+            }
             setBlobValue(identityProvider.getCertificate(), prepStmt, 5);
+
             prepStmt.setString(6, CharacterEncoder.getSafeText(identityProvider.getAlias()));
 
             if (identityProvider.getJustInTimeProvisioningConfig() != null
@@ -1448,7 +1464,17 @@ public class IdPManagementDAO {
             }
 
             prepStmt.setString(3, CharacterEncoder.getSafeText(newIdentityProvider.getHomeRealmId()));
+
+            if (StringUtils.isNotBlank(newIdentityProvider.getCertificate())) {
+                try {
+                    IdentityApplicationManagementUtil.getCertData(newIdentityProvider.getCertificate());
+                } catch (CertificateException ex) {
+                    String msg = "Malformed Public Certificate file has been provided.";
+                    throw new IdentityApplicationManagementException(msg, ex);
+                }
+            }
             setBlobValue(newIdentityProvider.getCertificate(), prepStmt, 4);
+
             prepStmt.setString(5, CharacterEncoder.getSafeText(newIdentityProvider.getAlias()));
 
             if (newIdentityProvider.getJustInTimeProvisioningConfig() != null
@@ -2390,7 +2416,6 @@ public class IdPManagementDAO {
             prepStmt.setInt(2, MultitenantConstants.SUPER_TENANT_ID);
             prepStmt.setString(3, CharacterEncoder.getSafeText(idpName));
             rs = prepStmt.executeQuery();
-            dbConnection.commit();
             if (rs.next()) {
                 return rs.getInt(1);
             }

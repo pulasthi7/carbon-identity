@@ -88,29 +88,11 @@ public class DefaultSAMLAssertionBuilder implements SAMLAssertionBuilder {
 
             NameID nameId = new NameIDBuilder().buildObject();
 
-            if (authReqDTO.getUseFullyQualifiedUsernameAsSubject()) {
-                nameId.setValue(authReqDTO.getUser().getAuthenticatedSubjectIdentifier());
-                if (authReqDTO.getNameIDFormat() != null) {
-                    nameId.setFormat(authReqDTO.getNameIDFormat());
-                } else {
-                    nameId.setFormat(NameIdentifier.EMAIL);
-                }
-            } else {
-                // get tenant domain name from the username
-                String tenantDomainFromUserName = authReqDTO.getUser().getTenantDomain();
-                String authenticatedUserTenantDomain = SAMLSSOUtil.getUserTenantDomain();
-
-                if (authenticatedUserTenantDomain == null
-                        || !authenticatedUserTenantDomain.equals(tenantDomainFromUserName)) {
-                    // this means username comes from a federated Idp. no local
-                    // authenticator used.
-                    // no asserted identity for the user.
-                    nameId.setValue(authReqDTO.getUser().getAuthenticatedSubjectIdentifier());
-                } else {
-                    nameId.setValue(authReqDTO.getUser().getUserName());
-                }
-
+            nameId.setValue(authReqDTO.getUser().getAuthenticatedSubjectIdentifier());
+            if (authReqDTO.getNameIDFormat() != null) {
                 nameId.setFormat(authReqDTO.getNameIDFormat());
+            } else {
+                nameId.setFormat(NameIdentifier.EMAIL);
             }
 
             subject.setNameID(nameId);
@@ -121,7 +103,7 @@ public class DefaultSAMLAssertionBuilder implements SAMLAssertionBuilder {
             SubjectConfirmationData scData = new SubjectConfirmationDataBuilder().buildObject();
             scData.setRecipient(authReqDTO.getAssertionConsumerURL());
             scData.setNotOnOrAfter(notOnOrAfter);
-            if (!authReqDTO.isIdPInitSSO()) {
+            if (!authReqDTO.isIdPInitSSOEnabled()) {
                 scData.setInResponseTo(authReqDTO.getId());
             }
             subjectConfirmation.setSubjectConfirmationData(scData);
@@ -135,7 +117,7 @@ public class DefaultSAMLAssertionBuilder implements SAMLAssertionBuilder {
                     scData = new SubjectConfirmationDataBuilder().buildObject();
                     scData.setRecipient(recipient);
                     scData.setNotOnOrAfter(notOnOrAfter);
-                    if (!authReqDTO.isIdPInitSSO()) {
+                    if (!authReqDTO.isIdPInitSSOEnabled()) {
                         scData.setInResponseTo(authReqDTO.getId());
                     }
                     subjectConfirmation.setSubjectConfirmationData(scData);

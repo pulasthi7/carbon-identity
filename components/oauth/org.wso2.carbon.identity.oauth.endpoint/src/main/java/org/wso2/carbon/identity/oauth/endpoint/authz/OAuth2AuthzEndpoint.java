@@ -50,6 +50,7 @@ import org.wso2.carbon.identity.oauth.config.OAuthServerConfiguration;
 import org.wso2.carbon.identity.oauth.endpoint.OAuthRequestWrapper;
 import org.wso2.carbon.identity.oauth.endpoint.util.EndpointUtil;
 import org.wso2.carbon.identity.oauth.endpoint.util.OpenIDConnectUserRPStore;
+import org.wso2.carbon.identity.oauth2.IdentityOAuth2Exception;
 import org.wso2.carbon.identity.oauth2.dto.OAuth2AuthorizeReqDTO;
 import org.wso2.carbon.identity.oauth2.dto.OAuth2AuthorizeRespDTO;
 import org.wso2.carbon.identity.oauth2.dto.OAuth2ClientValidationResponseDTO;
@@ -111,6 +112,7 @@ public class OAuth2AuthzEndpoint {
         if (StringUtils.isNotEmpty(sessionDataKeyFromConsent)) {
             cacheKey = new SessionDataCacheKey(sessionDataKeyFromConsent);
             resultFromConsent = SessionDataCache.getInstance(OAuthServerConfiguration.getInstance().getSessionDataCacheTimeout()).getValueFromCache(cacheKey);
+            SessionDataCache.getInstance(OAuthServerConfiguration.getInstance().getSessionDataCacheTimeout()).clearCacheEntry(cacheKey);
         }
         if (resultFromLogin != null && resultFromConsent != null) {
 
@@ -555,7 +557,7 @@ public class OAuth2AuthzEndpoint {
         try {
             return EndpointUtil.getLoginPageURL(clientId, sessionDataKey, forceAuthenticate,
                     checkAuthentication, oauthRequest.getScopes(), req.getParameterMap());
-        } catch (UnsupportedEncodingException e) {
+        } catch (IdentityOAuth2Exception e) {
             if (log.isDebugEnabled()) {
                 log.debug("Error while retrieving the login page url.", e);
             }

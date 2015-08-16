@@ -42,6 +42,7 @@ import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserRealm;
+import org.wso2.carbon.user.core.UserStoreConfigConstants;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -395,7 +396,7 @@ public class DefaultClaimHandler implements ClaimHandler {
                     .getSecondaryUserStoreManager(domain).getRealmConfiguration();
 
             String claimSeparator = realmConfiguration.getUserStoreProperty(MULTI_ATTRIBUTE_SEPARATOR);
-            if (claimSeparator != null && !claimSeparator.trim().isEmpty()) {
+            if (StringUtils.isNotBlank(claimSeparator)) {
                 spRequestedClaims.put(MULTI_ATTRIBUTE_SEPARATOR, claimSeparator);
             }
         }
@@ -468,7 +469,9 @@ public class DefaultClaimHandler implements ClaimHandler {
             FrameworkException {
         UserStoreManager userStore = null;
         try {
-            userStore = realm.getUserStoreManager().getSecondaryUserStoreManager(userDomain);
+            userStore = realm.getUserStoreManager().getSecondaryUserStoreManager(StringUtils.isNotBlank(userDomain) ?
+                                                                                 userDomain :
+                                                                                 UserStoreConfigConstants.PRIMARY);
         } catch (UserStoreException e) {
             throw new FrameworkException("Error occurred while retrieving the UserStoreManager " +
                                          "from Realm for " + tenantDomain + " to handle local claims", e);
@@ -662,6 +665,8 @@ public class DefaultClaimHandler implements ClaimHandler {
             return "http://axschema.org";
         } else if (FrameworkConstants.RequestType.CLAIM_TYPE_SCIM.equals(clientType)) {
             return "urn:scim:schemas:core:1.0";
+        } else if (FrameworkConstants.RequestType.CLAIM_TYPE_PASSIVE_STS.equals(clientType)) {
+            return ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT;
         } else if (FrameworkConstants.RequestType.CLAIM_TYPE_WSO2.equals(clientType)) {
             return ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT;
         } else if (claimMappings == null || claimMappings.isEmpty()) {
