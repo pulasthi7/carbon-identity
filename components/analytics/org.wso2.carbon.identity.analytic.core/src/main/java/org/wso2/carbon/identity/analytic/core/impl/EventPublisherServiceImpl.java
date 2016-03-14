@@ -38,7 +38,7 @@ public class EventPublisherServiceImpl implements EventPublisherService {
         try {
             this.dataPublisher = new DataPublisher("thrift",
                     "tcp://" + configuration.getHostName() + ":" + configuration.getThriftTCPPort(),
-                    "ssl://" + configuration.getHostName() + ":" + configuration.getThriftSSLPort(),
+                    null,
                     configuration.getUsername(), configuration.getPassword());
         } catch (DataEndpointAgentConfigurationException e) {
             log.error(e.getMessage(), e);

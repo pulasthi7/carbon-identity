@@ -24,9 +24,14 @@ import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.identity.analytic.core.Configuration;
 import org.wso2.carbon.identity.analytic.core.EventPublisherService;
 import org.wso2.carbon.identity.analytic.core.impl.EventPublisherServiceImpl;
+import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
+
 
 /**
  * @scr.component name="org.wso2.carbon.identity.analytic.core" immediate="true"
+ * @scr.reference name="identityCoreInitializedEventService"
+ * interface="org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent" cardinality="1..1"
+ * policy="dynamic" bind="setIdentityCoreInitializedEventService" unbind="unsetIdentityCoreInitializedEventService"
  */
 public class AnalyticCoreServiceComponent {
 
@@ -36,15 +41,24 @@ public class AnalyticCoreServiceComponent {
 
         try {
             Configuration.init();
+            EventPublisherServiceImpl eventPublisherServiceImpl = new EventPublisherServiceImpl();
+            PublisherServiceValueHolder.setEventPublisherServiceImpl(eventPublisherServiceImpl);
+            context.getBundleContext()
+                    .registerService(EventPublisherService.class.getName(), eventPublisherServiceImpl, null);
         } catch (Throwable e) {
             log.error("Error occurred while activating AnalyticCoreServiceComponent bundle, ", e);
         }
+    }
 
-        EventPublisherServiceImpl eventPublisherServiceImpl = new EventPublisherServiceImpl();
-        PublisherServiceValueHolder.setEventPublisherServiceImpl(eventPublisherServiceImpl);
 
-        context.getBundleContext().registerService(EventPublisherService.class.getName(), eventPublisherServiceImpl, null);
+    protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
+        /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+         is started */
+    }
 
+    protected void setIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
+        /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+         is started */
     }
 
 }

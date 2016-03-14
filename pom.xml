@@ -21,6 +21,13 @@
     <artifactId>carbon-identity</artifactId>
     <packaging>pom</packaging>
     <version>5.0.9-SNAPSHOT</version>
+    <dependencies>
+        <dependency>
+            <groupId>org.wso2.carbon</groupId>
+            <artifactId>org.wso2.carbon.utils</artifactId>
+            <version>4.4.0</version>
+        </dependency>
+    </dependencies>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -372,6 +379,12 @@
 
             <dependency>
                 <groupId>org.wso2.carbon.identity</groupId>
+                <artifactId>org.wso2.carbon.identity.analytic.core</artifactId>
+                <version>${carbon.identity.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.wso2.carbon.identity</groupId>
                 <artifactId>org.wso2.carbon.user.mgt</artifactId>
                 <version>${carbon.identity.version}</version>
             </dependency>
@@ -420,6 +433,11 @@
             <dependency>
                 <groupId>org.wso2.carbon.analytics-common</groupId>
                 <artifactId>org.wso2.carbon.databridge.agent</artifactId>
+                <version>${carbon.databridge.agent.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.analytics-common</groupId>
+                <artifactId>org.wso2.carbon.databridge.commons</artifactId>
                 <version>${carbon.databridge.agent.version}</version>
             </dependency>
             <dependency>
